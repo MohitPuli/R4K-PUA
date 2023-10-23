@@ -1,0 +1,23 @@
+<apex:page showHeader="false" sidebar="false" controller="R4KOnlineApplicationController" action="{!findMatchingAccount}">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+    <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+    <apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
+    
+    <apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+    <apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+    <apex:includeScript value="{!$Resource.bootbox}"/>
+
+	<div class="container">
+		<p class="font-weight-bold text-center">
+			Based on the postcode you entered you are being redirected to <br/>
+			Territory - {!possibleTerritory.Short_Name__c} <br/>
+			Company - {!possibleTerritory.Company_Name__c} <br/>
+			Trading as {!possibleTerritory.Trading_Name__c}
+		</p>
+	</div>
+
+</apex:page>

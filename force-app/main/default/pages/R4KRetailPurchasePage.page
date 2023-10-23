@@ -1,0 +1,725 @@
+<apex:page showHeader="false" controller="R4KWebController" standardStylesheets="false" sidebar="false" action="{!initR4KProduct}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+<apex:includeScript value="https://code.jquery.com/jquery-3.7.0.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<apex:includeScript value="{!$Resource.APR}"/>
+
+<style type="text/css">
+body{
+  background: #f4f7f8;//#EAAF0F
+}
+</style>
+<title>R4K Apply or Buy Now</title>
+<apex:form id="theAppForm">
+    <apex:actionStatus id="counterStatus" style="align:center;">
+        <apex:facet name="start">
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+                &nbsp;
+            </div>
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+                <center><img src="{!$Resource.LoadingGIF2}"/></center>
+            </div>
+        </apex:facet>
+    </apex:actionStatus>
+
+    <apex:actionFunction action="{!addBuyNowLead}" name="addBuyNowLeadFunc" rerender="dummy" status="counterStatus">
+        <apex:param value="" name="buyOption"/>
+    </apex:actionFunction>
+    <apex:actionFunction action="{!proceedToPayment}" name="proceedToPaymentFunc" reRender="dummy" status="counterStatus"/>
+
+    <div  style="background-color:#D81E05;cursor: pointer;" class="text-center">
+        <nav class="navbar">
+            <a class="navbar-brand" style="margin: 1px auto;" href="https://r4k.com.au/">
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCCWhiteR)}" width="20%" alt="R4K"/>
+            </a>
+        </nav>
+    </div>
+
+    <div class="outerBox container-fluid" style="padding-bottom:10px;padding-left:0px;padding-right:0px;">
+
+        <apex:outputPanel rendered="{!IF(lead != null && formType = 'product-missing', true, false)}">
+        <p class="font-weight-bold mt-4 text-center text-danger">Sorry!!! <br/> We could not find the product you are looking for</p>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!IF(formType = 'product', true, false)}" id="productPanel">
+            <div>
+                <table class="table table-bordered table-striped prodDetailsDiv">
+                    <thead class="thead-dark text-white">
+                        <th colspan="2">Product Details</th>
+                    </thead>
+                </table>
+                <apex:repeat value="{!productWrappers}" var="wrap">
+                    <div class="card mt-2">
+                        <div class="card-body"> 
+                            <div class="row" style="padding:0px;">
+                                <div class="col-4">
+                                    <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                                        <ol class="carousel-indicators">
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                                        </ol>
+                                        <div class="carousel-inner" style="max-height:250px;">
+                                            <div class="carousel-item active">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="First slide"/>
+                                            </div>
+                                            <div class="carousel-item">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="Second slide"/>
+                                            </div>
+                                            <div class="carousel-item">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="Third slide"/>
+                                            </div>
+                                        </div>
+                                        <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="sr-only">Previous</span>
+                                        </a>
+                                        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="sr-only">Next</span>
+                                        </a>
+                                    </div>    
+                                </div>
+                                <div class="col-8">
+                                    <table class="table table-sm table-bordered table-striped prodDetailsDiv">
+                                        <tbody>
+                                            <tr>
+                                                <td width="35%">Product Name</td>
+                                                <td width="65%">{!wrap.inventory.ProductName__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Manufacturer</td>
+                                                <td>{!wrap.inventory.Manufacturer_Name__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Product Code</td>
+                                                <td>{!wrap.inventory.ProductCode__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="35%">Quantity</td>
+                                                <td width="65%">
+                                                <apex:selectList size="1" multiselect="false" value="{!wrap.quantity}" styleClass="form-control quantity {!wrap.inventory.ProductCode__c}quantity" onchange="getBuyNowWeeklyAmt();">
+                                                    <apex:selectOption itemValue="1" itemLabel="1"/>
+                                                </apex:selectList>
+                                                </td>
+                                            </tr>
+                                            <tr style="display:none;">
+                                                <td>Cash Price</td>
+                                                <td class="cashPrice {!wrap.inventory.ProductCode__c}cashPrice">{!wrap.inventory.Cash_Price__c}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:repeat>
+                <table class="table table-bordered table-striped stockDiv">
+                    <thead class="thead-dark text-white">
+                        <th colspan="2">Delivery</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mobile</td>
+                            <td>
+                                <apex:inputText html-placeholder="Mobile *" styleClass="mobile form-control" value="{!mobile}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Street</td>
+                            <td>
+                                <apex:inputText html-placeholder="Street *" styleClass="street form-control" value="{!street}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Suburb</td>
+                            <td>
+                                <span class="suburbDisplayText">{!suburb}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Postcode</td>
+                            <td>
+                                <span class="postcodeDisplayText">{!postcode}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <a class="btn btn-block btn-danger text-white buyNowBtn" onclick="validateDelivery('buynow');"></a>
+                            </td>   
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <a class="btn btn-block btn-success text-white payWeeklyBtn" onclick="validateDelivery('payweekly');"></a>
+                            </td>
+                        </tr>
+                        <tr style="display:none;">
+                            <td colspan="2">
+                                <apex:inputText value="{!suburb}" styleClass="form-control suburb" style="display:none;"/>
+                                <apex:inputText value="{!postcode}" styleClass="form-control postcode" style="display:none;"/>
+                                <apex:selectList multiselect="false" size="1" value="{!state}" required="false" styleClass="state form-control" style="display:none;">
+                                    <apex:selectOption itemLabel="--State--" itemValue=""/>
+                                    <apex:selectOption itemLabel="ACT" itemValue="ACT" />
+                                    <apex:selectOption itemLabel="NSW" itemValue="NSW"/>
+                                    <apex:selectOption itemLabel="NT" itemValue="NT"/>
+                                    <apex:selectOption itemLabel="QLD" itemValue="QLD"/>
+                                    <apex:selectOption itemLabel="SA" itemValue="SA"/>
+                                    <apex:selectOption itemLabel="TAS" itemValue="TAS"/>
+                                    <apex:selectOption itemLabel="VIC" itemValue="VIC"/>
+                                    <apex:selectOption itemLabel="WA" itemValue="WA"/>
+                                </apex:selectList>
+                                <apex:inputText value="{!latitude}" styleClass="latitude" style="display:none;"/>
+                                <apex:inputText value="{!longitude}" styleClass="longitude" style="display:none;"/>
+                                <apex:inputText value="{!country}" styleClass="country" style="display:none;"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <apex:inputText value="{!userAgent}" styleClass="userAgent" style="display:none;"/>
+                <apex:inputText value="{!gcid}" styleClass="gcid" style="display:none;"/>
+                <apex:inputText value="{!searchEngine}" styleClass="searchEngine" style="display:none;"/>
+                <apex:inputText value="{!deviceInfo}" styleClass="deviceInfo" style="display:none;"/>
+                <apex:inputText value="{!campaign}" styleClass="campaign" style="display:none;"/>
+                <apex:inputText value="{!gaMedium}" styleClass="gaMedium" style="display:none;"/>
+                <apex:inputText value="{!noOfPagesVisited}" styleClass="noOfPagesVisited" style="display:none;"/>
+                <apex:inputText value="{!noOfUniquePagesVisited}" styleClass="noOfUniquePagesVisited" style="display:none;"/>
+                <apex:inputText value="{!timeSpentOnWeb}" styleClass="timeSpentOnWeb" style="display:none;"/>
+                <apex:inputText value="{!gaKeyword}" styleClass="gaKeyword" style="display:none;"/>
+                <apex:inputText value="{!pagesVisited}" styleClass="pagesVisited" style="display:none;"/>
+                <apex:inputText value="{!ipAddress}" styleClass="ipAddress" style="display:none;"/>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!IF(formType = 'basic', true, false)}" id="basicPanel">
+            <div class="alert alert-danger alert-dismissible fade show deliveryFeeAlertDiv" role="alert" style="display:none;">
+                <strong>Delivery Fee has been added.</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <div>
+                <table class="table table-bordered table-striped prodDetailsDiv">
+                    <thead class="thead-dark text-white">
+                        <th colspan="2">Product Details</th>
+                    </thead>
+                </table>
+                <apex:repeat value="{!productWrappers}" var="wrap">
+                    <div class="card mt-2">
+                        <div class="card-body"> 
+                            <div class="row" style="padding:0px;">
+                                <div class="col-4">
+                                    <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                                        <ol class="carousel-indicators">
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                                            <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                                        </ol>
+                                        <div class="carousel-inner" style="max-height:250px;">
+                                            <div class="carousel-item active">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="First slide"/>
+                                            </div>
+                                            <div class="carousel-item">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="Second slide"/>
+                                            </div>
+                                            <div class="carousel-item">
+                                            <img class="d-block mw-100 mh-100" src="{!wrap.inventory.Image_URL__c}" alt="Third slide"/>
+                                            </div>
+                                        </div>
+                                        <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="sr-only">Previous</span>
+                                        </a>
+                                        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="sr-only">Next</span>
+                                        </a>
+                                    </div>    
+                                </div>
+                                <div class="col-8">
+                                    <table class="table table-sm table-bordered table-striped prodDetailsDiv">
+                                        <tbody>
+                                            <tr>
+                                                <td width="35%">Product Name</td>
+                                                <td width="65%">{!wrap.inventory.ProductName__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Manufacturer</td>
+                                                <td>{!wrap.inventory.Manufacturer_Name__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Product Code</td>
+                                                <td>{!wrap.inventory.ProductCode__c}</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="35%">Quantity</td>
+                                                <td width="65%">
+                                                    {!wrap.quantity}
+                                                    <apex:outputPanel rendered="{!IF(wrap.quantityMessage != null, true, false)}">
+                                                        <br/> <strong>{!wrap.quantityMessage}</strong>
+                                                    </apex:outputPanel>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="35%">Product Availability</td>
+                                                <td width="65%">
+                                                    <span class="{!IF(wrap.deliveryMessage = 'Available','font-weight-bold text-success','font-weight-bold text-danger')}">
+                                                        {!IF(lead.form_type__c == 'Buy Now' && wrap.deliveryMessage != 'Available','Temporarily out of stock',wrap.deliveryMessage)}
+                                                    </span>
+                                                    <apex:outputPanel rendered="{!IF(wrap.deliveryMessage != 'Available', true, false)}">
+                                                        <br/> We have a range of other products available. Click <a href="https://www.r4k.com.au/products/" target="_self">here</a>.
+                                                    </apex:outputPanel>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td width="35%">Delivery Fee</td>
+                                                <td width="65%">
+                                                    {!wrap.deliveryCost}
+                                                </td>
+                                            </tr>
+                                            <tr style="display:none;">
+                                                <td>Cash Price</td>
+                                                <td class="cashPrice {!wrap.inventory.ProductCode__c}cashPrice">{!wrap.inventory.Cash_Price__c}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:repeat>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark text-white">
+                        <th colspan="2">Your Details</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <apex:inputText html-placeholder="First Name *" styleClass="fname form-control" value="{!fname}" style="{!IF(fnameMissing,'border:2px solid red;','')}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <apex:inputText html-placeholder="Last Name *" styleClass="lname form-control" value="{!lname}" style="{!IF(lnameMissing,'border:2px solid red;','')}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <apex:inputText html-placeholder="Email *" styleClass="email form-control" value="{!email}" style="{!IF(emailMissing,'border:2px solid red;','')}"/>
+                            </td>
+                        </tr>
+                                            </tbody>
+                </table>
+                <apex:inputText value="{!userAgent}" styleClass="userAgent" style="display:none;"/>
+                <apex:inputText value="{!gcid}" styleClass="gcid" style="display:none;"/>
+                <apex:inputText value="{!searchEngine}" styleClass="searchEngine" style="display:none;"/>
+                <apex:inputText value="{!deviceInfo}" styleClass="deviceInfo" style="display:none;"/>
+                <apex:inputText value="{!campaign}" styleClass="campaign" style="display:none;"/>
+                <apex:inputText value="{!gaMedium}" styleClass="gaMedium" style="display:none;"/>
+                <apex:inputText value="{!noOfPagesVisited}" styleClass="noOfPagesVisited" style="display:none;"/>
+                <apex:inputText value="{!noOfUniquePagesVisited}" styleClass="noOfUniquePagesVisited" style="display:none;"/>
+                <apex:inputText value="{!timeSpentOnWeb}" styleClass="timeSpentOnWeb" style="display:none;"/>
+                <apex:inputText value="{!gaKeyword}" styleClass="gaKeyword" style="display:none;"/>
+                <apex:inputText value="{!pagesVisited}" styleClass="pagesVisited" style="display:none;"/>
+                <apex:inputText value="{!ipAddress}" styleClass="ipAddress" style="display:none;"/>
+                <apex:commandButton action="{!proceedToCart}" value="Buy Now Price is ${!buyNowAmt}" styleClass="btn btn-block btn-success proceedToCartBtn mt-2" rendered="{!IF(productsDeliverableCount > 0 && lead.form_type__c = 'Buy Now', true, false)}" reRender="basicPanel" status="counterStatus"/>
+                <apex:commandButton action="{!proceedToApplyNow}" value="Next" styleClass="btn btn-block btn-success proceedToApplyBtn mt-2" rendered="{!IF(productsDeliverableCount > 0 && lead.form_type__c != 'Buy Now', true, false)}" reRender="basicPanel" status="counterStatus"/>
+                <apex:commandLink rendered="{!IF(productsDeliverableCount == 0,true,false)}" action="https://www.r4k.com.au/products/" value="Select another product" target="_self" styleClass="btn btn-block btn-success text-white selectAnotherProductBtn mt-2"/>
+            </div>
+        </apex:outputPanel>
+
+
+        <apex:outputPanel rendered="{!IF(lead != null && formType = 'cart', true, false)}" id="cartPanel">
+        <table class="table table-bordered table-striped stockDiv">
+            <thead class="thead-dark text-white">
+                <th colspan="2">Cart</th>
+            </thead>
+            <tbody>
+                <apex:variable value="{!1}" var="i"/>
+                <apex:repeat value="{!cartItems}" var="item">
+                    <apex:outputPanel rendered="{!IF(item.Quantity__c > 0,true,false)}">
+                        <tr>
+                            <td colspan="2" class="font-weight-bold">{!i}.</td>
+                        </tr>
+                        <tr>
+                            <td>Product Name</td>
+                            <td class="font-weight-bold">{!item.Product_Inventory__r.ProductName__c}</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity</td>
+                            <td class="font-weight-bold">
+                                {!item.Quantity__c}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Total Price</td>
+                            <td class="font-weight-bold"><apex:outputText value="{0,number,currency}"><apex:param value="{!item.Total_Price__c - item.Delivery_Fee__c}"/></apex:outputText></td>
+                        </tr>
+                        <tr>
+                            <td>Total Delivery Fee</td>
+                            <td class="font-weight-bold"><apex:outputText value="{0,number,currency}"><apex:param value="{!item.Delivery_Fee__c}"/></apex:outputText></td>
+                        </tr>
+                        <tr>
+                            <td>Total Cost</td>
+                            <td class="font-weight-bold"><apex:outputText value="{0,number,currency}"><apex:param value="{!item.Total_Price__c}"/></apex:outputText></td>
+                        </tr>
+                        <apex:variable value="{!i+1}" var="i"/>             
+                    </apex:outputPanel>
+                </apex:repeat>
+                <tr><td colspan="2">&nbsp;</td></tr>
+                <tr>
+                    <td>Transcation Fee %</td>
+                    <td class="font-weight-bold">{!transactionFeePercent}%</td>
+                </tr>
+                <tr>
+                    <td>Transcation Fee</td>
+                    <td class="font-weight-bold">{!transactionFee}</td>
+                </tr>
+                <tr><td colspan="2">&nbsp;</td></tr>
+                <tr>
+                    <td>Total Payable</td>
+                    <td class="font-weight-bold"><apex:outputText value="{0,number,currency}"><apex:param value="{!totalPayableAmt}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <apex:commandButton action="{!proceedToDelivery}" value="Next" styleClass="btn btn-block btn-success proceedToDeliveryBtn" status="counterStatus" reRender="cartPanel"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!IF(lead != null && formType = 'delivery', true, false)}" id="deliveryPanel">
+            <table class="table table-bordered table-striped deliveryDiv">
+                <thead class="thead-dark text-white">
+                    <th colspan="2">Delivery</th>
+                </thead>
+                <tbody>
+                <tr>
+                    <td width="35%">First Name</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="First Name *" id="fname" styleClass="fname form-control" value="{!fname}" style="{!IF(fnameMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Last Name</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Last Name *" id="lname" styleClass="lname form-control" value="{!lname}" style="{!IF(lnameMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Email</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Email *" id="email" styleClass="email form-control" value="{!email}" style="{!IF(emailMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Mobile Number</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Mobile Number *" id="mobile" styleClass="mobile form-control" value="{!mobile}" style="{!IF(mobileMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Street</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Street *" styleClass="street form-control" value="{!street}" style="{!IF(streetMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Suburb</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Suburb *" styleClass="suburb form-control" value="{!suburb}" style="{!IF(suburbMissing,'border:2px solid red;','')}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">State</td>
+                    <td width="65%">
+                        <apex:selectList multiselect="false" size="1" value="{!state}" required="false" styleClass="state form-control" style="{!IF(stateMissing,'border:2px solid red;','')}">
+                            <apex:selectOption itemLabel="--State--" itemValue=""/>
+                            <apex:selectOption itemLabel="ACT" itemValue="ACT" />
+                            <apex:selectOption itemLabel="NSW" itemValue="NSW"/>
+                            <apex:selectOption itemLabel="NT" itemValue="NT"/>
+                            <apex:selectOption itemLabel="QLD" itemValue="QLD"/>
+                            <apex:selectOption itemLabel="SA" itemValue="SA"/>
+                            <apex:selectOption itemLabel="TAS" itemValue="TAS"/>
+                            <apex:selectOption itemLabel="VIC" itemValue="VIC"/>
+                            <apex:selectOption itemLabel="WA" itemValue="WA"/>
+                        </apex:selectList>
+                        <apex:inputText value="{!latitude}" styleClass="latitude" style="display:none;"/>
+                        <apex:inputText value="{!longitude}" styleClass="longitude" style="display:none;"/>
+                        <apex:inputText value="{!country}" styleClass="country" style="display:none;"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="35%">Postcode</td>
+                    <td width="65%">
+                        <apex:inputText html-placeholder="Postcode *" styleClass="postcode form-control" value="{!postcode}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <a class="btn btn-block btn-success text-white proceedToOrderBtn" onclick="validateCD();">Proceed to payment</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </apex:outputPanel>
+
+    </div>
+</apex:form>
+<script>
+var placeSearch, autocomplete;
+var countryVal, currentStreetAddress, currentSuburb, currentState, currentPostcode, currentCountry, currentLatitude, currentLongitude, showAllSearch, componentForm;
+
+function setupMapsVariables(){
+    countryVal = '{!$CurrentPage.parameters.c}'== 'NZ' ? 'NZ' : 'AU';
+    currentStreetAddress = document.getElementsByClassName("street")[0];
+    currentSuburb = document.getElementsByClassName("suburb")[0];
+    currentState = document.getElementsByClassName("state")[0];
+    currentPostcode = document.getElementsByClassName("postcode")[0];
+    currentCountry = document.getElementsByClassName("country")[0];
+    currentLatitude = document.getElementsByClassName("latitude")[0];
+    currentLongitude = document.getElementsByClassName("longitude")[0];
+    showAllSearch=false;
+
+    componentForm = {
+        street_number: 'short_name',
+        route: 'long_name',
+        locality: 'long_name',
+        administrative_area_level_1: 'short_name',
+        country: 'long_name',
+        postal_code: 'short_name'
+    }; 
+}
+
+function initAutocomplete() {
+    setupMapsVariables();
+    autocomplete = new google.maps.places.Autocomplete(
+    document.getElementsByClassName("street")[0], {types: ['geocode'],componentRestrictions: {country: countryVal}});
+
+    autocomplete.setFields(['address_component']);
+    autocomplete.addListener('place_changed', fillInAddress);
+}
+
+function fillInAddress() {
+    var place = autocomplete.getPlace();
+    var addressStr = '';
+    var streetAddressStr = '';
+    window.street = '';
+    window.suburb = '';
+    window.state = '';
+    window.postcode = '';
+    window.latitude = '';
+    window.longitude = '';
+
+    for (var i = 0; i < place.address_components.length; i++) {
+        var addressType = place.address_components[i].types[0];
+        //alert(addressType);
+        if (componentForm[addressType]) {
+            var val = place.address_components[i][componentForm[addressType]];
+            console.log(addressType+" *** "+val);
+            if(addressType=='street_number'){
+                streetAddressStr = streetAddressStr + val;
+                window.street = streetAddressStr;
+            }else if(addressType=='route'){
+                streetAddressStr = streetAddressStr + ' '+val;
+                window.street = streetAddressStr;
+            }else if(addressType=='locality'){
+                currentSuburb.value = val;
+                window.suburb = val;
+                var suburbDisplayTextElems = document.getElementsByClassName('suburbDisplayText');
+                if(suburbDisplayTextElems.length > 0){
+                $(suburbDisplayTextElems[0]).text(val);
+                }
+            }else if(addressType=='administrative_area_level_1'){
+                currentState.value = val;
+                window.state = val;
+            }else if(addressType=='postal_code'){
+                currentPostcode.value = val;
+                window.postcode = val;
+                var postcodeDisplayTextElems = document.getElementsByClassName('postcodeDisplayText');
+                if(postcodeDisplayTextElems.length > 0){
+                $(postcodeDisplayTextElems[0]).text(val);
+                }
+            }
+            addressStr = addressStr + ' '+ val;
+        }
+    }
+    //console.log('text: ' + $('.street').val());
+
+    currentStreetAddress.value = '';
+    var actualAddress = $('.street').val().toUpperCase();
+
+    if(actualAddress.indexOf(streetAddressStr.toUpperCase()) > 0)
+    {
+        var matchingIndex = actualAddress.indexOf(streetAddressStr.toUpperCase());
+        currentStreetAddress.value += actualAddress.substring(0, matchingIndex);
+    }
+
+    currentStreetAddress.value += streetAddressStr;
+    //console.log('addressStr: '+addressStr);
+    //console.log('streetAdd: '+currentStreetAddress.value + ' suburb: '+currentSuburb.value+' state: '+currentState.value+' postcode: '+currentPostcode.value+' country: '+currentCountry.value);
+  
+    var geocoder = new google.maps.Geocoder;
+    geocoder.geocode({'address': addressStr}, function(results, status) {
+        if(status === 'OK') 
+        {
+            if(results[0])
+            {
+                currentLatitude.value = results[0].geometry.location.lat();
+                currentLongitude.value = results[0].geometry.location.lng();
+                window.latitude = currentLatitude.value;
+                window.longitude = currentLongitude.value;
+                //console.log('LatLng: '+currentLatitude.value+' *** '+currentLongitude.value);          
+            }
+        }else
+        {
+        
+        }
+    });
+    postcodeChanged();
+}
+
+function setDeliveryDetails() {
+    setupMapsVariables();
+    autocomplete = new google.maps.places.Autocomplete(
+    document.getElementsByClassName("street")[0], {types: ['geocode'],componentRestrictions: {country: countryVal}});
+
+    autocomplete.setFields(['address_component']);
+    autocomplete.addListener('place_changed', fillInAddress);
+
+    $('.suburbDisplayText').text(window.suburb);
+    $('.postcodeDisplayText').text(window.postcode);
+    $('.street').val(window.street);
+    $('.suburb').val(window.suburb);
+    $('.state').val(window.state);
+    $('.postcode').val(window.postcode);
+    $('.latitude').val(window.latitude);
+    $('.longitude').val(window.longitude);
+}
+
+function validateDelivery(buyOption){
+    if($('.mobile').val().trim() == '' || !isMobileNumber($('.mobile').val().trim())){
+        bootbox.alert({
+            message: "Please enter a valid Mobile No. No spaces allowed and number should start from 0.",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }else if($('.street').val().trim() == ''){
+        bootbox.alert({
+            message: "Please enter street address",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }else if($('.postcode').val().trim() == '' || $('.postcode').val().length != 4){
+        bootbox.alert({
+            message: "Please enter a valid postcode",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }else{
+        addBuyNowLeadFunc(buyOption);
+    }
+}
+
+function postcodeChanged(){
+    $('.deliveryCost').text('');
+    $('.proceedToCartBtn').css('display','none');
+}
+
+function isValidEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+function isMobileNumber(txtMobNo) {
+    var mob = /^[0]{1}[0-9]{9}$/;
+    if (mob.test(txtMobNo) == false) {
+        //alert("Please enter valid mobile number.");
+        return false;
+    }
+    return true;
+}
+
+function validateCD(){
+    if(!isValidEmail($('.email').val()))
+    {
+        bootbox.alert({
+            message: "Please enter a valid email.",
+            className: 'rubberBand animated'
+        });
+    }else if(!isMobileNumber($('.mobile').val()))
+    {
+        bootbox.alert({
+            message: "Please enter a valid Mobile No. No spaces allowed and number should start from 0.",
+            className: 'rubberBand animated'
+        });
+    }else{
+        proceedToPaymentFunc();
+    }
+}
+
+function getBuyNowWeeklyAmt(){
+    let productQuantities = document.getElementsByClassName('quantity');
+    let productCashPrices = document.getElementsByClassName('cashPrice');
+    let totalCashPrice = 0;
+    let weeklyAmt = 0;
+    for(let i=0; i<productQuantities.length; i++){
+        totalCashPrice += (parseFloat($(productCashPrices[i]).text().replaceAll('$','').replaceAll(',','')) * parseInt($(productQuantities[i]).val()));
+    }
+    totalCashPrice = parseFloat(totalCashPrice.toFixed(2));
+    console.log('totalCashPrice', totalCashPrice);
+    var apr_fees = JSON.parse(aprUtil.getFees(totalCashPrice, 24));
+    console.log('apr_fees.totalFees', apr_fees.totalFees);
+    var result = JSON.parse(aprUtil.calculateAPR(totalCashPrice, apr_fees.totalFees, 24, 'Weekly'));
+    console.log('result', result.rent);
+    weeklyAmt = result.rent;
+
+    $('.payWeeklyBtn').text('Instalment Agreement');
+    $('.buyNowBtn').text('Buy Now Price is $' + totalCashPrice);
+}
+
+$(document).ready(
+    function(){
+        if('{!formType}' == 'product'){
+            getBuyNowWeeklyAmt();
+            var gid = "{!URLENCODE($CurrentPage.parameters.gid)}";
+            if(gid!=null && gid!="")
+            {
+                gaUtil.parseAndSetGlobals(gid);
+                console.log('window.gcid: '+window.gcid);
+                $('.gcid').val(window.gcid);
+                $('.searchEngine').val(window.searchEngine);
+                $('.deviceInfo').val(window.deviceInfo);
+                $('.campaign').val(window.campaign);
+                $('.gaMedium').val(window.gaMedium);
+                $('.noOfPagesVisited').val(window.noOfPagesVisited);
+                $('.noOfUniquePagesVisited').val(window.noOfUniquePagesVisited);
+                $('.timeSpentOnWeb').val(window.SmeSpentOnWeb);
+                $('.gaKeyword').val(window.gaKeyword);
+                $('.pagesVisited').val(window.pagesVisited);
+                $('.ipAddress').val(window.ip_address);
+            }
+            $('.userAgent').val(navigator.userAgent);
+        }else if('{!formType}' == 'basic' && parseFloat('{!deliveryCostAmt}') > 0){
+            $('.deliveryFeeAlertDiv').css('display','');
+        }
+        var mobileElems = document.getElementsByClassName('mobile');
+        if(mobileElems.length > 0){
+            mobileElems[0].type = 'number';
+        }
+    }
+);
+
+window.street = '{!street}';
+window.suburb = '{!suburb}';
+window.state = '{!state}';
+window.postcode = '{!postcode}';
+window.latitude = '{!latitude}';
+window.longitude = '{!longitude}';
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6IoNLUq0kEHUjf2X03l7ySFLAUqHoOSg&libraries=places,geometry&callback=initAutocomplete"></script>  
+</apex:page>

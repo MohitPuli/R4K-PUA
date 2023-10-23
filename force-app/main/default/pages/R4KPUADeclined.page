@@ -1,0 +1,52 @@
+<apex:page showHeader="false" sidebar="false" controller="R4KOnlineApplicationController" action="{!initAcknowledgementAndConsent}">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+    <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+    <apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
+    
+    <apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+    <apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+    <apex:includeScript value="{!$Resource.bootbox}"/>
+
+    <title>R4K PUA</title>
+
+    <div style="cursor: pointer;">
+        <nav class="navbar navbar-expand-lg navbar-light mb-1">
+            <div class="container-fluid d-flex">
+                <div>
+                    <!--<a onclick="openNav();"><i class="fas fa-bars fa-2x"></i></a>-->
+                </div>
+                <div>
+                    <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="R4K"/>
+                </div>
+                <div>
+                    <!--<apex:image url="/servlet/servlet.FileDownload?file={!acct.Customer_Photo_Id__c}" width="70" height="70" alt="{!acct.Name}" rendered="{!IF(acct.Customer_Photo_Id__c <> null,true,false)}"/>-->
+                </div>
+            </div>
+        </nav>
+    </div>
+
+	<div class="container mt-4">
+        <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.param == '' || $CurrentPage.Parameters.param == null, true, false)}">
+            <p class="font-weight-bold">
+                Product Selected - {!ldDesiredProduct} <br/><br/>
+                
+                The above product has been assessed as UNSUITABLE on the basis that: <br/>
+                <ul>
+                    <li>The Instalment Agreement is inconsistent with the applicant&apos;s requirements and objectives and/or</li>
+                    <li>The applicant cannot comply with their obligations or could only do so with substantial hardship</li>
+                </ul>
+            </p>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.param == 'attention', true, false)}">
+            <p class="font-weight-bold">
+                Your application has been sent to the line manager for further assessment.
+            </p>
+        </apex:outputPanel>
+	</div>
+
+</apex:page>

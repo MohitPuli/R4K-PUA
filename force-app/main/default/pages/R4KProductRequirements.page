@@ -1,0 +1,1224 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initEnquiry}" standardstylesheets="false" showheader="false" cache="false">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+    <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+    <apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
+
+    <apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+    <apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+    <apex:includeScript value="{!$Resource.bootbox}"/>
+
+    <style>
+        body 
+        {
+            background-color:#fcb813;
+        }
+
+        .silverDiv
+        {
+            min-height:60vh;
+            background-color:#cbcccb;
+            border-radius:5% 5% 0% 0%;
+            padding:1%;
+        }
+
+        .whiteDiv
+        {
+            background-color:#FFFFFF;
+            border-radius:5% 5% 0% 0%;
+            margin-bottom:20px;
+            padding:3%;
+            width: 100%;
+        }
+
+        .vertical-center {
+            min-height: 100%; 
+            //min-height: 100vh; 
+
+            display: flex;
+            align-items: center;
+        }
+
+        .table-condensed{
+            font-size: 80%;
+        }
+
+        .multisteps-form__title{
+            text-align:center;
+            fon-weight:bold;
+        }
+
+        .labelName{
+            font-size: 14px;
+            padding-left: 5px;
+        }
+
+        .wrap {
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        }
+
+        .range {
+        width: 100%;
+        cursor: pointer;
+        opacity: 0;
+        }
+        .range::-ms-tooltip {
+        display: none;
+        }
+
+        .track {
+            width: 100%;
+            height: 15px;
+            background: white;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .track-inner {
+            width: 0;
+            height: 100%;
+            background: #E24F4F;
+        }
+
+        .thumb {
+            width: 30px;
+            height: 30px;
+            background: #DCDCDC;
+            border-radius: 15%;
+            border: 1px solid black;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(0%, -50%);
+            pointer-events: none;
+        }
+
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            background-color: white;
+            overflow-x: hidden;
+            transition: 0.5s;
+            border-radius:0px 25px 25px 0px;
+        }
+
+        .sidebar a {
+            padding: 8px 8px 8px 2px;
+            text-decoration: none;
+            font-size: 15px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+            border-bottom: 1px solid black;
+        }
+
+        .sidebar .closebtn {
+            //position: absolute;
+            //top: 0;
+            //margin-left:50%;
+            //right: 25px;
+            //font-size: 36px;
+            //margin-left: 50px;
+            //border-bottom: none;
+            //float:right;
+            //padding:10px;
+        }
+
+        ul{
+            list-style-type: none;
+        }
+    </style>
+    <title>R4K Online Application Form</title>
+
+    <apex:form >
+        <apex:actionFunction action="{!updateConsumerLeaseDetails}" name="updateConsumerLeaseDetailsFunc"  onComplete="redirectToRedo('reqdoc');" rerender="theAppForm">
+            <apex:param id="whyConsumerLease" name="whyConsumerLease" value="" />
+            <apex:param id="benefitsOfConsumerLease" name="benefitsOfConsumerLease" value="" />
+        </apex:actionFunction>
+
+        <apex:actionFunction action="{!updateProductDetails}" name="updateProductDetailsFunc" rerender="theAppForm">
+            <apex:param id="prodRequirement" name="prodRequirement" value="" />
+            <apex:param id="prodName" name="prodName" value="" />
+            <apex:param id="prodObjective" name="prodObjective" value="" />
+            <apex:param id="productRequirement" name="productRequirement" value="" />
+        </apex:actionFunction>
+    </apex:form>
+
+
+    <div id="mySidebar" class="sidebar mySidebar font-weight-bold">
+        <div><p style="text-align:right;cursor:pointer;padding:5px;margin-right:5px;"><span onclick="closeNav();"><i class="fas fa-window-close fa-2x"></i></span></p></div>
+        <ul style="cursor: pointer;">
+            <li><a onclick="$('.navList').css('display','none');" class="consentNavLink">Consent</a></li>
+            <li><a onclick="$('.navList').css('display','none');" class="productNavLink">Product Requirements</a></li>
+            <li>
+                <a onclick="toggleDocsNavList();" class="docsNavLink">Documents</a>
+                <ul style="display:none;" class="navList docsNavList">
+                    <li><a onclick="navbarRedirect('sdid','{!acct.Is_PhotoId_Attached_After_Enquiry__c}');" class="idNavLink" style="{!IF(acctId != null && acctId != '' && acct.Is_PhotoId_Attached_After_Enquiry__c,'color:black;','color:#BFBFBF')}">Id</a></li>
+                    <li><a onclick="navbarRedirect('sdbsa','{!acct.Bank_Final_Page__c}');" class="bankNavLink" style="{!IF(acctId != null && acctId != '' && acct.Bank_Final_Page__c,'color:black;','color:#BFBFBF')}">Bank</a></li>
+                    <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',false,true)}">
+                        <li><a onclick="navbarRedirect('sdmgRedo','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Mygov</a></li>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',true,false)}">
+                        <li><a onclick="navbarRedirect('sdwz','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Proof of Income</a></li>
+                    </apex:outputPanel>
+                </ul>
+            </li>
+            <li>
+                <a onclick="toggleAssessNavList();" class="assessNavLink">Verification</a>
+                <ul style="display:none;" class="navList assessNavList">
+                    <li><a onclick="navbarRedirect('bi','{!acct.Basic_Info_Online__c}');" class="contactNavLink" style="{!IF(acctId != null && acctId != '' && acct.Basic_Info_Online__c,'color:black;','color:#BFBFBF')}">Contact Details</a></li>
+                    <li><a onclick="navbarRedirect('incsum','{!acct.Income_Online__c}');" class="incomeNavLink" style="{!IF(acctId != null && acctId != '' && acct.Income_Online__c,'color:black;','color:#BFBFBF')}">Income</a></li>
+                    <li><a onclick="navbarRedirect('expsum','{!acct.Expense_Online__c}');" class="ExpensesNavLink" style="{!IF(acctId != null && acctId != '' && acct.Expense_Online__c,'color:black;','color:#BFBFBF')}">Expenses</a></li>
+                </ul>
+            </li>
+            <li><a onclick="$('.navList').css('display','none');" class="unsuitabilityNavLink">Preliminary Unsuitability Assessment</a></li>
+            <li><a onclick="$('.navList').css('display','none');" class="signingNavLink">Approval &amp; Signing</a></li>
+            <li><a onclick="$('.navList').css('display','none');" class="deliveryNavLink">Delivery</a></li>
+        </ul>
+        <hr/>
+        <ul style="cursor: pointer;">
+                <li>
+                    <a onclick="redirectToOtherDocs();"><i class="fas fa-file-upload"></i> Other Documents</a>
+                </li>
+                <li>
+                    <a onclick="redirectToR4KChat();"><i class="fas fa-comments"></i> Chat</a>
+                </li>
+                <li>
+                    <a onclick="redirectToCallback();">Request Call Back</a>
+                </li>
+        </ul>
+    </div>
+  
+    <div style="cursor: pointer;">
+        <nav class="navbar navbar-expand-lg navbar-light mb-1">
+            <div class="container-fluid d-flex">
+                <div>
+                    <a onclick="openNav();"><i class="fas fa-bars fa-2x"></i></a>
+                </div>
+                <div>
+                    <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="R4K"/>
+                </div>
+                <div>
+                    <apex:image url="/servlet/servlet.FileDownload?file={!acct.Customer_Photo_Id__c}" width="70" height="70" alt="{!acct.Name}" rendered="{!IF(acct.Customer_Photo_Id__c <> null,true,false)}"/>
+                </div>
+            </div>
+        </nav>
+    </div>
+  
+    <div class="mainContent">
+        <div class="fixed-bottom"> 
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Next">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="multisteps-form">
+            <!--form panels-->
+            <div class="row">
+                <div class="col-12 col-lg-8 m-auto">
+                    <form class="multisteps-form__form secondForm">
+                        
+
+                        <!--Panel 0-->
+                        <!--Loading Screen-->
+                        <div class="multisteps-form__panel shadow" data-animation="scaleIn">
+                            <div class="multisteps-form__content whiteDiv">
+                                <div class="col text-center silverDiv">
+                                    <div style="margin-top:20px;">
+                                        <apex:image value="{!$Resource.R4KLoading}" width="300" height="200"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Panel 0-->
+                        <!--Loading Screen-->
+
+
+                        <!--Panel 1-->
+                        <!--Product Requirement-->
+                        <div class="multisteps-form__panel productPanel productPanelPanel shadow js-active" data-animation="scaleIn">
+                            <h5 class="multisteps-form__title mt-4 mb-4">Tell us the reasons why you are applying for a Sale of Goods by Instalment product?</h5>
+                            <div class="multisteps-form__content whiteDiv">
+                                <div class="silverDiv">  
+                                    <div class="form-row p-1 mt-4">
+                                        <input type="hidden" class="hdnCurrentPageVal" value="product"/>
+                                        <label class="labelName">What type of Product do you want to Purchase?</label>
+                                        <select id="prodRequirement" class="multisteps-form__select form-control prodRequirement" onchange="changeProductDropDowns();">
+                                            <option>--None--</option>
+                                            <option>Phones</option>
+                                            <option>Computer/Laptop/Ipad</option>
+                                            <option>Beds &amp; Mattresses</option>
+                                            <option>Gaming</option>
+                                            <option>Washing Machine / Clothes Dryers</option>
+                                            <option>Cooling / Air-Conditioning / Heating</option>
+                                            <option>Prams, Pushers and Baby Furniture</option>
+                                            <option>TV</option>
+                                            <option>Fridge/Freezer</option>
+                                            <option>Couch / Lounge Furniture</option>
+                                            <option>Stereo / Sound Systems</option>
+                                            <option>Bedroom furniture</option>
+                                            <option>Dining Table and/or Chairs</option>
+                                            <option>Garden Furniture or Sheds</option>
+                                            <option>Mowers, Whipper Snippers, Garden tools</option>
+                                            <option>Treadmills, Fitness Equipment</option>
+                                            <option>Vacuums and house cleaning equipment</option>
+                                            <option>Printers and Computer Equipment</option>
+                                            <option>Bikes</option>
+                                            <option>Cameras and photographic equipment</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-row p-1 mt-4">
+                                        <label class="labelName">Product Description you are purchasing:</label><br/>
+                                        <span class="font-weight-bold">{!ldDesiredProduct}</span>
+                                    </div>
+                                    <div class="p-1 mt-4">
+                                        <label class="labelName">Product Requirement (Why do you need this Product?)&nbsp;</label>
+                                        <input class="productDescription" type="text" style="display:none;"/>
+                                        <div id="phonesDropDownDiv" style="display:none;">
+                                            <select id="phonesDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Needs, reasonably priced, phone to keep in contact with family and friends">Needs, reasonably priced, phone to keep in contact with family and friends</option>
+                                            <option value="Needs phone to keep in contact for work">Needs phone to keep in contact for work</option>
+                                            <option value="Needs phone to be contactable for school age children">Needs phone to be contactable for school age children</option>
+                                            <option value="Needs phone to assist in looking for work and keeping in contact with family and friends">Needs phone to assist in looking for work and keeping in contact with family and friends</option>
+                                            <option value="Old phone broken and requires new one to keep in contact with family and friends">Old phone broken and requires new one to keep in contact with family and friends</option>  
+                                            <option value="Needs High-end phone to use extra features like internet, applicant was offered lower priced product but refused.">Needs “High-end” phone to use extra features like internet, applicant was offered lower priced product but refused.</option>   
+                                            <option value="Other">Other</option>  
+                                            </select>
+                                        </div>
+                                        <div id="fridgeDropDownDiv" style="display:none;">
+                                            <select id="fridgeDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Current one broken and needs replacement to keep food fresh">Current one broken and needs replacement to keep food fresh</option>
+                                            <option value="Moved into new / different home and didn’t have one and is an essential item">Moved into new / different home and didn’t have one and is an essential item</option>
+                                            <option value="Needs a bigger one to cater for the number of people in the home">Needs a bigger one to cater for the number of people in the home</option>
+                                            <option value="Other">Other</option>  
+                                            </select>
+                                        </div>
+                                        <div id="tvDropDownDiv" style="display:none;">
+                                            <select id="tvDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Moved into new home and does not have a TV, required to keep family entertained">Moved into new home and does not have a TV, required to keep family entertained</option>
+                                            <option value="Current TV is broken and requires a new one to keep family entertained">Current TV is broken and requires a new one to keep family entertained</option>
+                                            <option value="Need for family member in another room">Need for family member in another room</option>
+                                            <option value="Other">Other</option>  
+                                            </select>
+                                        </div>
+                                        <div id="washingDropDownDiv" style="display:none;">
+                                            <select id="washingDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Currently does not have one, using Laundromat which is very expensive">Currently does not have one, using Laundromat which is very expensive</option>
+                                            <option value="Current one is broken, essential item required to wash clothes">Current one is broken, essential item required to wash clothes</option>
+                                            <option value="Moved into new /different home and didn’t have one and is an essential item">Moved into new /different home and didn’t have one and is an essential item</option>
+                                            <option value="Need bigger one to keep up the washing for family">Need bigger one to keep up the washing for family</option>
+                                            <option value="Other">Other</option>  
+                                            </select>
+                                        </div>
+                                        <div id="computerDropDownDiv" style="display:none;">
+                                            <select id="computerDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need for self – for entertainment, job search, study">Need for self – for entertainment, job search, study</option>
+                                            <option value="Need for family member for entertainment, study, avert depression">Need for family member for entertainment, study, avert depression</option>
+                                            <option value="Need to keep in touch with medical providers and / or Centrelink">Need to keep in touch with medical providers and / or Centrelink</option>
+                                            <option value="Need to connect to internet for entertainment, job search, study">Need to connect to internet for entertainment, job search, study</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="bedDropDownDiv" style="display:none;">
+                                            <select id="bedDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Bed broken and need to replace to be able to get sleep">Bed broken and need to replace to be able to get sleep</option>
+                                            <option value="Bed broken and sleeping on mattress on the floor – need to get better sleep">Bed broken and sleeping on mattress on the floor – need to get better sleep</option>
+                                            <option value="Kids have grown up and need their own beds">Kids have grown up and need their own beds</option>
+                                            <option value="Doesn’t have bed or mattress – need somewhere to sleep">Doesn’t have bed or mattress – need somewhere to sleep</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="couchDropDownDiv" style="display:none;">
+                                            <select id="couchDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Furniture broken and need somewhere to sit">Furniture broken and need somewhere to sit</option>
+                                            <option value="Moved into different house and need furniture for family">Moved into different house and need furniture for family</option>
+                                            <option value="Need cabinet to put TV on">Need cabinet to put TV on</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="soundDropDownDiv" style="display:none;">
+                                            <select id="soundDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need good sound system for entertainment">Need good sound system for entertainment</option>
+                                            <option value="Current system is broken and needs to be replaced to entertain family and friends">Current system is broken and needs to be replaced to entertain family and friends</option>
+                                            <option value="Need better system for more powerful sounds to entertain family and friends">Need better system for more powerful sounds to entertain family and friends</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="gamingDropDownDiv" style="display:none;">
+                                            <select id="gamingDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need for entertainment of self and / or family">Need for entertainment of self and / or family</option>
+                                            <option value="Cannot leave the home much so need for entertainment">Cannot leave the home much so need for entertainment</option>
+                                            <option value="Need to upgrade current system for entertainment">Need to upgrade current system for entertainment</option>
+                                            <option value="Presents for kids / grand-kids / partner">Presents for kids / grand-kids / partner</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="coolingDropDownDiv" style="display:none;">
+                                            <select id="coolingDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Current system is broken, does not cool the place properly">Current system is broken, does not cool the place properly</option>
+                                            <option value="Need to be cooler to be able to sleep">Need to be cooler to be able to sleep</option>
+                                            <option value="Young kids that need to be able to sleep in hot weather">Young kids that need to be able to sleep in hot weather</option>
+                                            <option value="Living in hot climate, needed for family comfort">Living in hot climate, needed for family comfort</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="bedroomDropDownDiv" style="display:none;">
+                                            <select id="bedroomDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="Need cabinets or drawers to store clothes">Need cabinets or drawers to store clothes</option>
+                                            <option value="Need cabinets or tables for the TVs and lamps">Need cabinets or tables for the TVs and lamps</option>
+                                            <option value="Need cots / basinets for baby to sleep">Need cots / basinets for baby to sleep</option>
+                                            <option value="Item required for baby/ child">Item required for baby/ child</option>
+                                            <option value="Item required for general storage">Item required for general storage</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="diningDropDownDiv" style="display:none;">
+                                            <select id="diningDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need somewhere to sit and eat meals with family">Need somewhere to sit and eat meals with family</option>
+                                            <option value="Moved into new place and need to get table and chairs for kitchen">Moved into new place and need to get table and chairs for kitchen</option>
+                                            <option value="Need to replace table and chairs as current ones are broken or too old">Need to replace table and chairs as current ones are broken or too old</option>
+                                            <option value="Item required to accommodate growing family">Item required to accommodate growing family</option>
+                                            <option value="Other">Other</option>  
+                                            </select>
+                                        </div>
+                                        <div id="mowerDropDownDiv" style="display:none;">
+                                            <select id="mowerDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="Moved into new place and now need to look after the garden">Moved into new place and now need to look after the garden</option>
+                                            <option value="Current one is broken and not worth repairing">Current one is broken and not worth repairing</option>
+                                            <option value="Need to earn money from gardening">Need to earn money from gardening</option>
+                                            <option value="Item required to maintain property in accordance with tenancy requirements">Item required to maintain property in accordance with tenancy requirements</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="gardenDropDownDiv" style="display:none;">
+                                            <select id="gardenDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need somewhere to store gardening tools">Need somewhere to store gardening tools</option>
+                                            <option value="Need somewhere to sit in the garden with family and friends">Need somewhere to sit in the garden with family and friends</option>
+                                            <option value="Need to replace existing things as too old, or broken">Need to replace existing things as too old, or broken</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="treadmillDropDownDiv" style="display:none;">
+                                            <select id="treadmillDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="Needed to get fit">Needed to get fit</option>
+                                            <option value="Current items are broken or too old so need to be replace">Current items are broken or too old so need to be replace</option>
+                                            <option value="Item required to assist with fitness / health for medical reasons">Item required to assist with fitness / health for medical reasons</option>  
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="pramDropDownDiv" style="display:none;">
+                                            <select id="pramDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="New baby and need for transport and sleeping">New baby and need for transport and sleeping</option>
+                                            <option value="Current items are too old or broken and need to be replaced">Current items are too old or broken and need to be replaced</option>
+                                            <option value="Item required to accommodate growing family">Item required to accommodate growing family</option> 
+                                            <option value="Other">Other</option> 
+                                            </select>
+                                        </div>
+                                        <div id="vaccumDropDownDiv" style="display:none;">
+                                            <select id="vaccumDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need to be able to clean house">Need to be able to clean house</option>
+                                            <option value="Current items are too old or broken and need to be replaced to keep home clean.">Current items are too old or broken and need to be replaced to keep home clean.</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="printerDropDownDiv" style="display:none;">
+                                            <select id="printerDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="Need to be able to print out documents for study, work, health providers">Need to be able to print out documents for study, work, health providers</option>
+                                            <option value="Need to upgrade system to be able to do more things with computer">Need to upgrade system to be able to do more things with computer</option>
+                                            <option value="Current system needs to be upgraded as too old or broken">Current system needs to be upgraded as too old or broken</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="bikeDropDownDiv" style="display:none;">
+                                            <select id="bikeDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option>
+                                            <option value="Need to get to work as can’t afford car">Need to get to work as can’t afford car</option>
+                                            <option value="Need to get more exercise due to health or medical reasons">Need to get more exercise due to health or medical reasons</option>
+                                            <option value="Presents for kids / grand-kids / partner">Presents for kids / grand-kids / partner</option>
+                                            <option value="Current bike was lost / stolen / broken">Current bike was lost / stolen / broken</option>
+                                            <option value="Item required for local transport, as do not have a car / licence">Item required for local transport, as do not have a car / licence</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="cameraDropDownDiv" style="display:none;">
+                                            <select id="cameraDropDown" onchange="setProductDescription(this);" class="multisteps-form__select form-control">
+                                            <option value="None">None</option> 
+                                            <option value="Need to replace existing items as too old or broken">Need to replace existing items as too old or broken</option>
+                                            <option value="Need for entertainment / holidays">Need for entertainment / holidays</option>
+                                            <option value="Present for kids / grandkids">Present for kids / grandkids</option>
+                                            <option value="Item required as serious hobby and main source of entertainment">Item required as serious hobby and main source of entertainment</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-row p-1 mt-4 productDescriptionOtherDiv" style="display:none;">
+                                            <label class="labelName">Enter the other reason you want to rent this product?</label>
+                                            <input class="multisteps-form__input form-control productDescriptionOther" id="productDescriptionOther" type="text" placeholder="Why do you want to rent this product?" onchange="$('.productDescription').val('Other - '+$('.productDescriptionOther').val());"/>
+                                        </div>
+                                        <div class="form-row p-1 mt-4">
+                                            <label class="labelName">Requirements and Objectives for a Sale of Goods by Instalment</label>
+                                            <input type="text" class="form-control productRequirement" html-placeholder="Requirements and Objectives" style="display:none;"/>
+                                            <select id="prodReqDropDown" class="form-control" onchange="$('.productRequirement').val($(this).val());">
+                                            <option value="None">None</option> 
+                                            <option value="The primary objective is to acquire essential household items for personal use without having to pay the full purchase price upfront." title="The primary objective is to acquire essential household items for personal use without having to pay the full purchase price upfront.">The primary objective is to acquire essential household items for personal use without having to pay the full purchase price upfront.</option>
+                                            <option value="The fortnightly/weekly instalment payments are affordable and fit within my budget." title="The fortnightly/weekly instalment payments are affordable and fit within my budget.">The fortnightly/weekly instalment payments are affordable and fit within my budget.</option>
+                                            <option value="I prefer a contract that requires no down payment as it makes it easier for me to get the items I need without a substantial upfront expense." title="I prefer a contract that requires no down payment as it makes it easier for me to get the items I need without a substantial upfront expense.">I prefer a contract that requires no down payment as it makes it easier for me to get the items I need without a substantial upfront expense.</option>
+                                            <option value="I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a shorter term as I want to pay off my items quickly." title="I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a shorter term as I want to pay off my items quickly.">I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a shorter term as I want to pay off my items quickly.</option>
+                                            <option value="I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a longer term contract as the fortnightly/weekly instalment payments are lower." title="I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a longer term contract as the fortnightly/weekly instalment payments are lower.">I prefer flexibility in payment terms. I would like the ability to choose the duration of the contract. The duration of this contract is a longer term contract as the fortnightly/weekly instalment payments are lower.</option>  
+                                            <option value="I would like a competitive interest rate and minimal additional costs." title="I would like a competitive interest rate and minimal additional costs.">I would like a competitive interest rate and minimal additional costs.</option>   
+                                            <option value="The interest rate is fixed, so I have peace of mind that my interest rate will not increase over the duration of my contract." title="The interest rate is fixed, so I have peace of mind that my interest rate will not increase over the duration of my contract.">The interest rate is fixed, so I have peace of mind that my interest rate will not increase over the duration of my contract.</option>   
+                                            <option value="The interest rate is higher for this item but its an essential household item and I dont have the money to buy the item outright." title="The interest rate is higher for this item but its an essential household item and I dont have the money to buy the item outright.">The interest rate is higher for this item but its an essential household item and I dont have the money to buy the item outright.</option>   
+                                            <option value="My objective is to own the product/s outright." title="My objective is to own the product/s outright.">My objective is to own the product/s outright.</option>   
+                                            <option value="I would like to own this product/s and this contract allows me to own the product/s at the end when I make my final payment to my contract." title="I would like to own this product/s and this contract allows me to own the product/s at the end when I make my final payment to my contract.">I would like to own this product/s and this contract allows me to own the product/s at the end when I make my final payment to my contract.</option>   
+                                            <option value="I require a contract that includes provisions for maintenance, repairs, or warranties, for the items I am purchasing so I know they remain in good working condition during the contract period." title="I require a contract that includes provisions for maintenance, repairs, or warranties, for the items I am purchasing so I know they remain in good working condition during the contract period.">I require a contract that includes provisions for maintenance, repairs, or warranties, for the items I am purchasing so I know they remain in good working condition during the contract period.</option>   
+                                            <option value="I require a quick approval so I can purchase this item that is essential to my livelihood." title="I require a quick approval so I can purchase this item that is essential to my livelihood.">I require a quick approval so I can purchase this item that is essential to my livelihood.</option>   
+                                            <option value="I need my loan approved quickly so I can purchase this item that I cannot purchase outright as I dont have the money to. This contract allows me to view my interest rate and fees before I commit to anything." title="I need my loan approved quickly so I can purchase this item that I cannot purchase outright as I dont have the money to. This contract allows me to view my interest rate and fees before I commit to anything.">I need my loan approved quickly so I can purchase this item that I cannot purchase outright as I dont have the money to. This contract allows me to view my interest rate and fees before I commit to anything.</option>    
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style="min-height:50px;">
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top:50px;">
+                                <button class="btn btn-success ml-auto js-btn-next productNext" id="productNext" style="width:100%;display:none;" type="button" title="Next">Next</button>
+                            </div>
+                        </div>
+                        <!--Panel 1-->
+                        <!--Product Requirement-->
+
+
+                        <!--Panel 2-->
+                        <!--Sale of Goods-->
+                        <div class="multisteps-form__panel consPanel shadow" data-animation="scaleIn">
+                            <h5 class="multisteps-form__title mt-4 mb-4 p-1">Tell us the reasons why you use a Sale of Goods by Instalment?</h5>
+                            <div class="multisteps-form__content whiteDiv">
+                                <div class="silverDiv">  
+                                    <div class="form-row p-1 mt-2">
+                                        <input type="hidden" class="hdnCurrentPageVal" value="cons"/>
+                                        <label class="labelName ml-2 font-weight-bold">Why use a Sale of Goods by Instalment?</label>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease1 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease1val" style="display:inline;">No upfront cost to me</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">    
+                                        <input class="whyConsumerLease whyConsumerLease2 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease2val" style="display:inline;">Bad credit file, not related to hardship</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease3 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease3val" style="display:inline;">I don&apos;t have any savings or lump sum of money to buy this product upfront</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease4 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease4val" style="display:inline;">I can afford to pay the instalment payments that have been calculated for me</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease5 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease5val" style="display:inline;">I want to buy the product so I know I can upgrade if I want to in the future</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease6 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease6val" style="display:inline;">I want to buy the product, not rent it as it suits my lifestyle</span> <br/>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease7 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease7val" style="display:inline;">Don&apos;t want to commit to a phone plan</span>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease8 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease8val" style="display:inline;">I don&apos;t need to secure the purchase, as the product I&apos;m purchasing is used as security</span>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease9 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease9val" style="display:inline;">No early payment options</span>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease10 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease10val" style="display:inline;">I&apos;m protected from interest rate fluctuations as my interest rate is fixed</span>
+                                    </div>
+                                    <div class="p-1 mt-2">
+                                        <input class="whyConsumerLease whyConsumerLease11 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease11val" style="display:inline;">I have the flexibility in choosing my repayment terms</span>
+                                    </div>
+                                    <div class="form-row p-1 mt-4">
+                                        <label class="labelName font-weight-bold">Benefit of Sale of Goods by Instalment?</label>
+                                        <select id="benefitsOfConsumerLease" class="multisteps-form__select form-control benefitsOfConsumerLease">
+                                        <option>--Select--</option>
+                                        <option>Same day processing of the application and immediate delivery</option>
+                                        <option>No upfront payments</option>
+                                        <option>No buyout payment at the end</option>
+                                        <option>Structed payment plan making it easier to budget</option>
+                                        <option>Fixed fortnightly payments that help prevent overspending</option>
+                                        <option>I can own the product after my last repayment</option>
+                                        <option>Flexible repayment terms</option>
+                                        <option>Protection from interest rate fluctuations unlike variable rate credit cards or loans</option>
+                                        <option>No need for additional collateral to purchase a product</option>
+                                        <option>Convenient in-house financing all online, don&apos;t have to leave my home to complete</option>
+                                        <option>Can help me build my credit by making regular instalment payments</option>
+                                        <option>Instalment payments allow me to pay off the balance early without penalties</option>
+                                        <option>Wide range of products available without needing different financing sources</option>
+                                        <option>A relatively simple application process than applying for a traditional loan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <p class="mt-2">Click "I Understand" to proceed. This is the right choice for my purchase.</p>
+                                    </div>
+                                    <div style="min-height:50px;">
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top:50px;">
+                                <button class="btn btn-success ml-auto js-btn-next consNext" id="consNext" style="width:100%;display:none;" type="button" title="I Understand">I Understand</button>
+                            </div>
+                        </div>
+                        <!--Panel 2-->
+                        <!--Sale of Goods-->
+
+
+
+                    
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        let onlineURL = '{!onlineURL}';
+
+        //DOM elements
+        const DOMstrings = {
+            stepsBtnClass: 'multisteps-form__progress-btn',
+            stepsBtns: document.querySelectorAll(`.multisteps-form__progress-btn`),
+            stepsBar: document.querySelector('.multisteps-form__progress'),
+            stepsForm: document.querySelector('.multisteps-form__form'),
+            stepsFormTextareas: document.querySelectorAll('.multisteps-form__textarea'),
+            stepFormPanelClass: 'multisteps-form__panel',
+            stepFormPanels: document.querySelectorAll('.multisteps-form__panel'),
+            stepPrevBtnClass: 'js-btn-prev',
+            stepNextBtnClass: 'js-btn-next',
+            existOptsBtnClass: 'exist-opts', 
+            newOptsBtnClass: 'new-opts',
+            consNextBtnClass : 'consNext',
+            productNextBtnClass : 'productNext',
+        };
+
+        //remove class from a set of items
+        const removeClasses = (elemSet, className) => {
+
+            elemSet.forEach(elem => {
+
+                elem.classList.remove(className);
+
+            });
+
+        };
+
+        //return exect parent node of the element
+        const findParent = (elem, parentClass) => {
+
+            let currentNode = elem;
+
+            while (!currentNode.classList.contains(parentClass)) {
+                currentNode = currentNode.parentNode;
+            }
+
+            return currentNode;
+
+        };
+
+        //get active button step number
+        const getActiveStep = elem => {
+        return Array.from(DOMstrings.stepsBtns).indexOf(elem);
+        };
+
+        //set all steps before clicked (and clicked too) to active
+        const setActiveStep = activeStepNum => {
+
+        //remove active state from all the state
+        removeClasses(DOMstrings.stepsBtns, 'js-active');
+
+        //set picked items to active
+        DOMstrings.stepsBtns.forEach((elem, index) => {
+
+                if (index <= activeStepNum) {
+                    elem.classList.add('js-active');
+                }
+
+            });
+        };
+
+        //get active panel
+        const getActivePanel = () => {
+
+        let activePanel;
+
+        DOMstrings.stepFormPanels.forEach(elem => {
+
+            if (elem.classList.contains('js-active')) {
+
+                activePanel = elem;
+
+            }
+
+        });
+
+        return activePanel;
+
+        };
+
+        //open active panel (and close unactive panels)
+        const setActivePanel = activePanelNum => {
+
+        //remove active class from all the panels
+        removeClasses(DOMstrings.stepFormPanels, 'js-active');
+
+        //show active panel
+        DOMstrings.stepFormPanels.forEach((elem, index) => {
+            if (index === activePanelNum) {
+
+                elem.classList.add('js-active');
+
+                setFormHeight(elem);
+
+            }
+        });
+
+        };
+
+        //set form height equal to current panel height
+        const formHeight = activePanel => {
+
+            const activePanelHeight = activePanel.offsetHeight;
+
+            DOMstrings.stepsForm.style.height = `${activePanelHeight}px`;
+
+        };
+
+        const setFormHeight = () => {
+            const activePanel = getActivePanel();
+
+            formHeight(activePanel);
+        };
+
+        //PREV/NEXT BTNS CLICK
+        DOMstrings.stepsForm.addEventListener('click', e => {
+
+            const eventTarget = e.target;
+
+            //check if we clicked on `PREV` or NEXT` buttons
+            if (!(eventTarget.classList.contains(`${DOMstrings.stepPrevBtnClass}`) || eventTarget.classList.contains(`${DOMstrings.stepNextBtnClass}`)))
+            {
+                return;
+            }
+            //alert(eventTarget.classList+ ' ##### '+ `${DOMstrings.stepPrevBtnClass}` + ' ##### '+`${DOMstrings.existOptsBtnClass}`);
+
+            //find active panel
+            const activePanel = findParent(eventTarget, `${DOMstrings.stepFormPanelClass}`);
+
+            let activePanelNum = Array.from(DOMstrings.stepFormPanels).indexOf(activePanel);
+
+            //set active step and active panel onclick
+            if (eventTarget.classList.contains(`${DOMstrings.stepPrevBtnClass}`)) {
+                activePanelNum--; 
+            } else {
+                activePanelNum++;
+            }
+
+            if(eventTarget.className.includes(`${DOMstrings.productNextBtnClass}`))
+            {
+                console.log('****');
+                if($('.prodRequirement').val() == '' || $('.prodRequirement').val() == '--None--')
+                {
+                    bootbox.alert({
+                    message: "Please select What type of Product do you want to Purchase?",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                if($('.productName').val() == '')
+                {
+                    bootbox.alert({
+                    message: "Please enter Product Description you are purchasing:",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                if($('.productDescription').val() == '' || $('.productDescription').val() == 'None')
+                {
+                    bootbox.alert({
+                    message: "Please select Product Requirement (Why do you need this Product?)",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                if($('.productRequirement').val() == '' || $('.productRequirement').val() == 'None')
+                {
+                    bootbox.alert({
+                    message: "Please select Requirements and Objectives for a Sale of Goods by Instalment",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                $('.mainBtn').text('I Understand');
+                updateProductDetailsFunc($('.prodRequirement').val(),$('.productName').val(),$('.productDescription').val(),$('.productRequirement').val());
+            }
+            else if(eventTarget.className.includes(`${DOMstrings.consNextBtnClass}`))
+            {
+                var whyConsumerLease = '';
+                var checkedCount = 0;
+                var consumerCheckboxes = document.getElementsByClassName('whyConsumerLease');
+                console.log('****'+consumerCheckboxes.length);
+                for(var i=0; i<consumerCheckboxes.length; i++)
+                {
+                    if(consumerCheckboxes[i].checked)
+                    {
+                        whyConsumerLease += $('.whyConsumerLease' + (i+1) + 'val').text();
+                        whyConsumerLease += '; ';
+                        checkedCount++;
+                    }
+                }
+                
+                if(checkedCount == 0)
+                {
+                    bootbox.alert({
+                    message: "Please select why you are using a Sale of Goods by Instalment?",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                if($('.benefitsOfConsumerLease').val() == '' || $('.benefitsOfConsumerLease').val() == '--Select--')
+                {
+                    bootbox.alert({
+                    message: "Please select Benefit of Sale of Goods by Instalment",
+                    className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                $('.fixed-bottom').css('display','none');
+                activePanelNum = 0;
+                updateConsumerLeaseDetailsFunc(whyConsumerLease,$('.benefitsOfConsumerLease').val());
+            }
+            
+            setActivePanel(activePanelNum);
+        });
+
+        //SETTING PROPER FORM HEIGHT ONLOAD
+        window.addEventListener('load', setFormHeight, false);
+
+        //SETTING PROPER FORM HEIGHT ONRESIZE
+        window.addEventListener('resize', setFormHeight, false);
+
+        $(".mainBtn").click(function(){
+            var buttonInputClassName = $(".js-active").find(":button").attr('class');
+            var buttonInputIdName = $(".js-active").find(":button").attr('id');
+            console.log(buttonInputIdName+' ---- '+buttonInputClassName);
+            var refereeValue = "{!IF(prevRefContactList=null || prevRefContactList.size = 0 || (prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds=='none' ) , 'addMore', 'prev')}";
+            console.log('##refereeValue: '+refereeValue);
+            if(typeof buttonInputIdName === 'undefined' && buttonInputClassName!='select2-selection__choice__remove' && buttonInputIdName!='addMoreRef')
+            {
+                console.log('##undefinedValue '+buttonInputClassName);
+                var fileInputIdName = $(".js-active").find(":file").attr('id');
+                if(typeof fileInputIdName === 'undefined')
+                    console.log('##undefinedValue '+fileInputIdName);
+                else{
+                    $('#'+fileInputIdName).click();
+                    return false;
+                }
+            }
+            else if(buttonInputIdName=='photoid-next')
+            {
+                if($("#idType").val()=='Driver License' || ($("#idType").val()=='Passport' && $("#passportCountry").val()!='Australia'))
+                {
+                    var fileInputIdName = $(".js-active").find(":file").attr('id');
+                    if(typeof fileInputIdName === 'undefined')
+                    console.log('##undefinedValue-photoid-next '+fileInputIdName);
+                    else{
+                        $('#'+fileInputIdName).click();
+                        return false;
+                    }
+                }
+                else
+                {
+                    if($("#driverLicence").val()!=null && $("#driverLicence").val()!='')
+                    {
+                        $('#'+buttonInputIdName).click();
+                    }
+                    else{
+                        bootbox.alert({
+                            message: "Please enter your identification number before proceeding.",
+                            className: 'rubberBand animated'
+                        });
+                        return false;
+                    }
+                }
+            } 
+            else if(buttonInputIdName=='bankStDummy')
+            {
+                bootbox.alert({
+                    message: "Please add your bank statement before proceeding",
+                    className: 'rubberBand animated'
+                });
+            } 
+            else if(buttonInputClassName=='select2-selection__choice__remove')    
+            {
+                $('#clinkbenNext').click();
+                return false;
+            }
+            else if(buttonInputIdName=='addMoreRef')
+            {
+                if(refereeValue=='prev')
+                    $('#prev-ref').click();
+                else
+                    $('#addMoreRef').click();
+            } 
+            else if(buttonInputIdName=='addressproofNext')
+            {
+                console.log("##optionSelected: "+optionSelected);
+                if(optionSelected=='no')
+                {
+                    var fileInputIdName = $(".js-active").find(":file").attr('id');
+                    if(typeof fileInputIdName === 'undefined')
+                    console.log('##undefinedValue-addressproofNext '+fileInputIdName);
+                    else{
+                        $('#'+fileInputIdName).click();
+                        return false;
+                    }
+                }
+                else if(optionSelected=='')
+                {
+                    bootbox.alert({
+                        message: "Please select Yes or No",
+                        className: 'rubberBand animated'
+                    });
+                }
+                else
+                {
+                    $('#'+buttonInputIdName).click();
+                }
+            } 
+            else if(buttonInputIdName=='comp-process')
+            {
+                $('#'+buttonInputIdName).click();
+                $('.fixed-bottom').css('display','none');
+            }
+            else{
+                $('#'+buttonInputIdName).click();
+            }
+            return false;
+        });
+
+        function setProductDescription(elem)
+        {
+            //delete old other comments
+            for(var i = 0; i < elem.options.length; i++)
+            {
+                if(elem.options[i].value.startsWith('Other -'))
+                {
+                    $(elem.options[i]).remove();
+                }
+            }
+            
+            $('.productDescription').val('');
+            $('.productDescriptionOther').val('');   
+            
+            if($(elem).val() == 'Other')
+            {        
+                $('.productDescriptionOtherDiv').css('display','');  
+            }else
+            {
+                $('.productDescription').val($(elem).val());
+                $('.productDescriptionOtherDiv').css('display','none');
+            }
+        }
+
+        function changeProductDropDowns()
+        {
+            $('#phonesDropDownDiv').css('display','none');
+            $('#fridgeDropDownDiv').css('display','none');
+            $('#tvDropDownDiv').css('display','none');
+            $('#washingDropDownDiv').css('display','none');
+            $('#computerDropDownDiv').css('display','none');
+            $('#bedDropDownDiv').css('display','none');
+            $('#couchDropDownDiv').css('display','none');
+            $('#soundDropDownDiv').css('display','none');
+            $('#gamingDropDownDiv').css('display','none');
+            $('#coolingDropDownDiv').css('display','none');
+            $('#bedroomDropDownDiv').css('display','none');
+            $('#diningDropDownDiv').css('display','none');
+            $('#mowerDropDownDiv').css('display','none');
+            $('#gardenDropDownDiv').css('display','none');
+            $('#treadmillDropDownDiv').css('display','none');
+            $('#pramDropDownDiv').css('display','none');
+            $('#vaccumDropDownDiv').css('display','none');
+            $('#printerDropDownDiv').css('display','none');
+            $('#bikeDropDownDiv').css('display','none');
+            $('#cameraDropDownDiv').css('display','none');
+            
+            var selectedDropDown = '';
+            $('.whyNotPhonePlanValDiv').css('display','none');
+            
+            if($('.prodRequirement').val() == 'Phones'){
+                $('#phonesDropDownDiv').css('display','');
+                selectedDropDown = '#phonesDropDown';
+                $('.whyNotPhonePlanValDiv').css('display','');
+            }
+            if($('.prodRequirement').val() == 'Fridge/Freezer'){
+                $('#fridgeDropDownDiv').css('display','');
+                selectedDropDown = '#fridgeDropDown';
+            }
+            if($('.prodRequirement').val() == 'TV'){
+                $('#tvDropDownDiv').css('display','');
+                selectedDropDown = '#tvDropDown';
+            }
+            if($('.prodRequirement').val() == 'Washing Machine / Clothes Dryers'){
+                $('#washingDropDownDiv').css('display','');
+                selectedDropDown = '#washingDropDown';
+            }
+            if($('.prodRequirement').val() == 'Computer/Laptop/Ipad'){
+                $('#computerDropDownDiv').css('display','');
+                selectedDropDown = '#computerDropDown';
+            }
+            if($('.prodRequirement').val() == 'Beds & Mattresses'){
+                $('#bedDropDownDiv').css('display','');
+                selectedDropDown = '#bedDropDown';
+            }
+            if($('.prodRequirement').val() == 'Couch / Lounge Furniture'){
+                $('#couchDropDownDiv').css('display','');
+                selectedDropDown = '#couchDropDown';
+            }
+            if($('.prodRequirement').val() == 'Stereo / Sound Systems'){
+                $('#soundDropDownDiv').css('display','');
+                selectedDropDown = '#soundDropDown';
+            }
+            if($('.prodRequirement').val() == 'Gaming'){
+                $('#gamingDropDownDiv').css('display','');
+                selectedDropDown = '#gamingDropDown';
+            }
+            if($('.prodRequirement').val() == 'Cooling / Air-Conditioning / Heating'){
+                $('#coolingDropDownDiv').css('display','');
+                selectedDropDown = '#coolingDropDown';
+            }
+            if($('.prodRequirement').val() == 'Bedroom furniture'){
+                $('#bedroomDropDownDiv').css('display','');
+                selectedDropDown = '#bedroomDropDown';
+            }
+            if($('.prodRequirement').val() == 'Dining Table and/or Chairs'){
+                $('#diningDropDownDiv').css('display','');
+                selectedDropDown = '#diningDropDown';
+            }
+            if($('.prodRequirement').val() == 'Mowers, Whipper Snippers, Garden tools'){
+                $('#mowerDropDownDiv').css('display','');
+                selectedDropDown = '#mowerDropDown';
+            }
+            if($('.prodRequirement').val() == 'Garden Furniture or Sheds'){
+                $('#gardenDropDownDiv').css('display','');
+                selectedDropDown = '#gardenDropDown';
+            }
+            if($('.prodRequirement').val() == 'Treadmills, Fitness Equipment'){
+                $('#treadmillDropDownDiv').css('display','');
+                selectedDropDown = '#treadmillDropDown';
+            }
+            if($('.prodRequirement').val() == 'Prams, Pushers and Baby Furniture'){
+                $('#pramDropDownDiv').css('display','');
+                selectedDropDown = '#pramDropDown';
+            }
+            if($('.prodRequirement').val() == 'Vacuums and house cleaning equipment'){
+                $('#vaccumDropDownDiv').css('display','');
+                selectedDropDown = '#vaccumDropDown';
+            }
+            if($('.prodRequirement').val() == 'Printers and Computer Equipment'){
+                $('#printerDropDownDiv').css('display','');
+                selectedDropDown = '#printerDropDown';
+            }
+            if($('.prodRequirement').val() == 'Bikes'){
+                $('#bikeDropDownDiv').css('display','');
+                selectedDropDown = '#bikeDropDown';
+            }
+            if($('.prodRequirement').val() == 'Cameras and photographic equipment'){
+                $('#cameraDropDownDiv').css('display','');
+                selectedDropDown = '#cameraDropDown';
+            }
+            
+            window.selectedGlobalProductDropDown = selectedDropDown;
+            $('#productDescriptionEditButton').css('display','none');
+            
+            if(selectedDropDown != ''){
+                if(window.changeProductMethodCalledCount == 0)
+                {
+                    var existingProductDescription = $('.productDescription').val().replace(/[\r\n]/g, '. ');
+                    console.log('existingProductDescription: ' + existingProductDescription);
+                    var productDescriptionMatchingLength = 0;
+                    var sel = document.getElementById(selectedDropDown.substring(1));
+                    console.log('selectedDropDown.substring(1) ' + selectedDropDown.substring(1));
+                    for(var i = 0; i < sel.options.length; i++)
+                    {
+                        if(existingProductDescription == sel.options[i].value) 
+                        {
+                            productDescriptionMatchingLength++;
+                        }
+                    }
+                    console.log('productDescriptionMatchingLength: ' + productDescriptionMatchingLength);
+                    if(productDescriptionMatchingLength > 0) 
+                    {
+                        console.log('This option exists');
+                        $(selectedDropDown).val(existingProductDescription);
+                    }else{
+                        console.log('This option does not exists ' + existingProductDescription);
+                        
+                        if(existingProductDescription.startsWith('Other - '))
+                        {
+                            $('#productDescriptionEditButton').css('display','');
+                            $('.productDescriptionOtherDiv').css('display','');
+                            $('.productDescriptionOther').val(existingProductDescription);
+                        }else{
+                            $(selectedDropDown).val('None');
+                            $('.productDescriptionOtherDiv').css('display','none');
+                            $('.productDescriptionOther').val('');
+                        }  
+                    }
+                }else{
+                    //delete old other comments
+                    var sel = document.getElementById(selectedDropDown.substring(1));
+                    for(var i = 0; i < sel.options.length; i++)
+                    {
+                        if(sel.options[i].value.startsWith('Other -'))
+                        {
+                            $(sel.options[i]).remove();
+                        }
+                    }
+                    
+                    $('.productDescription').val('None');
+                    $(selectedDropDown).val('None');
+                    $('.productDescriptionOtherDiv').css('display','none');
+                    $('.productDescriptionOther').val('');
+                }
+            }
+            
+            window.changeProductMethodCalledCount++;
+            
+            //delete old other comments
+            let prodReqDropDown = document.getElementById('prodReqDropDown');
+            for(var i = 0; i < prodReqDropDown.options.length; i++)
+            {
+                if(prodReqDropDown.options[i].value.startsWith('I would like my contract to cover delivery services for my item') || prodReqDropDown.options[i].value.startsWith('I require my contract to cover delivery and installation services for'))
+                {
+                    $(prodReqDropDown.options[i]).remove();
+                }
+            }
+            
+            if($('.prodRequirement').val() != '' && $('.prodRequirement').val() != 'None'){
+                $(prodReqDropDown).append('<option value="I would like my contract to cover delivery services for my item - ' + $('.prodRequirement').val() + '">' + 'I would like my contract to cover delivery services for my item - ' + $('.prodRequirement').val() + '</option>');
+                $(prodReqDropDown).append('<option value="I require my contract to cover delivery and installation services for ' + $('.prodRequirement').val() + '">' + 'I require my contract to cover delivery and installation services for ' + $('.prodRequirement').val() + '</option>');
+            }
+            if($('.productRequirement').val() != '' && $('.productRequirement').val() != 'None'){
+                $('#prodReqDropDown').val($('.productRequirement').val());    
+            }
+        }
+
+        function validateProductDescription()
+        {
+            $(window.selectedGlobalProductDropDown).css('border','');
+            $('.prodRequirement').css('border','');
+            
+            if($('.prodRequirement').val() == 'None' || $('.prodRequirement').val() == '')
+            {       
+                $('.prodRequirement').css('border','3px solid red');
+                bootbox.alert({
+                message: "Please Select Product",
+                className: 'rubberBand animated'
+                });
+                return false;  
+            }
+            
+            if($('.productDescription').val() == 'None' || $('.productDescription').val() == '')
+            {       
+                $(window.selectedGlobalProductDropDown).css('border','3px solid red');
+                bootbox.alert({
+                message: "Please Enter Reason for product",
+                className: 'rubberBand animated'
+                });
+                return false;  
+            }
+        }
+
+        function redirectToOtherDocs()
+        {
+            var otherDocsURL = onlineURL + '/R4KOnlineOtherDocs?id=' + acctId+ '&ld=' + ldId + '&appType=online&n=' + Math.random();
+            window.open(otherDocsURL,'_self');
+        }
+
+        function redirectToR4KChat()
+        {
+            var randomNumber = Math.random();
+            var redirectURL = onlineURL+'/R4KChatPage?appType=online&id='+acctId+'&ld='+ldId+'&n='+randomNumber;
+            window.open(redirectURL,'_self');
+        }
+
+        function openNav() {
+            document.getElementsByClassName("mySidebar")[0].style.width = "250px";
+        }
+
+        function closeNav() {
+            document.getElementsByClassName("mySidebar")[0].style.width = "0";
+        }
+
+        function toggleDocsNavList(){
+            if($('.docsNavList').css('display') != 'none'){
+                $('.navList').css('display','none');    
+            }else{
+                $('.navList').css('display','none');
+                $('.docsNavList').css('display','');
+            }    
+        }
+        function toggleAssessNavList(){
+            if($('.assessNavList').css('display') != 'none'){
+                $('.navList').css('display','none');    
+            }else{
+                $('.navList').css('display','none');
+                $('.assessNavList').css('display','');
+            }    
+        }
+
+        function redirectToRedo(nextParam){
+            var randomNumber = Math.random();
+            let redirectURL = onlineURL +'/R4KOnlineForm?ld={!ldId}&param=' + nextParam + '&redo=yes&n='+randomNumber;
+            window.location.href = redirectURL;
+        }
+
+        // Usage: Stop scrolling below the "myDiv" element
+        var lastDivs = document.getElementsByClassName('lastDiv');
+        if(lastDivs.length > 0){
+            stopScrollingBelowDiv(lastDivs[0]);
+        }
+
+        window.deviceInfo = '';
+    </script>
+</apex:page>

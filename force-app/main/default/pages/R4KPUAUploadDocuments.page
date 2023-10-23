@@ -1,0 +1,300 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!getFormDetails}" standardstylesheets="false" showheader="false">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+<apex:includeScript value="https://www.bankstatements.com.au/js/iframeResizer.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+
+
+    <style>
+        
+        body 
+        {
+            background-color:#fcb813;
+        }
+
+        .silverDiv
+        {
+            min-height:60vh;
+            background-color:#cbcccb;
+            border-radius:5% 5% 0% 0%;
+            padding:1%;
+        }
+
+        .whiteDiv
+        {
+            background-color:#FFFFFF;
+            border-radius:5% 5% 0% 0%;
+            margin-bottom:20px;
+            padding:3%;
+            width: 100%;
+        }
+
+        .vertical-center {
+            min-height: 100%; 
+            //min-height: 100vh; 
+
+            display: flex;
+            align-items: center;
+        }
+
+        .table-condensed{
+            font-size: 80%;
+        }
+
+        .multisteps-form__title{
+            text-align:center;
+            fon-weight:bold;
+        }
+
+        .labelName{
+            font-size: 14px;
+            padding-left: 5px;
+        }
+
+        .wrap {
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .range {
+            width: 100%;
+            cursor: pointer;
+            opacity: 0;
+        }
+        .range::-ms-tooltip {
+            display: none;
+        }
+
+        .track {
+            width: 100%;
+            height: 15px;
+            background: white;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .track-inner {
+            width: 0;
+            height: 100%;
+            background: #E24F4F;
+        }
+
+        .thumb {
+            width: 30px;
+            height: 30px;
+            background: #DCDCDC;
+            border-radius: 15%;
+            border: 1px solid black;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(0%, -50%);
+            pointer-events: none;
+        }
+
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            background-color: white;
+            overflow-x: hidden;
+            transition: 0.5s;
+            border-radius:0px 25px 25px 0px;
+        }
+
+        .sidebar a {
+            padding: 8px 8px 8px 2px;
+            text-decoration: none;
+            font-size: 15px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+            border-bottom: 1px solid black;
+        }
+
+        .sidebar .closebtn {
+            //position: absolute;
+            //top: 0;
+            //margin-left:50%;
+            //right: 25px;
+            //font-size: 36px;
+            //margin-left: 50px;
+            //border-bottom: none;
+            //float:right;
+            //padding:10px;
+        }
+
+        ul{
+            list-style-type: none;
+        }
+    </style>
+
+    <title>R4K PUA</title>
+
+    <apex:form id="theAppForm">
+        <apex:actionStatus id="counterStatus" style="align:center;">
+            <apex:facet name="start">
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+                    <center><img src="{!$Resource.LoadingGIF2}"/></center>
+                </div>
+            </apex:facet>
+        </apex:actionStatus>
+
+        <apex:actionFunction action="{!acceptAcknowledgement}" name="acceptAcknowledgementFunc" rerender="theAppForm" status="counterStatus">
+            <apex:param id="acceptOrDecline" name="acceptOrDecline" value="" />
+        </apex:actionFunction>
+    </apex:form>
+    
+    <div style="cursor: pointer;">
+    <nav class="navbar navbar-expand-lg navbar-light mb-1">
+        <div class="container-fluid d-flex">
+            <div>
+                <!--<a onclick="openNav();"><i class="fas fa-bars fa-2x"></i></a>-->
+            </div>
+            <div>
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="R4K"/>
+            </div>
+            <div>
+                <!--<apex:image url="/servlet/servlet.FileDownload?file={!acct.Customer_Photo_Id__c}" width="70" height="70" alt="{!acct.Name}" rendered="{!IF(acct.Customer_Photo_Id__c <> null,true,false)}"/>-->
+            </div>
+        </div>
+    </nav>
+    </div>
+    
+    <div class="mainContent">
+        <!--<div class="fixed-bottom" style="{!IF($CurrentPage.parameters.param=='com','display:none;','')}"> 
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Next">{!IF($CurrentPage.parameters.param=='sdida','Attach Front page of ID', IF($CurrentPage.parameters.param=='sdcpa','Attach Selfie', IF($CurrentPage.parameters.param=='sdid','Attach Back page of ID','Next')))}</button>
+                </div>
+            </div>
+        </div>-->
+
+        <div class="fixed-bottom" style=""> 
+            <div class="card">
+                <div class="card-body">
+                    <a class="btn btn-success btn-block text-white" onclick="backToLandingPage();">Back to Application</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.param == 'sdid', true, false)}">
+                <div class="multisteps-form__panel sdidPanel shadow js-active" data-animation="scaleIn">
+                    <h5 class="multisteps-form__title mt-4 mb-4">Identification Document - Front</h5>
+                    <div class="multisteps-form__content whiteDiv">
+                        <div class="silverDiv">
+                            <p class="mt-4 mb-4 p-1">Verify Your Identity - Provide Identification Document (Driver&apos;s License, Passport, Keypass)</p>  
+                            <div class="mt-4 mb-4">
+                                <apex:outputPanel rendered="{!acct.Is_PhotoId_Attached_After_Enquiry__c}">
+                                    <p style="float:right;"><a class="btn btn-danger btn-sm text-white" onClick="deletePhotoFunc('{!acctId}','front'); return false;"><i class="far fa-trash-alt"></i></a></p>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!!acct.Is_PhotoId_Attached_After_Enquiry__c}">
+                                    <c:AddAttachmentComponent id="pt" parentId="{!acctId}" DragDropHeight="60px" FileName="Photo Id Front" isCommunitySite="true"/>
+                                </apex:outputPanel>
+                            </div>
+                            <apex:image url="/servlet/servlet.FileDownload?file={!acct.Photo_Id_Front__c}" rendered="{!acct.Is_PhotoId_Attached_After_Enquiry__c}" width="100%" height="100%"/> 
+                        </div>  
+                    </div>
+                </div>
+            </apex:outputPanel>
+
+
+            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.param == 'sdbsa', true, false)}">
+                <div class="multisteps-form__panel shadow rounded sdbsaLoginPanel js-active" data-animation="scaleIn">
+                    <h5 class="multisteps-form__title mt-4 mb-4">Bank Statement Retrieval</h5>
+                    <div class="multisteps-form__content whiteDiv">
+                    <div align="center">              
+                        <div style="margin-top:3px;">  
+                        <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',false,true)}">
+                            <!--<iframe src="https://scv-test.bankstatements.com.au/iframe/RFKM-{!customerNo}" id="exampleIframe" onload="iFrameResize([{log:false}])" scrolling="no"></iframe>-->
+                            <iframe src="https://scv.bankstatements.com.au/iframe/RMBV-{!customerNo}" id="exampleIframe" onload="iFrameResize([{log:false}])" scrolling="no"></iframe>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',true,false)}">
+                            <iframe src="https://www.bankstatements.com.au/r/b/RFNZ-{!customerNo}" id="exampleIframe" onload="iFrameResize([{log:false}])" scrolling="no"></iframe>
+                        </apex:outputPanel>
+                        </div>
+                      </div>
+                  </div>
+                </div>
+            </apex:outputPanel>
+
+
+            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.param == 'sdmg', true, false)}">
+                <div class="multisteps-form__panel shadow sdmgPanel {!IF((acctId!=null && acctId!='') &&$CurrentPage.parameters.param=='sdmg' && !ishybridLinkCompleted && stateMasterState != 'NZ', 'js-active','')}" data-animation="scaleIn">
+                    <h5 class="multisteps-form__title mt-4 mb-4">Centrelink Statement Retrieval</h5>
+                    <div class="multisteps-form__content whiteDiv">
+                        <div align="center">
+                            <div class="button-row d-flex mt-4 col-12">
+                            </div>
+                            
+                            <div style="margin-top:3px;">  
+                                <!--<iframe src="https://test.bankstatements.com.au/iframe/start/RFTC-{!customerNo}?withCentrelink=true&centrelinkOnly=true" id="exampleMyGovIframe" onload="iFrameResize([{log:false}])" scrolling="no"></iframe>-->
+                                <iframe src="https://www.bankstatements.com.au/iframe/start/RFKC-{!customerNo}?withCentrelink=true&centrelinkOnly=true" id="exampleMyGovIframe" onload="iFrameResize([{log:false}])" scrolling="no"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </apex:outputPanel>
+
+
+            
+        </div>
+
+    </div>
+
+    <script>
+        var onlineURL =  '{!onlineURL}';
+        var acctId = "{!acctId}";
+
+        $(document).ready(
+            function(){
+                
+            }
+        );
+
+        function backToLandingPage(){
+            window.open(onlineURL + '/R4KEnquiryLandingPage?id=' + acctId + '&n=' + Math.random(), '_self');
+        }
+
+        function receiveMessage(event)
+        {
+            //console.log(event);
+            //console.log('POST MESSAGE data=' + event.data);
+            //console.log('POST MESSAGE origin=' + event.origin);
+
+            try {
+                var obj = JSON.parse(event.data); 
+                console.log('status: '+obj.status+' event: '+obj.event+' institution: '+obj.data);
+                if(obj.status=='success' && obj.event=='submit_all')
+                {
+                    //alert('hasCompletedMyGovStatement: '+hasCompletedMyGovStatement);
+                        
+                }
+            }catch(err) {
+                console.log('error: '+err.message);
+                
+            }
+        }
+        window.addEventListener("message", receiveMessage, false);
+    </script>
+</apex:page>

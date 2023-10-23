@@ -1,0 +1,504 @@
+<apex:page showHeader="false" controller="R4KWebController" standardStylesheets="false" sidebar="false" action="{!initR4KWeb}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+<apex:includeScript value="https://code.jquery.com/jquery-3.2.1.slim.min.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+<apex:includeScript value="{!$Resource.GoogleAnalytics}"/>
+<style type="text/css">
+body{
+  background: #f4f7f8;//#EAAF0F
+}
+.form-style-5{
+    max-width: 600px;
+    padding: 10px 20px;
+    background: #f4f7f8;
+    margin: 10px auto;
+    padding: 20px;
+    background: #f4f7f8;
+    border-radius: 8px;
+    font-family: Georgia, "Times New Roman", Times, serif;
+}
+.form-style-5 fieldset{
+    border: none;
+}
+.form-style-5 legend {
+    font-size: 1.4em;
+    margin-bottom: 10px;
+}
+.form-style-5 label {
+    display: block;
+    margin-bottom: 8px;
+}
+.form-style-5 input[type="text"],
+.form-style-5 input[type="date"],
+.form-style-5 input[type="datetime"],
+.form-style-5 input[type="email"],
+.form-style-5 input[type="number"],
+.form-style-5 input[type="search"],
+.form-style-5 input[type="time"],
+.form-style-5 input[type="url"],
+.form-style-5 textarea,
+.form-style-5 select {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    background: rgba(255,255,255,.1);
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    margin: 0;
+    outline: 0;
+    padding: 7px;
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    background-color: #e8eeef;
+    color:#525a60;
+    -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+    margin-bottom: 30px;
+   
+}
+.form-style-5 input[type="text"]:focus,
+.form-style-5 input[type="date"]:focus,
+.form-style-5 input[type="datetime"]:focus,
+.form-style-5 input[type="email"]:focus,
+.form-style-5 input[type="number"]:focus,
+.form-style-5 input[type="search"]:focus,
+.form-style-5 input[type="time"]:focus,
+.form-style-5 input[type="url"]:focus,
+.form-style-5 textarea:focus,
+.form-style-5 select:focus{
+    background: #d2d9dd;
+    
+}
+.form-style-5 select{
+    -webkit-appearance: menulist-button;
+    height:35px;
+}
+.form-style-5 .number {
+    background: #D81E05;
+    color: #fff;
+    height: 30px;
+    width: 30px;
+    display: inline-block;
+    font-size: 0.8em;
+    margin-right: 4px;
+    line-height: 30px;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+    border-radius: 15px 15px 15px 0px;
+}
+
+.form-style-5 input[type="submit"],
+.form-style-5 input[type="button"]
+{
+    position: sticky;
+    bottom: 10px;
+    display: block;
+    padding: 18px;
+    color: #000000;
+    margin: 0 auto;
+    background: #FFC966;
+    font-size: 18px;
+    text-align: center;
+    font-style: normal;
+    border: 1px solid #FFC966;
+    border-width: 1px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    width:100%;
+    max-width: 600px;
+}
+
+.otp{
+  display:inline-block;
+  height:75px;
+  padding:5px;
+  text-align:center;
+  border:2px solid black;
+}
+
+.unsetCSS {
+  all: unset; /* Reset all inherited properties to their default values */
+}
+
+.submitBtn
+{
+    position: relative;
+    display: block;
+    padding: 19px 39px 18px 39px;
+    color: #000000;
+    margin: 0 auto;
+    background: #FFC966;
+    font-size: 18px;
+    text-align: center;
+    font-style: normal;
+    width: 100%;
+    border: 1px solid #FFC966;
+    border-width: 1px 1px 3px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+</style>
+<title>R4K Web</title>
+<div  style="background-color:#D81E05;cursor: pointer;" class="text-center">
+<nav class="navbar">
+  <a class="navbar-brand" style="margin: 1px auto;" href="{!IF(formType = 'rent4keeps','https://rent4keeps.com.au/','https://r4k.com.au/')}">
+    <apex:image value="{!URLFOR($Resource.R4KLogoTransparent)}" width="50%" alt="Rent4Keeps" rendered="{!IF(formType = 'rent4keeps',true,false)}"/>
+    <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCCWhiteR)}" width="20%" alt="R4K" rendered="{!IF(formType = 'rent4keeps',false,true)}"/>
+  </a>
+</nav>
+</div>
+
+<div class="outerBox" style="padding-bottom:10px;">
+<apex:form id="appForm">
+
+<apex:actionStatus id="counterStatus" style="align:center;">
+    <apex:facet name="start">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+            &nbsp;
+        </div>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+            <center><img src="{!$Resource.LoadingGIF2}"/></center>
+        </div>
+    </apex:facet>
+</apex:actionStatus>
+
+<apex:actionFunction action="{!authenticateOTPCode}" name="authenticateOTPCodeFunc" rerender="theAppForm">
+    <apex:param id="otpCode" name="otpCode" value="" />
+</apex:actionFunction>
+
+<apex:outputPanel rendered="{!submissionError}">
+<div class="alert alert-danger">
+    <p class="font-weight-bold">There was a problem with your submission. Please review the fields below.</p>
+</div>
+</apex:outputPanel>
+
+<div class="otpDiv text-center mt-4 form-style-5" style="{!IF(formType='rep','','display:none;')}">
+<p style="font-weight:bold;">Thanks for your submission. <br/> One of our representatives will contact you shortly.</p>
+</div>
+
+<div class="otpDiv text-center mt-4 form-style-5" style="{!IF(formType='otp' || formType='otperror','','display:none;')}">
+
+<apex:outputPanel rendered="{!IF(formType='otperror',true,false)}">
+<p style="color:red;font-weight:bold;">The OTP code you have entered is incorrect. <br/> Please try again.</p>
+</apex:outputPanel>
+
+<h3>SMS VERIFICATION </h3>
+
+<p>
+An SMS has been sent to {!lead.MobilePhone} <br/>
+Please add the 5-digit SMS code
+</p>
+
+<div class="mt-4">
+    <input class="otp unsetCSS" style="display:inline-block; width:18%; height:75px; padding:5px; text-align:center; border:2px solid black;" type="text" oninput="digitValidate(this)" onkeyup="tabChange(1)" maxlength="1" />
+    <input class="otp unsetCSS" style="display:inline-block; width:18%; height:75px; padding:5px; text-align:center; border:2px solid black;" type="text" oninput="digitValidate(this)" onkeyup="tabChange(2)" maxlength="1" />
+    <input class="otp unsetCSS" style="display:inline-block; width:18%; height:75px; padding:5px; text-align:center; border:2px solid black;" type="text" oninput="digitValidate(this)" onkeyup="tabChange(3)" maxlength="1" />
+    <input class="otp unsetCSS" style="display:inline-block; width:18%; height:75px; padding:5px; text-align:center; border:2px solid black;" type="text" oninput="digitValidate(this)" onkeyup="tabChange(4)" maxlength="1" />
+    <input class="otp unsetCSS" style="display:inline-block; width:18%; height:75px; padding:5px; text-align:center; border:2px solid black;" type="text" oninput="digitValidate(this)" onkeyup="tabChange(5)" maxlength="1" />
+</div>
+
+<a class="mt-4 submitBtn" onclick="validateOtp();">Submit</a>
+
+</div>
+
+<div class="applyDiv" style="{!IF(formType='apply' || formType='r4k' || formType='rent4keeps' || formType='callback' || formType='contact','','display:none;')}">
+
+<apex:outputPanel rendered="{!IF(formType='rent4keeps',true,false)}">
+    <p style="font-weight:bold;text-align:center;" class="mt-4 mb-4">
+        Thank you for your enquiry. We pride ourselves on unmatched customer service. <br/>
+        Please complete the form below so we can get back to you as a priority. <br/>
+        Alternatively, you can call us during business hours on <span style="color:red;">1300 763 020</span> <br/>
+        We look forward to assisting you soon.
+    </p>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF(formType='rent4keeps',false,true)}">
+    <p style="font-weight:bold;text-align:center;" class="mt-4 mb-4">
+        Thank you for enquiring about the R4K service. <br/>
+        Please complete the form below so we can best assist you with your application.<br/>
+        Alternatively you can call us on <span style="color:red;">1300 1300 77</span>
+    </p>
+</apex:outputPanel>
+
+<div class="form-style-5" style="margin-top:0px;margin-bottom:0px;padding-bottom:10px;">
+
+
+<fieldset>
+<span id="sfname" data-toggle="tooltip" data-placement="top" title="First Name"><apex:inputText html-placeholder="First Name *" id="fname" styleClass="fname" value="{!fname}" onclick="clickInputElement('#sfname');" style="{!IF(fnameMissing,'border:2px solid red;','')}"/></span>
+<span id="slname" data-toggle="tooltip" data-placement="top" title="Last Name"><apex:inputText html-placeholder="Last Name *" id="lname" styleClass="lname" value="{!lname}" onclick="clickInputElement('#slname');" style="{!IF(lnameMissing,'border:2px solid red;','')}"/></span>
+<span id="semail" data-toggle="tooltip" data-placement="top" title="Email"><apex:inputText html-placeholder="Email *" id="email" styleClass="email" value="{!email}" onclick="clickInputElement('#semail');" style="{!IF(emailMissing,'border:2px solid red;','')}"/></span>
+<span id="smobile" data-toggle="tooltip" data-placement="top" title="Mobile Number"><apex:inputText html-placeholder="Mobile Number *" id="mobile" styleClass="mobile" value="{!mobile}" onclick="clickInputElement('#smobile');" style="{!IF(mobileMissing,'border:2px solid red;','')}"/></span>
+<div style="{!IF(formType='apply' || formType='callback','','display:none;')}">
+<span id="sstreet" data-toggle="tooltip" data-placement="top" title="Street"><apex:inputText html-placeholder="Street *" id="street" styleClass="street" value="{!street}" onclick="clickInputElement('#sstreet');" style="{!IF(streetMissing,'border:2px solid red;','')}"/></span>
+<span id="ssuburb" data-toggle="tooltip" data-placement="top" title="Suburb"><apex:inputText html-placeholder="Suburb *" id="suburb" styleClass="suburb" value="{!suburb}" onclick="clickInputElement('#ssuburb');" style="{!IF(suburbMissing,'border:2px solid red;','')}"/></span>
+<span id="sstate" data-toggle="tooltip" data-placement="top" title="State">
+<apex:selectList multiselect="false" size="1" value="{!state}" required="false" styleClass="state" onclick="clickInputElement('#sstate');" style="{!IF(stateMissing,'border:2px solid red;','')}">
+    <apex:selectOption itemLabel="--State--" itemValue=""/>
+    <apex:selectOption itemLabel="ACT" itemValue="ACT" />
+    <apex:selectOption itemLabel="NSW" itemValue="NSW"/>
+    <apex:selectOption itemLabel="NT" itemValue="NT"/>
+    <apex:selectOption itemLabel="QLD" itemValue="QLD"/>
+    <apex:selectOption itemLabel="SA" itemValue="SA"/>
+    <apex:selectOption itemLabel="TAS" itemValue="TAS"/>
+    <apex:selectOption itemLabel="VIC" itemValue="VIC"/>
+    <apex:selectOption itemLabel="WA" itemValue="WA"/>
+</apex:selectList>
+</span>
+</div>
+<span id="spostcode" data-toggle="tooltip" data-placement="top" title="Postcode"><apex:inputText html-placeholder="Postcode *" id="postcode" styleClass="postcode" value="{!postcode}" onclick="clickInputElement('#spostcode');" style="{!IF(postcodeMissing,'border:2px solid red;','')}"/></span>
+<div style="{!IF(formType='apply' || formType='contact','','display:none;')}">
+<span id="scrn" data-toggle="tooltip" data-placement="top" title="CRN (Optional)" style="display:none;"><apex:inputText html-placeholder="CRN" id="crn" styleClass="crn" value="{!crn}" onclick="clickInputElement('#scrn');"/></span>
+<span id="showdidyou" data-toggle="tooltip" data-placement="top" title="How did you hear about us?">
+<apex:selectList multiselect="false" size="1" value="{!howDidYouHear}" required="false" onclick="clickInputElement('#showdidyou');">
+    <apex:selectOption itemLabel="--How did you hear about us--" itemValue=""/>
+    <apex:selectOption itemLabel="Billboard" itemValue="Billboard" />
+    <apex:selectOption itemLabel="Bus" itemValue="Bus"/>
+    <apex:selectOption itemLabel="Car" itemValue="Car"/>
+    <apex:selectOption itemLabel="Cinema" itemValue="Cinema"/>
+    <apex:selectOption itemLabel="Customer Referral" itemValue="Customer Referral"/>
+    <apex:selectOption itemLabel="Facebook" itemValue="Facebook"/>
+    <apex:selectOption itemLabel="Google Ad" itemValue="Google Ad"/>
+    <apex:selectOption itemLabel="Instagram" itemValue="Instagram"/>
+    <apex:selectOption itemLabel="Letterbox Leaflet" itemValue="Letterbox Leaflet"/>
+    <apex:selectOption itemLabel="Newspaper" itemValue="Newspaper"/>
+    <apex:selectOption itemLabel="Radio" itemValue="Radio"/>
+    <apex:selectOption itemLabel="Repeat Customer" itemValue="Repeat Customer"/>
+    <apex:selectOption itemLabel="Retailer Referral" itemValue="Retailer Referral"/>
+    <apex:selectOption itemLabel="Shopping Center" itemValue="Shopping Center"/>
+    <apex:selectOption itemLabel="TV" itemValue="TV"/>
+    <apex:selectOption itemLabel="Walk-In" itemValue="Walk-In"/>
+    <apex:selectOption itemLabel="Website" itemValue="Website"/>
+    <apex:selectOption itemLabel="Yellow Envelope" itemValue="Yellow Envelope"/>
+    <apex:selectOption itemLabel="Other" itemValue="Other"/>
+</apex:selectList>
+</span>
+</div>
+<div style="{!IF(formType='apply','','display:none;')}">
+<span id="sproduct" data-toggle="tooltip" data-placement="top" title="Name of the product you are applying for"><apex:inputTextArea html-placeholder="Name of the product you are applying for" id="productName" styleClass="productName" value="{!productName}" onclick="clickInputElement('#sproduct');" rows="4"/></span>    
+</div>
+<div style="{!IF(formType='apply' || formType='callback','display:none;','')}">
+<span id="sreason" data-toggle="tooltip" data-placement="top" title="Reason For Enquiry">
+<apex:selectList multiselect="false" size="1" value="{!reasonForEnquiry}" required="false" styleClass="state" onclick="clickInputElement('#sreason');" style="{!IF(reasonForEnquiryMissing,'border:2px solid red;','')}">
+    <apex:selectOption itemLabel="--Reason For Enquiry--" itemValue=""/>
+    <apex:selectOption itemLabel="Support" itemValue="Support" rendered="{!IF(formType != 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="Warranty" itemValue="Warranty" rendered="{!IF(formType != 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="Complaint" itemValue="Complaint" rendered="{!IF(formType != 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="Accounts" itemValue="Accounts" rendered="{!IF(formType != 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="New Product" itemValue="New Product" rendered="{!IF(formType = 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="Existing Account Enquiry" itemValue="Existing Account Enquiry" rendered="{!IF(formType = 'contact',true,false)}"/>
+    <apex:selectOption itemLabel="Other" itemValue="Other" rendered="{!IF(formType = 'contact',true,false)}"/>
+</apex:selectList>
+</span>
+</div>
+</fieldset>
+
+<div style="{!IF(formType='callback' || formType='apply','display:none;','')}">
+<fieldset>
+<span id="snatureOfEnquiry" data-toggle="tooltip" data-placement="top" title="Briefly, what is the nature of your enquiry?"><apex:inputTextArea html-placeholder="Briefly, what is the nature of your enquiry?" id="natureOfEnquiry" styleClass="natureOfEnquiry" value="{!natureOfEnquiry}" onclick="clickInputElement('#snatureOfEnquiry');" rows="4" style="{!IF(formType='apply','','margin-bottom:100px;')}"/></span>
+</fieldset>
+</div>
+
+<div style="{!IF(formType='apply','','display:none;')}">
+<fieldset>
+<apex:inputCheckbox value="{!optIn}" styleClass="optIn" style="width:25px;height:25px;"/>&nbsp;&nbsp;If you had or have an existing consumer lease agreement with a rent4keeps, please tick the Opt-in box to indicate your consent to this information being disclosed to R4K and to R4K receiving and retaining the information to assist us to assess this application and any future credit applications that you may wish to make with us. 
+</fieldset>
+</div>
+
+<apex:commandButton styleClass="mt-4" value="Submit" action="{!addLead}" rendered="{!IF(formType='apply' || formType='r4k' || formType='rent4keeps' || formType='callback' || formType='contact', true, false)}" reRender="appForm" status="counterStatus"/>
+
+<!--
+<apex:commandButton rendered="{!IF(finish==null,true,false)}" value="Finish" action="{!addAndFinishReferral}" onclick="return validate();"/>
+<input style="background: #FFA500;border: 1px solid #FFA500;color: #000000;" type="button" class="btn" value="Shop Now" onClick="window.location = 'https://rent4keeps.com.au/';"/>
+-->
+<apex:inputText value="{!latitude}" styleClass="latitude" style="display:none;"/>
+<apex:inputText value="{!longitude}" styleClass="longitude" style="display:none;"/>
+<apex:inputText value="{!country}" styleClass="country" style="display:none;"/>
+
+</div>
+
+<apex:inputText value="{!userAgent}" styleClass="userAgent" style="display:none;"/>
+<apex:inputText value="{!gcid}" styleClass="gcid" style="display:none;"/>
+<apex:inputText value="{!searchEngine}" styleClass="searchEngine" style="display:none;"/>
+<apex:inputText value="{!deviceInfo}" styleClass="deviceInfo" style="display:none;"/>
+<apex:inputText value="{!campaign}" styleClass="campaign" style="display:none;"/>
+<apex:inputText value="{!gaMedium}" styleClass="gaMedium" style="display:none;"/>
+<apex:inputText value="{!noOfPagesVisited}" styleClass="noOfPagesVisited" style="display:none;"/>
+<apex:inputText value="{!noOfUniquePagesVisited}" styleClass="noOfUniquePagesVisited" style="display:none;"/>
+<apex:inputText value="{!timeSpentOnWeb}" styleClass="timeSpentOnWeb" style="display:none;"/>
+<apex:inputText value="{!gaKeyword}" styleClass="gaKeyword" style="display:none;"/>
+<apex:inputText value="{!pagesVisited}" styleClass="pagesVisited" style="display:none;"/>
+<apex:inputText value="{!ipAddress}" styleClass="ipAddress" style="display:none;"/>
+</div>
+</apex:form>
+</div>
+
+<!--
+<footer style="padding: 20px;"><center>
+&copy;&nbsp;All rights reserved<a href="https://rent4keeps.com.au/"> Rent4Keeps </a> &nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://rent4keeps.com.au/terms-of-user" target="_blank">T&amp;Cs</a>
+</center>
+</footer>
+-->
+<script>
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip();
+  $('[data-toggle="tooltip"]').tooltip('disable');  
+})
+function clickInputElement(classSelector){
+$('[data-toggle="tooltip"]').tooltip('disable');
+  $(classSelector).tooltip('enable');
+  $(classSelector).tooltip('show');
+}
+
+var placeSearch, autocomplete;
+var countryVal = '{!$CurrentPage.parameters.c}'== 'NZ' ? 'NZ' : 'AU';
+var currentStreetAddress = document.getElementsByClassName("street")[0];
+var currentSuburb = document.getElementsByClassName("suburb")[0];
+var currentState = document.getElementsByClassName("state")[0];
+var currentPostcode = document.getElementsByClassName("postcode")[0];
+var currentCountry = document.getElementsByClassName("country")[0];
+var currentLatitude = document.getElementsByClassName("latitude")[0];
+var currentLongitude = document.getElementsByClassName("longitude")[0];
+var showAllSearch=false;
+
+var componentForm = {
+  street_number: 'short_name',
+  route: 'long_name',
+  locality: 'long_name',
+  administrative_area_level_1: 'short_name',
+  country: 'long_name',
+  postal_code: 'short_name'
+};
+
+function initAutocomplete() {
+  autocomplete = new google.maps.places.Autocomplete(
+      document.getElementsByClassName("street")[0], {types: ['geocode'],componentRestrictions: {country: countryVal}});
+  
+  autocomplete.setFields(['address_component']);
+  autocomplete.addListener('place_changed', fillInAddress);
+}
+
+function fillInAddress() {
+  var place = autocomplete.getPlace();
+  var addressStr = '';
+  var streetAddressStr = '';
+
+  for (var i = 0; i < place.address_components.length; i++) {
+    var addressType = place.address_components[i].types[0];
+    //alert(addressType);
+    if (componentForm[addressType]) {
+      var val = place.address_components[i][componentForm[addressType]];
+      console.log(addressType+" *** "+val);
+      if(addressType=='street_number')
+          streetAddressStr = streetAddressStr + val;
+      else if(addressType=='route')
+          streetAddressStr = streetAddressStr + ' '+val;
+      else if(addressType=='locality')
+          currentSuburb.value = val;
+      else if(addressType=='administrative_area_level_1')
+          currentState.value = val;
+      //else if(addressType=='country')
+        //  currentCountry.value = val;
+      else if(addressType=='postal_code')
+          currentPostcode.value = val;
+      
+      addressStr = addressStr + ' '+ val;
+    }
+  }
+  //console.log('text: ' + $('.street').val());
+
+  currentStreetAddress.value = '';
+  var actualAddress = $('.street').val().toUpperCase();
+
+  if(actualAddress.indexOf(streetAddressStr.toUpperCase()) > 0)
+  {
+    var matchingIndex = actualAddress.indexOf(streetAddressStr.toUpperCase());
+    currentStreetAddress.value += actualAddress.substring(0, matchingIndex);
+  }
+
+  currentStreetAddress.value += streetAddressStr;
+  //console.log('addressStr: '+addressStr);
+  //console.log('streetAdd: '+currentStreetAddress.value + ' suburb: '+currentSuburb.value+' state: '+currentState.value+' postcode: '+currentPostcode.value+' country: '+currentCountry.value);
+  
+  var geocoder = new google.maps.Geocoder;
+    geocoder.geocode({'address': addressStr}, function(results, status) {
+        if(status === 'OK') 
+        {
+            if(results[0])
+            {
+                currentLatitude.value = results[0].geometry.location.lat();
+                currentLongitude.value = results[0].geometry.location.lng(); 
+                //console.log('LatLng: '+currentLatitude.value+' *** '+currentLongitude.value);          
+            }
+        }else
+        {
+        
+        }
+    });
+}
+
+let digitValidate = function(ele){
+  //console.log(ele.value);
+  ele.value = ele.value.replace(/[^0-9]/g,'');
+}
+
+let tabChange = function(val){
+    //console.log(val);
+    let ele = document.querySelectorAll('.otp');
+    if(val <= 4){
+        ele[val].focus()
+    }  
+ }
+
+function validateOtp(){
+    var otp = '';
+    var otpElems = document.getElementsByClassName('otp');
+    for(var i=0; i<otpElems.length; i++){
+        otp += otpElems[i].value;
+    }
+    //console.log(otp);
+    //console.log(otp.length);
+    if(otp == '' || otp.length != 5){
+        bootbox.alert({
+            message: "Please enter OTP",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }else{
+        authenticateOTPCodeFunc(otp);
+    }
+}
+
+$(document).ready(
+    function(){
+        var gid = "{!URLENCODE($CurrentPage.parameters.gid)}";
+        if(gid!=null && gid!="")
+        {
+            gaUtil.parseAndSetGlobals(gid);
+            console.log('window.gcid: '+window.gcid);
+            $('.gcid').val(window.gcid);
+            $('.searchEngine').val(window.searchEngine);
+            $('.deviceInfo').val(window.deviceInfo);
+            $('.campaign').val(window.campaign);
+            $('.gaMedium').val(window.gaMedium);
+            $('.noOfPagesVisited').val(window.noOfPagesVisited);
+            $('.noOfUniquePagesVisited').val(window.noOfUniquePagesVisited);
+            $('.timeSpentOnWeb').val(window.SmeSpentOnWeb);
+            $('.gaKeyword').val(window.gaKeyword);
+            $('.pagesVisited').val(window.pagesVisited);
+            $('.ipAddress').val(window.ip_address);
+        }
+        
+        $('.userAgent').val(navigator.userAgent);
+    } 
+);
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6IoNLUq0kEHUjf2X03l7ySFLAUqHoOSg&libraries=places,geometry&callback=initAutocomplete"></script>
+</apex:page>

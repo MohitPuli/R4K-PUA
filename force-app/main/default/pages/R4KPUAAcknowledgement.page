@@ -1,0 +1,181 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initAcknowledgementAndConsent}" standardstylesheets="false" showheader="false">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+<apex:includeScript value="{!$Resource.bootbox}"/>
+
+
+<style>
+    
+    
+</style>
+<title>R4K Online Application Form</title>
+
+<apex:form id="theAppForm">
+    <apex:actionStatus id="counterStatus" style="align:center;">
+        <apex:facet name="start">
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+                &nbsp;
+            </div>
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+                <center><img src="{!$Resource.LoadingGIF2}"/></center>
+            </div>
+        </apex:facet>
+    </apex:actionStatus>
+
+    <apex:actionFunction action="{!acceptAcknowledgement}" name="acceptAcknowledgementFunc" rerender="theAppForm" status="counterStatus">
+        <apex:param id="acceptOrDecline" name="acceptOrDecline" value="" />
+    </apex:actionFunction>
+</apex:form>
+
+    <div id="mySidebar" class="sidebar mySidebar font-weight-bold">
+    <!--<div><p style="text-align:right;cursor:pointer;padding:5px;margin-right:5px;"><span onclick="closeNav();"><i class="fas fa-window-close fa-2x"></i></span></p></div>
+    <ul style="cursor: pointer;">
+        <li><a onclick="$('.navList').css('display','none');" class="consentNavLink">Consent</a></li>
+        <li>
+            <a onclick="toggleDocsNavList();" class="docsNavLink">Documents</a>
+            <ul style="display:none;" class="navList docsNavList">
+                <li><a onclick="navbarRedirect('sdid','{!acct.Is_PhotoId_Attached_After_Enquiry__c}');" class="idNavLink" style="{!IF(acctId != null && acctId != '' && acct.Is_PhotoId_Attached_After_Enquiry__c,'color:black;','color:#BFBFBF')}">Id</a></li>
+                <li><a onclick="navbarRedirect('sdbsa','{!acct.Bank_Final_Page__c}');" class="bankNavLink" style="{!IF(acctId != null && acctId != '' && acct.Bank_Final_Page__c,'color:black;','color:#BFBFBF')}">Bank</a></li>
+                <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',false,true)}">
+                    <li><a onclick="navbarRedirect('sdmgRedo','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Mygov</a></li>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',true,false)}">
+                    <li><a onclick="navbarRedirect('sdwz','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Proof of Income</a></li>
+                </apex:outputPanel>
+            </ul>
+        </li>
+        <li>
+            <a onclick="toggleAssessNavList();" class="assessNavLink">Verification</a>
+            <ul style="display:none;" class="navList assessNavList">
+                <li><a onclick="navbarRedirect('bi','{!acct.Basic_Info_Online__c}');" class="contactNavLink" style="{!IF(acctId != null && acctId != '' && acct.Basic_Info_Online__c,'color:black;','color:#BFBFBF')}">Contact Details</a></li>
+                <li><a onclick="navbarRedirect('cons','{!acct.RO_Online__c}');" class="productInfoNavLink" style="{!IF(acctId != null && acctId != '' && acct.RO_Online__c,'color:black;','color:#BFBFBF')}">Product Info</a></li>
+                <li><a onclick="navbarRedirect('expsum','{!acct.Expense_Online__c}');" class="ExpensesNavLink" style="{!IF(acctId != null && acctId != '' && acct.Expense_Online__c,'color:black;','color:#BFBFBF')}">Expenses</a></li>
+                <li><a onclick="navbarRedirect('incsum','{!acct.Income_Online__c}');" class="incomeNavLink" style="{!IF(acctId != null && acctId != '' && acct.Income_Online__c,'color:black;','color:#BFBFBF')}">Income</a></li>
+                <li><a onclick="navbarRedirect('ref','{!acct.Referees_Online__c}');" class="refereesNavLink" style="{!IF(acctId != null && acctId != '' && acct.Referees_Online__c,'color:black;','color:#BFBFBF')}">Referees</a></li>
+                <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',false,true)}">
+                    <li><a onclick="navbarRedirect('eqenr','{!acct.Equifax_Online__c}');" class="equifaxNavLink" style="{!IF(acctId != null && acctId != '' && acct.Equifax_Online__c,'color:black;','color:#BFBFBF')}">Equifax Defaults</a></li>
+                </apex:outputPanel>
+            </ul>
+        </li>
+        <li><a onclick="$('.navList').css('display','none');" class="signingNavLink">Approval &amp; Signing</a></li>
+        <li><a onclick="$('.navList').css('display','none');" class="deliveryNavLink">Delivery</a></li>
+    </ul>
+    <hr/>
+    <ul style="cursor: pointer;">
+            <li>
+                <a onclick="redirectToOtherDocs();"><i class="fas fa-file-upload"></i> Other Documents</a>
+            </li>
+            <li>
+                <a onclick="redirectToR4KChat();"><i class="fas fa-comments"></i> Chat</a>
+            </li>
+            <li>
+                <a onclick="redirectToCallback();">Request Call Back</a>
+            </li>
+    </ul>-->
+    </div>
+    
+    <div style="cursor: pointer;">
+    <nav class="navbar navbar-expand-lg navbar-light mb-1">
+        <div class="container-fluid d-flex">
+            <div>
+                <!--<a onclick="openNav();"><i class="fas fa-bars fa-2x"></i></a>-->
+            </div>
+            <div>
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="R4K"/>
+            </div>
+            <div>
+                <!--<apex:image url="/servlet/servlet.FileDownload?file={!acct.Customer_Photo_Id__c}" width="70" height="70" alt="{!acct.Name}" rendered="{!IF(acct.Customer_Photo_Id__c <> null,true,false)}"/>-->
+            </div>
+        </div>
+    </nav>
+    </div>
+    
+    <div class="mainContent">
+        <!--<div class="fixed-bottom" style="{!IF($CurrentPage.parameters.param=='com','display:none;','')}"> 
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Next">{!IF($CurrentPage.parameters.param=='sdida','Attach Front page of ID', IF($CurrentPage.parameters.param=='sdcpa','Attach Selfie', IF($CurrentPage.parameters.param=='sdid','Attach Back page of ID','Next')))}</button>
+                </div>
+            </div>
+        </div>-->
+
+        <div class="fixed-bottom" style=""> 
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-success acceptBtn" id="acceptBtn" style="width:100%;" type="button" title="I Accept" onclick="acceptTerms();">I Acknowledge</button>
+                    <button class="btn btn-danger declineBtn mt-4" id="declineBtn" style="width:100%;" type="button" title="I Decline" onclick="declineTerms();">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+
+            <p class="font-weight-bold text-center mt-4 mb-4">Credit Proposal &amp; Preliminary Unsuitability Assessment</p>
+            <p>
+                Congratulations! Your preliminary assessment application has been accepted for a final assessment and successfully submitted. Please review the following information:
+            </p>
+            <p>
+                A copy of the Preliminary Unsuitability &amp; Credit Proposal document will be emailed to you to confirm the preliminary assessment decision has now been lodged with your local credit provider for their final assessment of your credit application.
+            </p>
+            <p>
+                Important Notice:
+            </p>
+            <p>
+                By accepting this application, you indicate your full understanding of all contents of this Credit Proposal, including your consent for R4K Licensing to use and disclose your personal information as indicated in this document. You acknowledge that your information contained in this application, as of this date, is true and correct.
+            </p>
+            <p>
+                You understand that you can only revoke your consent by notifying R4K Licensing in writing.
+            </p>
+            <p>
+                I, the applicant named in this assessment application, acknowledge:
+            </p>
+            <p>
+                Receiving the Preliminary Unsuitability Assessment and Credit Proposal Disclosure with Appointment to Act from R4K Licensing.
+            </p>
+            <p>
+                Please click "I Acknowledge" to confirm your understanding.
+            </p>
+
+        </div>
+
+    </div>
+
+    <script>
+        var onlineURL =  '{!onlineURL}';
+        var acctId = "{!acctId}";
+
+        $(document).ready(
+            function(){
+                if('{!puaStatus}' == 'Approved'){
+                    if('{!ishybridLinkCompleted}' == 'true'){
+                        $('body').css('display','none');
+                        window.location.href = (onlineURL +'/R4KPUACompletion?id=' + acctId + '&n=' + Math.random());
+                    }
+                }else if('{!puaStatus}' == 'Declined'){
+                    $('body').css('display','none');
+                    window.location.href = (onlineURL +'/R4KPUADeclined?id=' + acctId + '&n=' + Math.random());
+                }else{
+                    $('body').css('display','none');
+                    window.location.href = (onlineURL +'/R4KOnlineForm?id=' + acctId + '&n=' + Math.random());
+                }
+            }
+        );
+
+        function acceptTerms(){
+            $('.fixed-bottom').css('display','none');
+            acceptAcknowledgementFunc('accept');
+        }
+
+        function declineTerms(){
+            $('.fixed-bottom').css('display','none');
+            acceptAcknowledgementFunc('decline');
+        }
+    </script>
+</apex:page>

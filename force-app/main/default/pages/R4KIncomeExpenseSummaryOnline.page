@@ -1,0 +1,512 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!getFormDetails}" standardstylesheets="false" showheader="false">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+<apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
+<apex:stylesheet value="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<apex:includeScript value="https://www.bankstatements.com.au/js/iframeResizer.min.js"/>
+<apex:includeScript value="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"/>
+
+<style>
+
+body 
+{
+background-color:#fcb813;
+}
+
+.silverDiv
+{
+    min-height:20vh;
+    background-color:#cbcccb;
+    border-radius:5% 5% 0% 0%;
+    padding:1%;
+}
+
+.whiteDiv
+{
+    background-color:#FFFFFF;
+    border-radius:5% 5% 0% 0%;
+    margin-bottom:20px;
+    padding:3%;
+    width: 100%;
+}
+
+@media screen and (min-width: 600px) {
+    .multisteps-form__content
+    {
+        max-width:500px;
+        margin: auto;
+    }
+}
+
+.vertical-center {
+  min-height: 100%; 
+  //min-height: 100vh; 
+
+  display: flex;
+  align-items: center;
+}
+
+.table-condensed{
+  font-size: 80%;
+}
+
+.table-rounded {
+      border-radius:5% 5% 0% 0%;
+      overflow: hidden;
+}
+
+.borderless th {
+    border: none;
+}
+
+.multisteps-form__title{
+    text-align:center;
+    fon-weight:bold;
+}
+
+.labelName{
+    font-size: 14px;
+    padding-left: 5px;
+}
+
+.wrap {
+  width: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.range {
+  width: 100%;
+  cursor: pointer;
+  opacity: 0;
+}
+.range::-ms-tooltip {
+  display: none;
+}
+
+.track {
+  width: 100%;
+  height: 15px;
+  background: white;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.track-inner {
+  width: 0;
+  height: 100%;
+  background: #E24F4F;
+}
+
+.thumb {
+  width: 30px;
+  height: 30px;
+  background: #DCDCDC;
+  border-radius: 15%;
+  border: 1px solid black;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(0%, -50%);
+  pointer-events: none;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  background-color: white;
+  overflow-x: hidden;
+  transition: 0.5s;
+  border-radius:0px 25px 25px 0px;
+}
+
+.sidebar a {
+  padding: 8px 8px 8px 2px;
+  text-decoration: none;
+  font-size: 15px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+  border-bottom: 1px solid black;
+}
+
+ul{
+ list-style-type: none;
+}
+
+.cellStyle{
+background-color:#cbcccb;
+}
+
+.clickable {
+    cursor: pointer;
+}
+</style>
+<title>R4K Summary</title>
+
+<apex:form id="theSumForm">
+<apex:actionFunction action="{!updateExpenseSummaryDetails}" name="updateExpenseSummaryDetailsFunc" oncomplete="reloadPage();" rerender="theSumForm">
+    <apex:param id="type" name="type" value="" />
+    <apex:param id="amt" name="amt" value="" />
+    <apex:param id="details" name="details" value="" />
+</apex:actionFunction>
+<apex:actionFunction action="{!confirmExpenseSummaryDetails}" name="confirmExpenseSummaryDetailsFunc">
+</apex:actionFunction>
+</apex:form>
+
+<div class="fixed-bottom"> 
+    <div class="card">
+      <div class="card-body">
+        <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Continue Application" onclick="confirmExpenseSummaryDetailsFunc();">{!IF($CurrentPage.parameters.param=='expsum','Confirm Expenses',IF($CurrentPage.parameters.param=='incsum','Confirm Income','Continue Application'))}</button>
+      </div>
+    </div> 
+</div>
+
+<div id="mySidebar" class="sidebar mySidebar font-weight-bold">
+    <div><p style="text-align:right;cursor:pointer;padding:5px;margin-right:5px;"><span onclick="closeNav();"><i class="fas fa-window-close fa-2x"></i></span></p></div>
+    <ul style="cursor: pointer;">
+        <li><a onclick="$('.navList').css('display','none');" class="consentNavLink">Consent</a></li>
+        <li><a onclick="$('.navList').css('display','none');" class="productNavLink">Product Requirements</a></li>
+        <li>
+            <a onclick="toggleDocsNavList();" class="docsNavLink">Documents</a>
+            <ul style="display:none;" class="navList docsNavList">
+                <li><a onclick="navbarRedirect('sdid','{!acct.Is_PhotoId_Attached_After_Enquiry__c}');" class="idNavLink" style="{!IF(acctId != null && acctId != '' && acct.Is_PhotoId_Attached_After_Enquiry__c,'color:black;','color:#BFBFBF')}">Id</a></li>
+                <li><a onclick="navbarRedirect('sdbsa','{!acct.Bank_Final_Page__c}');" class="bankNavLink" style="{!IF(acctId != null && acctId != '' && acct.Bank_Final_Page__c,'color:black;','color:#BFBFBF')}">Bank</a></li>
+                <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',false,true)}">
+                    <li><a onclick="navbarRedirect('sdmgRedo','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Mygov</a></li>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!IF(stateMasterState=='NZ',true,false)}">
+                    <li><a onclick="navbarRedirect('sdwz','{!acct.MyGov_Final_Page__c}');" class="mygovNavLink" style="{!IF(acctId != null && acctId != '' && acct.MyGov_Final_Page__c,'color:black;','color:#BFBFBF')}">Proof of Income</a></li>
+                </apex:outputPanel>
+            </ul>
+        </li>
+        <li>
+            <a onclick="toggleAssessNavList();" class="assessNavLink">Verification</a>
+            <ul style="display:none;" class="navList assessNavList">
+                <li><a onclick="navbarRedirect('bi','{!acct.Basic_Info_Online__c}');" class="contactNavLink" style="{!IF(acctId != null && acctId != '' && acct.Basic_Info_Online__c,'color:black;','color:#BFBFBF')}">Contact Details</a></li>
+                <li><a onclick="navbarRedirect('incsum','{!acct.Income_Online__c}');" class="incomeNavLink" style="{!IF(acctId != null && acctId != '' && acct.Income_Online__c,'color:black;','color:#BFBFBF')}">Income</a></li>
+                <li><a onclick="navbarRedirect('expsum','{!acct.Expense_Online__c}');" class="ExpensesNavLink" style="{!IF(acctId != null && acctId != '' && acct.Expense_Online__c,'color:black;','color:#BFBFBF')}">Expenses</a></li>
+            </ul>
+        </li>
+        <li><a onclick="$('.navList').css('display','none');" class="unsuitabilityNavLink">Preliminary Unsuitability Assessment</a></li>
+        <li><a onclick="$('.navList').css('display','none');" class="signingNavLink">Approval &amp; Signing</a></li>
+        <li><a onclick="$('.navList').css('display','none');" class="deliveryNavLink">Delivery</a></li>
+    </ul>
+    <hr/>
+    <ul style="cursor: pointer;">
+            <li>
+                <a onclick="redirectToOtherDocs();"><i class="fas fa-file-upload"></i> Other Documents</a>
+            </li>
+            <li>
+                <a onclick="redirectToR4KChat();"><i class="fas fa-comments"></i> Chat</a>
+            </li>
+            <li>
+                <a onclick="redirectToCallback();">Request Call Back</a>
+            </li>
+    </ul>
+</div>
+
+<div style="cursor: pointer;">
+<nav class="navbar navbar-expand-lg navbar-light mb-1">
+    <div class="container-fluid d-flex">
+        <div>
+            <a onclick="openNav();"><i class="fas fa-bars fa-2x"></i></a>
+        </div>
+        <div>
+            <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="Rent4Keeps"/>
+        </div>
+        <div>
+            <apex:image url="/servlet/servlet.FileDownload?file={!acct.Customer_Photo_Id__c}" width="70" height="70" alt="{!acct.Name}" rendered="{!IF(acct.Customer_Photo_Id__c <> null,true,false)}"/>
+        </div>
+    </div>
+</nav>
+</div>
+
+<div class="multisteps-form">
+    <!--form panels-->
+    <div class="row">
+      <div class="col-12 col-lg-8 m-auto">
+        <form class="multisteps-form__form secondForm">
+
+<!--Expense Summary-->        
+<div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='expsum', 'js-active','')}" data-animation="scaleIn">
+     <h5 class="multisteps-form__title mt-4 mb-4">Expense Summary</h5>
+          <div class="multisteps-form__content whiteDiv">
+          <div class="silverDiv">
+               <div class="table-responsive">
+                  <table class="table table-condensed table-rounded borderless">
+                    <tr class="cellStyle" style="border:none;">
+                        <th>Expense</th>
+                        <th>Amount</th>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Rent</td>
+                        <td style="display:none;" class="spntype">Rent</td>
+                        <td><a href="#" class="badge rentBtn {!IF(isSharedRentExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" id="rentExp" value="{0, number, currency}"><apex:param value="{!rentExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.rentBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Loan Payments</td>
+                        <td style="display:none;" class="spntype">Loan</td>
+                        <td><a href="#" class="badge loanBtn {!IF(isSharedLoanExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" id="loanExp" value="{0, number, currency}"><apex:param value="{!loanExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.loanBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Credit Card</td>
+                        <td style="display:none;" class="spntype">Credit Card</td>
+                        <td><a href="#" class="badge creditcardBtn {!IF(isSharedCreditCardExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!creditcardExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.creditcardBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Insurance</td>
+                        <td style="display:none;" class="spntype">Insurance</td>
+                        <td><a href="#" class="badge insuranceBtn {!IF(isSharedInsuranceExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!insuranceExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.insuranceBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    
+                    <!--<tr class="table-danger">
+                        <th colspan="2">Variable Expenses</th>
+                    </tr>-->
+                    <tr class="table-light">    
+                        <td class="lbltype">Household</td>
+                        <td style="display:none;" class="spntype">Household</td>
+                        <td><a href="#" class="badge householdBtn {!IF(isSharedFoodExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!foodExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.householdBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Utilities</td>
+                        <td style="display:none;" class="spntype">Utilities</td>
+                        <td><a href="#" class="badge utilitiesBtn {!IF(isSharedUtilitiesExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!utilitiesExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.utilitiesBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Car/Petrol/Travel Expenses</td>
+                        <td style="display:none;" class="spntype">Transaport</td>
+                        <td><a href="#" class="badge transportBtn {!IF(isSharedTransportExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!transportExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.transportBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Mobile</td>
+                        <td style="display:none;" class="spntype">Mobile</td>
+                        <td><a href="#" class="badge mobileBtn {!IF(isSharedMobileExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!mobileExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.mobileBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    
+                    <!--<tr class="table-danger">
+                        <th colspan="2">Discretionary Expenses</th>
+                    </tr>-->
+                    <tr class="table-light">    
+                        <td class="lbltype">Clothing</td>
+                        <td style="display:none;" class="spntype">Clothing</td>
+                        <td><a href="#" class="badge clothingBtn {!IF(isSharedClothingExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!clothingExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.clothingBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Tobacco/Alcohol/Entertainment</td>
+                        <td style="display:none;" class="spntype">Entertainment</td>
+                        <td><a href="#" class="badge tobaccoBtn {!IF(isSharedEntertainmentExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!entertainmentExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.tobaccoBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Other Rental</td>
+                        <td style="display:none;" class="spntype">Other Rental</td>
+                        <td><a href="#" class="badge orentalBtn {!IF(isSharedOtherRentalExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!otherRentalExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.orentalBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td class="lbltype">Other Expense</td>
+                        <td style="display:none;" class="spntype">Other Expense</td>
+                        <td><a href="#" class="badge oregularBtn {!IF(isSharedOtherExpConfirmed,'badge-primary','badge-danger')}" data-target="#addNotesModal" style="font-size:12px;" onclick="openModal(this);"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!otherExp}" /></apex:outputText></a>&nbsp;&nbsp;<span class="clickable" onclick="$('.oregularBtn').click();"><i class="fas fa-pencil-alt fa-lg"></i></span></td>
+                    </tr>
+                    <tr class="cellStyle">    
+                        <th>Total Expenses</th>
+                        <th><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!totalExp}" /></apex:outputText></th>
+                    </tr>
+                  </table>
+                </div>
+                <div style="min-height:50px;">&nbsp;</div>
+            </div>
+          </div>
+</div>
+
+<!--Income Summary-->
+<div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='incsum', 'js-active','')}" data-animation="scaleIn">
+     <h5 class="multisteps-form__title mt-4 mb-4">Income Summary</h5>
+          <div class="multisteps-form__content whiteDiv">
+          <div class="silverDiv">
+               <div class="table-responsive">
+                  <table class="table table-condensed table-rounded borderless">
+                    <tr class="cellStyle">
+                        <th>Income</th>
+                        <th>Amount</th>
+                    </tr>
+                    <tr class="table-light">    
+                        <td>Employment</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!employmentInc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light" style="{!IF(centrelink1IncBenefit!=null && centrelink1IncBenefit!='','','display:none;')}">    
+                        <td>{!centrelink1IncBenefit}</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!centrelink1Inc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light" style="{!IF(centrelink2IncBenefit!=null && centrelink2IncBenefit!='','','display:none;')}">    
+                        <td>{!centrelink2IncBenefit}</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!centrelink2Inc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light" style="{!IF(centrelink3IncBenefit!=null && centrelink3IncBenefit!='','','display:none;')}">    
+                        <td>{!centrelink3IncBenefit}</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!centrelink3Inc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light" style="{!IF(centrelink4IncBenefit!=null && centrelink4IncBenefit!='','','display:none;')}">    
+                        <td>{!centrelink4IncBenefit}</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!centrelink4Inc}" /></apex:outputText></span></td>
+                    </tr>
+                    
+                    <tr class="table-light">    
+                        <td>Other Income</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!otherInc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="cellStyle">    
+                        <th>Total Income</th>
+                        <th><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!totalInc}" /></apex:outputText></th>
+                    </tr>
+                  </table>
+                </div>
+                
+            </div>
+          </div>
+</div>
+
+<!--Surplus Summary-->
+<div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='sursum', 'js-active','')}" data-animation="scaleIn">
+     <h5 class="multisteps-form__title mt-4 mb-4">Serviceability Summary</h5>
+          <div class="multisteps-form__content whiteDiv">
+          <div class="silverDiv">
+               <div class="table-responsive">
+                  <table class="table table-condensed table-rounded borderless">
+                    <tr class="table-light">    
+                        <td>Total Income</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!totalInc}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td>Total Expense</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!totalExp}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td>Surplus</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText styleClass="amtVal" value="{0, number, currency}"><apex:param value="{!surplusValue}" /></apex:outputText></span></td>
+                    </tr>
+                    <tr class="table-light">    
+                        <td>Servicability</td>
+                        <td><span class="badge badge-primary" style="font-size:12px;"><apex:outputText value="{0, number, percent}"><apex:param value="{!serviceability}" /></apex:outputText></span></td>
+                    </tr>
+                  </table>
+                </div>
+                <p>
+                    Action Required:<br/>
+                    If you are comfortable with the surplus/deficit and servicing ratio, you may proceed with your application.
+                </p>
+            </div>
+        </div>
+</div>
+
+</form>
+</div>
+</div>
+</div>
+
+<div class="overlay" style='display:none;'>
+    <apex:image value="{!$Resource.R4KLoading}" width="300" height="200"/>
+</div>
+
+
+<!-- The Modal -->
+<div class="modal" id="addNotesModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title"><span id="modalHeading">Update &nbsp;</span><span class="spnItem"></span> <span class="lblItem" style="display:none;"></span></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+            <div class="col">
+            <label class="labelName">Amount</label>
+            <input class="multisteps-form__input form-control amtIndividualVal" id="amtIndividualVal" onchange="updateDropdown(this);" value="" type="text" placeholder="0.00"/>
+            </div>
+            <div class="col">
+            <label class="labelName">Description</label>
+                <select class="multisteps-form__input form-control ddlDetails" id="ddlDetails" onchange="onSelectingOtherDropDown();">
+                </select>
+            <textarea class="multisteps-form__textarea form-control modalComments" style="display:none;" id="modalComments" placeholder="Provide explanation for the change"></textarea>
+            </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" onClick="addValueItems();">Save Changes</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+var _0x30d46a=_0x2452;function _0x2452(_0x4b7146,_0xc1c4a0){var _0x1e0efd=_0x1e0e();return _0x2452=function(_0x245261,_0x481fbe){_0x245261=_0x245261-0x128;var _0x37f105=_0x1e0efd[_0x245261];return _0x37f105;},_0x2452(_0x4b7146,_0xc1c4a0);}(function(_0x2017c0,_0x1447b8){var _0x20a405=_0x2452,_0x55d5be=_0x2017c0();while(!![]){try{var _0x51ba62=-parseInt(_0x20a405(0x153))/0x1*(parseInt(_0x20a405(0x14a))/0x2)+parseInt(_0x20a405(0x131))/0x3+-parseInt(_0x20a405(0x12c))/0x4+-parseInt(_0x20a405(0x138))/0x5*(parseInt(_0x20a405(0x12b))/0x6)+-parseInt(_0x20a405(0x15b))/0x7*(parseInt(_0x20a405(0x13e))/0x8)+-parseInt(_0x20a405(0x14e))/0x9+parseInt(_0x20a405(0x133))/0xa;if(_0x51ba62===_0x1447b8)break;else _0x55d5be['push'](_0x55d5be['shift']());}catch(_0x4fe8eb){_0x55d5be['push'](_0x55d5be['shift']());}}}(_0x1e0e,0x787ba));var acctId=_0x30d46a(0x163),ldId=_0x30d46a(0x129),onlineURL=_0x30d46a(0x15c);function redirectToCallback(){var _0x4cb22b=_0x30d46a;window[_0x4cb22b(0x12f)](onlineURL+_0x4cb22b(0x13c)+Math[_0x4cb22b(0x140)](),_0x4cb22b(0x142));}function navbarRedirect(_0x250b42,_0x5ced83){var _0x14ebe4=_0x30d46a,_0x99b2f7=Math['random']();_0x5ced83=='true'&&_0x14ebe4(0x163)!='null'&&_0x14ebe4(0x163)!=''&&(_0x250b42==_0x14ebe4(0x156)||_0x250b42=='incsum'?window[_0x14ebe4(0x132)]['href']=onlineURL+_0x14ebe4(0x147)+_0x250b42+_0x14ebe4(0x14b)+ldId+_0x14ebe4(0x139)+acctId+'&redo=yes&n='+_0x99b2f7:window[_0x14ebe4(0x132)]['href']=onlineURL+_0x14ebe4(0x152)+_0x250b42+_0x14ebe4(0x14b)+ldId+_0x14ebe4(0x139)+acctId+_0x14ebe4(0x14d)+_0x99b2f7);}function redirectToOtherDocs(){var _0x411962=_0x30d46a,_0x20d44a=onlineURL+'/R4KOnlineOtherDocs?id='+acctId+_0x411962(0x14b)+ldId+_0x411962(0x13b)+Math[_0x411962(0x140)]();window[_0x411962(0x12f)](_0x20d44a,_0x411962(0x142));}function redirectToR4KChat(){var _0x227c54=_0x30d46a,_0x4e04d2=Math[_0x227c54(0x140)](),_0x4ae437=onlineURL+_0x227c54(0x12d)+acctId+'&ld='+ldId+_0x227c54(0x162)+_0x4e04d2;window[_0x227c54(0x12f)](_0x4ae437,_0x227c54(0x142));}function openNav(){var _0x52449c=_0x30d46a;document[_0x52449c(0x148)]('mySidebar')[0x0][_0x52449c(0x13f)]['width']=_0x52449c(0x136);}function _0x1e0e(){var _0x3592b2=['{!acctId}','find','.amtIndividualVal','.assessNavList','{!ldId}','.overlay','2974206FfhfAT','3148056lglvkK','/R4KChatPage?appType=online&id=','text','open','none','2533824GxhLyE','location','17521080VEprBx','.spntype','val','250px','.spnItem','5xOdErB','&id=','Please\x20enter\x20the\x20details\x20for\x20the\x20change','&appType=online&n=','/R4KServiceEnquiry?ld={!ldId}&param=se&n=','.modalComments','8JfEHJx','style','random','hasClass','_self','css','toggle','The\x20contribution\x20has\x20not\x20been\x20confirmed\x20yet\x20by\x20the\x20referee.\x20Please\x20contact\x20the\x20referee\x20and\x20ask\x20them\x20to\x20complete\x20the\x20link\x20provided\x20to\x20them.','.navList','/R4KIncomeExpenseSummaryOnline?param=','getElementsByClassName','.lbltype','458TdKODD','&ld=','.lblItem','&redo=yes&n=','5621967yDySvw','#addNotesModal','.docsNavList','Please\x20check\x20the\x20details.','/R4KOnlineForm?param=','802ZmfIjH','show','mySidebar','expsum','Other','replace','alert','.ddlDetails','85274kVVpwW','{!onlineURL}','modal','display','rubberBand\x20animated','closest','isNumeric','&n='];_0x1e0e=function(){return _0x3592b2;};return _0x1e0e();}function closeNav(){var _0x3bae5b=_0x30d46a;document[_0x3bae5b(0x148)](_0x3bae5b(0x155))[0x0][_0x3bae5b(0x13f)]['width']='0';}function toggleDocsNavList(){var _0x2206e8=_0x30d46a;$(_0x2206e8(0x150))[_0x2206e8(0x143)](_0x2206e8(0x15e))!=_0x2206e8(0x130)?$('.navList')[_0x2206e8(0x143)](_0x2206e8(0x15e),_0x2206e8(0x130)):($('.navList')[_0x2206e8(0x143)]('display',_0x2206e8(0x130)),$(_0x2206e8(0x150))[_0x2206e8(0x143)]('display',''));}function toggleAssessNavList(){var _0x133c2f=_0x30d46a;$(_0x133c2f(0x128))[_0x133c2f(0x143)]('display')!=_0x133c2f(0x130)?$(_0x133c2f(0x146))[_0x133c2f(0x143)](_0x133c2f(0x15e),_0x133c2f(0x130)):($(_0x133c2f(0x146))[_0x133c2f(0x143)](_0x133c2f(0x15e),_0x133c2f(0x130)),$(_0x133c2f(0x128))['css'](_0x133c2f(0x15e),''));}function openModal(_0x19c820){var _0x569258=_0x30d46a;if($(_0x19c820)[_0x569258(0x141)]('badge-danger'))bootbox[_0x569258(0x159)]({'message':_0x569258(0x145),'className':_0x569258(0x15f)});else openNotesModal(_0x19c820),$(_0x569258(0x14f))[_0x569258(0x15d)](_0x569258(0x144));}function openNotesModal(_0x4b60b7){var _0xd7ea59=_0x30d46a,_0x20cfeb=$(_0x4b60b7)[_0xd7ea59(0x160)]('tr')[_0xd7ea59(0x164)](_0xd7ea59(0x134))[_0xd7ea59(0x12e)](),_0x4a73d7=$(_0x4b60b7)[_0xd7ea59(0x160)]('tr')['find'](_0xd7ea59(0x149))[_0xd7ea59(0x12e)](),_0x43f425=$(_0x4b60b7)['closest']('tr')[_0xd7ea59(0x164)]('.amtVal')[_0xd7ea59(0x12e)]();_0x43f425=_0x43f425[_0xd7ea59(0x158)]('$',''),_0x43f425=parseFloat(_0x43f425),$(_0xd7ea59(0x137))[_0xd7ea59(0x12e)](_0x20cfeb),$(_0xd7ea59(0x14c))[_0xd7ea59(0x12e)](_0x4a73d7),$('.amtIndividualVal')[_0xd7ea59(0x135)](_0x43f425),changeDropdownList(_0x20cfeb,_0x43f425);}function updateDropdown(_0x46f563){var _0x110afa=_0x30d46a,_0x5f450d=$('.lblItem')[_0x110afa(0x12e)](),_0x33dd10=$(_0x110afa(0x137))[_0x110afa(0x12e)](),_0x538050=$(_0x46f563)[_0x110afa(0x135)]();_0x538050=parseFloat(_0x538050),changeDropdownList(_0x33dd10,_0x538050);}function onSelectingOtherDropDown(){var _0xd280d0=_0x30d46a;if($('.ddlDetails')[_0xd280d0(0x135)]()==_0xd280d0(0x157))$(_0xd280d0(0x13d))[_0xd280d0(0x154)]();else $('.modalComments')['hide']();}function addValueItems(){var _0x1a6d62=_0x30d46a,_0x23236c=$('.spnItem')['text'](),_0xf0c636=$(_0x1a6d62(0x15a))['val']()=='Other'?$(_0x1a6d62(0x13d))[_0x1a6d62(0x135)]():$('.ddlDetails')['val'](),_0x455f30=$(_0x1a6d62(0x165))['val']();_0x455f30=parseFloat(_0x455f30);if(_0xf0c636==null||_0xf0c636=='')bootbox[_0x1a6d62(0x159)]({'message':_0x1a6d62(0x13a),'className':_0x1a6d62(0x15f)});else{if(_0x23236c!=null&&_0x23236c!=''&&$[_0x1a6d62(0x161)](_0x455f30)&&_0xf0c636!=null&&_0xf0c636!='')updateExpenseSummaryDetailsFunc(_0x23236c,_0x455f30,_0xf0c636),$(_0x1a6d62(0x14f))[_0x1a6d62(0x15d)](_0x1a6d62(0x144)),$(_0x1a6d62(0x12a))['show']();else bootbox[_0x1a6d62(0x159)]({'message':_0x1a6d62(0x151),'className':_0x1a6d62(0x15f)});}}function reloadPage(){var _0x431973=_0x30d46a;window[_0x431973(0x132)]['reload']();}
+function changeDropdownList(type,amtVal)
+{
+    //console.log('type: '+type + ' amtVal: '+amtVal);
+    //Add Dropdownvalues
+    var values = [];
+    var expDropdownLst = {!expDropdownDictLst};
+    console.log('expDropdownLst: '+expDropdownLst.length);
+    if(expDropdownLst.length>0)
+    {
+        var i;
+        for(i=0; i<expDropdownLst.length; i++)
+        {
+            if(amtVal>0 && expDropdownLst[i].Type == type && !expDropdownLst[i].IsExpenseZero)
+            {
+                values.push(expDropdownLst[i].Value);
+            }
+            else if(amtVal==0 && expDropdownLst[i].Type == type && expDropdownLst[i].IsExpenseZero)
+            {
+                values.push(expDropdownLst[i].Value);
+            }
+            
+        }
+    }
+    
+    //var values = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
+    var ddlDetailsObj = $('.ddlDetails');
+    
+    ddlDetailsObj.empty();
+    ddlDetailsObj.append($('<option></option>').attr('value', '').text('None'));
+
+    $.each(values, function (index, value) {
+        var option = $('<option></option>').attr('value', value).text(value);
+        
+        ddlDetailsObj.append(option);
+    });
+    
+    ddlDetailsObj.append($('<option></option>').attr('value', 'Other').text('Other'));
+}
+</script>
+</apex:page>

@@ -1,0 +1,394 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initAcknowledgementAndConsent}" sidebar="false" showHeader="false" standardStylesheets="false" renderAs="pdf">
+    <apex:stylesheet value="{!URLFOR($Resource.PDFDocumentStyle, 'PDFDocumentStyle.css')}" />
+
+    <title>R4K ACKNOWLEDGEMENT</title>
+        
+    <div style="font-family:Arial, Helvetica, sans-serif; font-size:13px; page-break-after:always;">
+        <c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+            <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}" collection="false" header="true" customerForm="true" removeRightHeader="true"/>
+        </c:PDFHeaderFooter>
+
+        <p class="" style="text-align:center;font-weight:bold;">Credit Proposal &amp; Preliminary Unsuitability Assessment</p>
+
+        <table class="" style="margin-top:20px;border-collapse: collapse;" width="100%">
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  width="30%"></td>
+                <td style="border: 1px solid black;padding:3px;"  width="35%">CURRENT POSITION</td>
+                <td style="border: 1px solid black;padding:3px;"  width="35%">PROPOSED POSITION</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;" >Income</td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Highlevel_Income__c}"/></apex:outputText></td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Highlevel_Income__c}"/></apex:outputText></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;" >Expenses</td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Comfortable_Spending__c}"/></apex:outputText></td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Comfortable_Spending__c}"/></apex:outputText></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;" >Proposed Repayment</td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!0}"/></apex:outputText></td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Rent4Keeps_Payment_C__c}"/></apex:outputText></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;" >SURPLUS/DEFICIT</td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Highlevel_Income__c - acct.Comfortable_Spending__c}"/></apex:outputText></td>
+                <td style="border: 1px solid black;padding:3px;" ><apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Highlevel_Income__c - acct.Comfortable_Spending__c - acct.Rent4Keeps_Payment_C__c}"/></apex:outputText></td>
+            </tr>
+        </table>
+
+        <p class="">
+            LOAN PURPOSE
+        </p>
+
+        <p>
+            <em>{!acct.Loan_Purpose__c}</em>
+        </p>
+
+        <p>
+            LOAN PRODUCT AND PROPOSED LOAN AMOUNT 
+        </p>
+
+        <table width="100%" style="border-collapse: collapse;">
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%" >Product Selected</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">{!cart.Product_Inventory__r.ProductName__c}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%">Loan Amount</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">
+                    <apex:outputText value="{0,number,currency}"><apex:param value="{!cart.TAV__c}"/></apex:outputText>
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%">Initial Rate/Rate Type</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">
+                    {!cart.APR__c} %
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%">Loan Term</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">
+                    {!cart.Term__c}
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%">Repayment Amount</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">
+                    <apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Rent4Keeps_Payment_C__c}"/></apex:outputText>
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="30%">Fees</td>
+                <td style="border: 1px solid black;padding:3px;"  class="" width="70%">
+                    <apex:outputText value="{0,number,currency}"><apex:param value="{!0}"/></apex:outputText>
+                </td>
+            </tr>
+        </table>
+
+        <p>
+            You acknowledge that the details you have provided in this Preliminary Unsuitability Assessment document is correct.
+        </p>
+        <p>
+            
+            <p style="border: 1px solid black; width: 15px; height: 15px; display: inline-block; vertical-align: middle;text-align:center;"><apex:outputText value="X" escape="false" /></p>&nbsp;&nbsp;Yes, I Accept Please Proceed. <br/>
+            <apex:outputPanel style="border: 1px solid black; width: 15px; height: 15px; display: inline-block; vertical-align: middle;">
+            </apex:outputPanel>&nbsp;&nbsp;No, I Decline. 
+        </p>
+        <p>
+            By accepting this document below, you indicate your full understanding of all contents of this Assessment and Credit Proposal including your consent for R4K Licensing to use and disclose your personal information as indicated in this document. You acknowledge that your information contained in this document and its appendix, at this date is true and correct.
+        </p>
+        <p>
+            You understand that you can only revoke your consent by notifying R4K Licensing in writing.
+        </p>
+        <p>
+            This document forms a legal contract between you and R4K Licensing. If you have any questions in relation to the contents of this document, please ask before you accept.
+        </p>
+        <p>
+            Applicant(s) acknowledge receiving the Preliminary Assessment Document with Appointment to Act from R4K Licensing.
+        </p>
+          
+        <!--
+            <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+                <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}"/>
+            </c:PDFHeaderFooter>
+        -->     
+    </div> 
+    
+    
+    <div style="font-family:Arial, Helvetica, sans-serif; font-size:13px; page-break-after:always;">
+        <c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+            <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}" collection="false" header="true" customerForm="true" removeRightHeader="true"/>
+        </c:PDFHeaderFooter>
+
+
+        <table width="100%" style="color:black;border-collapse: collapse;">
+            <thead>
+                <th style="border: 1px solid black;padding:3px;"  colspan="2">Personal Details</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Name</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Name}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Date of Birth</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%"><apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!acct.BirthDate__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Identification Type</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Identification_Type__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Identification Number</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Identification_No__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">CRN No</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Centrepay_Ref_No__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Mobile</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.PersonMobilePhone}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Email</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.PersonEmail}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">No of dependent children</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Number_of_Dependants__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Marital Status</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Marital_Status__pc}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Current Address</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.UnformattedAddress_VedaAlert_Report__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Length of stay in current address</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Length_of_Stay_in_Current_Address__c} months</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Previous Address</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Previous_Address__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Length of stay in previous address</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Length_of_Stay_in_Previous_Address__c} months</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Residential Status</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Residential_Status__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Residential Contact Name</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Landlord_Name__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Residential Contact Number</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Landlord_Telephone__c}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table width="100%" style="color:black;border-collapse: collapse;margin-top:20px;">
+            <thead>
+                <th style="border: 1px solid black;padding:3px;"  colspan="2">Current Employment</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Employer Name</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Employer_Name__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Employment Type</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Employment_Type__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Employment Commencement Date</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%"><apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!acct.Employment_Commencement_Date__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Employment Income</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Employment_Income__c}"/></apex:outputText></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table width="100%" style="color:black;border-collapse: collapse;margin-top:20px;">
+            <thead>
+                <th style="border: 1px solid black;padding:3px;"  colspan="3">Centrelink Income</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Centrelink benefit 1</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%">{!acct.Centrelink_Benefit__c}</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Centrelink_Benefit_Amount__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Centrelink benefit 2</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%">{!acct.Centrelink_Benefit2__c}</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Centrelink_Benefit2_Amount__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Centrelink benefit 3</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%">{!acct.Centrelink_Benefit3__c}</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Centrelink_Benefit3_Amount__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Other Centrelink benefit</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%">{!acct.Other_Centrelink_Benefit__c}</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="35%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Other_Centrelink_Benefit_Amount__c}"/></apex:outputText></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table width="100%" style="color:black;border-collapse: collapse;margin-top:20px;">
+            <thead>
+                <th style="border: 1px solid black;padding:3px;"  colspan="2">Other Income</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Other Income Source</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Other_Income_Source__c}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Other Income Amount</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%"><apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Other_Income_Amount__c}"/></apex:outputText></td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%">Other Income Details</td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">{!acct.Other_Income_Details__c}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!--
+            <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+                <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}"/>
+            </c:PDFHeaderFooter>
+        -->    
+    </div> 
+    
+    
+    <div style="font-family:Arial, Helvetica, sans-serif; font-size:13px;">
+        <c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+            <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}" collection="false" header="true" customerForm="true" removeRightHeader="true"/>
+        </c:PDFHeaderFooter>
+
+        <table width="100%" style="color:black;border-collapse: collapse;">
+            <thead>
+                <th style="border: 1px solid black;padding:3px;"  colspan="2">Expenses</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Rent 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Rent_Mortgage_Board__c}"/></apex:outputText> 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Loan Payments 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Loan_Payments__c}"/></apex:outputText> 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Credit Card 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Credit_Card__c}"/></apex:outputText> 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Insurance 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Insurance__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Household 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Food__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Utilities 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Utilities__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                        Car/Petrol/Travel Expenses 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Car_Lease_Loan_Payment__c}"/></apex:outputText> 
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Mobile
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Mobile_Expenses__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Clothing 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Clothing__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                        Tobacco/Alcohol/Entertainment
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.Tobacco_Alcohol__c}"/></apex:outputText>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Other Rental 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0,number,currency}"><apex:param value="{!acct.Other_Rental_Companies__c}"/></apex:outputText>          
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid black;padding:3px;"  width="30%" >
+                    Other Expenses 
+                    </td>
+                    <td style="border: 1px solid black;padding:3px;"  width="70%">
+                    <apex:outputText value="{0, number, currency}"><apex:param value="{!acct.OtherOutgoings__c}"/></apex:outputText>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!--
+            <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+                <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!acct.Territory_Number__c}"/>
+            </c:PDFHeaderFooter>
+        --> 
+    </div>
+ 
+</apex:page>

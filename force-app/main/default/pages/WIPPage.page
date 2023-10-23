@@ -1,0 +1,486 @@
+<apex:page Controller="ReportController" showHeader="false" standardstylesheets="false" action="{!initAppsInProgress}">
+
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<style>
+.cursorHand{
+    cursor: pointer;
+}
+.table-condensed{
+  font-size: 15px;
+}
+.table-supercondensed{
+  font-size: 12px;
+}
+
+.tableFixHead {
+  height: 1000px;
+  overflow-y: auto;
+}
+
+thead th {
+  background: #fff;
+}
+
+a:hover {
+    cursor:pointer;
+}
+
+.modal-xl {
+    width: 95%;
+   max-width:1200px;
+}
+</style>
+
+<title>1-WIP</title>
+
+<apex:form >
+
+<apex:actionStatus id="counterStatus" style="align:center;">
+    <apex:facet name="start">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+            &nbsp;
+        </div>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+            <center><img src="{!$Resource.LoadingGIF2}"/></center>
+        </div>
+    </apex:facet>
+</apex:actionStatus>
+
+<apex:messages />
+
+<apex:actionFunction name="mergeLeadsFunc" action="{!mergeLeads}" rerender="dummy" status="counterStatus">
+  <apex:param name="leadCount" value="" />
+  <apex:param name="acctId" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction name="getSelectedLeadsFunc" action="{!getSelectedLeads}" rerender="selectedLeadsPanel">
+  <apex:param name="acctId" value="" />
+</apex:actionFunction>
+
+<div class="container-fluid main-div">
+
+<div class="alert alert-primary sticky-top" role="alert">
+  <span style="font-size:20px;"><b>1-WIP</b></span>
+    <span style="margin-left:550px;">
+      <a class="btn btn-primary btn-sm text-white" onclick="convertLeadsValidation();">Merge &nbsp;<i class="fas fa-object-group"></i></a>&nbsp;
+    </span>
+</div>
+
+<div style="background-color: #e2e3e5;padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px;">
+  <span style="font-size:15px;"><b>Unconverted Leads</b></span> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!leadsSize}</span> <span style="float:right;"><i class="fas fa-eye"></i> <a href="/00O2t000000KZ7w" target="_blank">View more</a></span>
+</div>
+<div style="overflow-x:auto;overflow-y:auto;height:26vh;font-size:13px;" class="leadsDiv toggleDiv table-responsive">
+    <table class="table table-supercondensed">
+        <thead class="thead-dark sticky-top">
+            <tr class="table-info">
+                <td scope="col"></td>
+                <td scope="col">Name</td>
+                <td scope="col">Mobile No</td>
+                <td scope="col">Email</td>
+                <td scope="col">Postcode</td>
+                <td scope="col">Territory</td>
+                <td scope="col">Product</td>
+                <td scope="col">Medium</td>
+                <td scope="col">How did you hear about us?</td>
+                <td scope="col">Reason for Enquiry</td>
+                <td scope="col">Nature of Enquiry</td>
+                <td scope="col">Enquiry Notes</td>
+                <td scope="col">Days Since Created</td>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!leadWrapperList}" var="wrap">
+                <tr>
+                    <td><apex:inputCheckbox value="{!wrap.isSelected}" styleclass="form-control leadRowCheck" style="width:25px; height:25px;" onclick="checkRow(this);"/></td>
+                    <td><a href="/{!wrap.lead.Id}" target="_blank">{!wrap.lead.Name}</a></td>
+                    <td>{!wrap.lead.MobilePhone}</td>
+                    <td>{!wrap.lead.Email}</td>
+                    <td>{!wrap.lead.PostalCode}</td>
+                    <td>{!wrap.lead.Territory_Number__r.Short_Name__c}</td>
+                    <td>{!wrap.lead.Desired_Product__c}</td>
+                    <td>{!wrap.lead.Lead_Medium__c}</td>
+                    <td>{!wrap.lead.did_your_hear__c}</td>
+                    <td>{!wrap.lead.Reason_for_Enquiry__c}</td>
+                    <td>{!wrap.lead.contact_desc__c}</td>
+                    <td>{!wrap.lead.Enquiry_Notes__c}</td>
+                    <td>{!wrap.lead.Days_and_Hours_Since_Lead_Created__c}</td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</div>
+
+<div style="background-color: #e2e3e5;padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px;" class="mt-2">
+  <span style="font-size:15px;"><b>Applications in Progress</b></span> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!acctsSize}</span> <span style="float:right;"><i class="fas fa-eye"></i> <a href="/00O2t000000KZ8Q" target="_blank">View more</a></span>
+</div>
+<div style="overflow-x:auto;overflow-y:auto;height:26vh;font-size:12px;" class="applicantsDiv toggleDiv table-responsive">
+    <table class="table table-supercondensed">
+        <thead class="thead-dark sticky-top">
+            <tr class="table-info">
+              <td></td>
+              <td scope="col">Name</td>
+              <td scope="col">Mobile No</td>
+              <td scope="col">Territory</td>
+              <td scope="col">Product</td>
+              <!--<td scope="col">Is Hybrid Link</td>-->
+              <td scope="col">Stage</td>
+              <td scope="col">Enquiry Notes</td>
+              <td scope="col">Time since conversion</td>
+              <td scope="col">Time since approval</td>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!accountWrapperList}" var="wrap">
+                <tr>
+                    <td><apex:inputCheckbox value="{!wrap.isSelected}" styleclass="form-control acctRowCheck" style="width:25px; height:25px;" onclick="checkRow(this);"/></td>
+                    <td style="display:none;">{!wrap.acct.Id}</td>
+                    <td><a href="/{!wrap.acct.Id}" target="_blank">{!wrap.acct.Name}</a></td>
+                    <td>{!wrap.acct.PersonMobilePhone}</td>
+                    <td>{!wrap.acct.Territory_Short_Name__c}</td>
+                    <td>{!wrap.product}</td>
+                    <!--<td><apex:image rendered="{!IF(wrap.acct.Hybrid_Link_Allocation_Datetime__c != null, true, false)}" value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/></td>-->
+                    <td>{!wrap.status}</td>
+                    <td>{!wrap.acct.Enquiry_Notes__c}</td>
+                    <td>{!wrap.timeSinceFormatted}</td>
+                    <td>{!wrap.timeSinceApproval}</td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</div>
+
+<div style="background-color: #e2e3e5;padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px;" class="mt-2">
+  <span style="font-size:15px;"><b>Outstanding Agreements</b></span> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!oppsSize}</span> <span style="float:right;"><i class="fas fa-eye"></i> <a href="/00O2t000000KZ8B" target="_blank">View more</a></span>
+</div>
+<div style="overflow-x:auto;overflow-y:auto;height:26vh;font-size:12px;" class="agreementsDiv toggleDiv table-responsive">
+    <table class="table table-supercondensed">
+        <thead class="thead-dark sticky-top">
+            <tr class="table-info">
+              <td></td>
+              <td scope="col">Name</td>
+              <td scope="col">Mobile No</td>
+              <td scope="col">Territory</td>
+              <td scope="col">TAV</td>
+              <td scope="col">Stage</td>
+              <td scope="col">Days Since Created</td>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!oppWrapperList}" var="wrap">
+                <tr>
+                    <td><apex:inputCheckbox value="{!wrap.isSelected}" styleclass="form-control oppRowCheck" style="width:25px; height:25px;" onclick="checkRow(this);"/></td>
+                    <td style="display:none;">{!wrap.opp.AccountId}</td>
+                    <td><a href="/{!wrap.opp.Id}" target="_blank">{!wrap.opp.Name}</a></td>
+                    <td>{!wrap.opp.Account.PersonMobilePhone}</td>
+                    <td>{!wrap.opp.Territory_Short_Name__c}</td>
+                    <td><apex:outputText value="{0, number, currency}"><apex:param value="{!wrap.opp.Amount}"/></apex:outputText></td>
+                    <td>{!wrap.status}</td>
+                    <td>{!wrap.timeSinceFormatted}</td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+
+<!-- The Modal -->
+<div class="modal fade bd-example-modal-xl" id="selectedLeadsModal">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+        <apex:outputPanel id="selectedLeadsPanel">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Please select a master lead</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+          <div class="card-group">
+            <div class="card">
+                <div class="card-body">
+                    <apex:outputPanel rendered="{!IF(selectedAccount != null, true, false)}">
+                        <div style="background-color: #e2e3e5;padding-left:10px;">
+                        <span style="font-size:15px;"><b>Selected Applicant</b></span>
+                        </div>
+                        <table class="table table-sm table-supercondensed">
+                            <thead class="thead-dark">
+                                <tr class="table-info">
+                                  <td scope="col">Name</td>
+                                  <td scope="col">Customer No</td>
+                                  <td scope="col">Mobile No</td>
+                                  <td scope="col">Territory</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><a href="/{!selectedAccount.Id}" target="_blank">{!selectedAccount.FirstName} {!selectedAccount.LastName}</a></td>
+                                    <td>{!selectedAccount.Customer_No__c}</td>
+                                    <td>{!selectedAccount.PersonMobilePhone}</td>
+                                    <td>{!selectedAccount.Territory_Short_Name__c}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </apex:outputPanel>
+                    <div style="background-color: #e2e3e5;padding-left:10px;">
+                        <span style="font-size:15px;"><b>Selected Leads</b></span>
+                    </div>
+                    <table class="table table-sm table-bordered table-supercondensed">
+                        <tr>
+                            <td>Master Lead</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="text-center"><apex:inputCheckbox value="{!ldWrap.isMasterRecord}" styleclass="masterCheck" style="width:25px; height:25px;" onclick="masterCheckRow(this);"/></td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Name</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Name}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Mobile</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.MobilePhone}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Email</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Email}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Postcode</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.PostalCode}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Territory</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Territory_Short_Name__c}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Medium</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Lead_Medium__c}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>How did you hear about us?</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.did_your_hear__c}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Reason for enquiry</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Reason_for_Enquiry__c}</td>
+                            </apex:repeat>
+                        </tr>
+                        <tr>
+                            <td>Desired Product</td>
+                            <apex:repeat value="{!selectedLeadWrapperList}" var="ldWrap">
+                            <td class="font-weight-bold">{!ldWrap.lead.Desired_Product__c}</td>
+                            </apex:repeat>
+                        </tr>
+                    </table>  
+                </div>
+            </div>
+          </div>
+      </div>
+      
+      <script>
+          function mergeLeadsValidation()
+            {
+                var radios = document.getElementsByClassName('masterCheck');
+                var masterCount = 0;
+            
+                for(var i=0;i<radios.length;i++)
+                {
+                    if(radios[i].checked)
+                    {
+                        masterCount++;
+                    }
+                } 
+                
+                if(masterCount == 0)
+                {
+                    bootbox.alert({
+                        message: "Please select master lead",
+                        className: 'rubberBand animated'
+                    });
+                    return false;
+                }
+                
+                $('.main-div').css('display','none');
+                mergeLeadsFunc('{!selectedLeadWrapperList.size}','');
+            }
+      </script>
+    </apex:outputPanel>
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <a onclick="mergeLeadsValidation();" class="btn btn-success text-white">Merge Leads</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+</apex:form>
+
+<script>
+function checkRow(elem)
+{
+    var checkboxes = document.getElementsByClassName('rowCheck');
+    var radios = document.getElementsByClassName('masterCheck');
+    //$('.masterCheck').prop('checked','false');
+    var index = $(elem).closest('tr').index();
+    
+    if($(elem).prop('checked'))
+    {
+        for(var i=0;i<radios.length;i++)
+        {
+            if(i == index)
+            {
+                radios[i].checked = true;
+            }else{
+                radios[i].checked = false;
+            }
+        }   
+    }
+}
+
+function masterCheckRow(elem)
+{
+    $('.masterCheck').prop('checked',false);
+    $(elem).prop('checked',true);
+}
+
+function convertLeadsValidation()
+{
+    var lead_checkboxes = document.getElementsByClassName('leadRowCheck');
+    var acct_checkboxes = document.getElementsByClassName('acctRowCheck');
+    var opp_checkboxes = document.getElementsByClassName('oppRowCheck');
+    var radios = document.getElementsByClassName('masterCheck');
+    var leadRowCount = 0;
+    var acctRowCount = 0;
+    var oppRowCount = 0;
+    var masterCount = 0;
+    var selectedAccountId = '';
+    
+    for(var i=0;i<lead_checkboxes.length;i++)
+    {
+        if(lead_checkboxes[i].checked)
+        {
+            leadRowCount++;
+        }
+    }
+    for(var i=0;i<acct_checkboxes.length;i++)
+    {
+        if(acct_checkboxes[i].checked)
+        {
+            acctRowCount++;
+            console.log('****' + $(acct_checkboxes[i]).closest('td').next().text() + '****');
+            selectedAccountId = $(acct_checkboxes[i]).closest('td').next().text();
+        }
+    }
+    for(var i=0;i<opp_checkboxes.length;i++)
+    {
+        if(opp_checkboxes[i].checked)
+        {
+            oppRowCount++;
+            console.log('****' + $(opp_checkboxes[i]).closest('td').next().text() + '****');
+            selectedAccountId = $(opp_checkboxes[i]).closest('td').next().text();
+        }
+    }
+    
+    for(var i=0;i<radios.length;i++)
+    {
+        if(radios[i].checked)
+        {
+            masterCount++;
+        }
+    } 
+    
+    if(leadRowCount > 3)
+    {
+        bootbox.alert({
+            message: "You cannot select more than 3 leads at once",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(leadRowCount == 0)
+    {
+        bootbox.alert({
+            message: "Please select atleast one lead",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(leadRowCount == 1 && acctRowCount == 0 && oppRowCount == 0)
+    {
+        bootbox.alert({
+            message: "Please select a lead or account or agreement to merge",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(acctRowCount > 1)
+    {
+        bootbox.alert({
+            message: "You cannot select more than 1 account at once",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(oppRowCount > 1)
+    {
+        bootbox.alert({
+            message: "You cannot select more than 1 agreement at once",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(acctRowCount > 0 && oppRowCount > 0)
+    {
+        bootbox.alert({
+            message: "You cannot select both applicant and agreement at once",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+    if(leadRowCount == 1)
+    {
+        $('.main-div').css('display','none');
+        mergeLeadsFunc(leadRowCount,selectedAccountId);
+    }
+    else if(leadRowCount > 1)
+    {
+        getSelectedLeadsFunc(selectedAccountId);
+        $('#selectedLeadsModal').modal(
+            {}
+        );     
+    }
+}
+
+$(document).ready(
+    function()
+    {
+        
+    }
+);
+</script>
+</apex:page>

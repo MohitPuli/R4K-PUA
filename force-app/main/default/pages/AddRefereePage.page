@@ -1,0 +1,599 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!getFormDetails}" standardstylesheets="false" showheader="false">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+<apex:includeScript value="{!$Resource.bootbox}"/>
+
+<style>
+.multisteps-form__progress {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+.multisteps-form__progress-btn {
+  transition-property: all;
+  transition-duration: 0.15s;
+  transition-timing-function: linear;
+  transition-delay: 0s;
+  position: relative;
+  padding-top: 20px;
+  color: rgba(108, 117, 125, 0.7);
+  text-indent: -9999px;
+  border: none;
+  background-color: transparent;
+  outline: none !important;
+  cursor: pointer;
+}
+
+@media (min-width: 500px) {
+  .multisteps-form__progress-btn {
+    text-indent: 0;
+  }
+}
+
+.multisteps-form__progress-btn:before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: block;
+  width: 13px;
+  height: 13px;
+  content: '';
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  transition: all 0.15s linear 0s, -webkit-transform 0.15s cubic-bezier(0.05, 1.09, 0.16, 1.4) 0s;
+  transition: all 0.15s linear 0s, transform 0.15s cubic-bezier(0.05, 1.09, 0.16, 1.4) 0s;
+  transition: all 0.15s linear 0s, transform 0.15s cubic-bezier(0.05, 1.09, 0.16, 1.4) 0s, -webkit-transform 0.15s cubic-bezier(0.05, 1.09, 0.16, 1.4) 0s;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background-color: #fff;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.multisteps-form__progress-btn:after {
+  position: absolute;
+  top: 5px;
+  left: calc(-50% - 13px / 2);
+  transition-property: all;
+  transition-duration: 0.15s;
+  transition-timing-function: linear;
+  transition-delay: 0s;
+  display: block;
+  width: 100%;
+  height: 2px;
+  content: '';
+  background-color: currentColor;
+  z-index: 1;
+}
+
+.multisteps-form__progress-btn:first-child:after {
+  display: none;
+}
+
+.multisteps-form__progress-btn.js-active {
+  color: #007bff;
+}
+
+.multisteps-form__progress-btn.js-active:before {
+  -webkit-transform: translateX(-50%) scale(1.2);
+          transform: translateX(-50%) scale(1.2);
+  background-color: currentColor;
+}
+
+.multisteps-form__form {
+  position: relative;
+}
+
+.multisteps-form__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.multisteps-form__panel.js-active {
+  height: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.multisteps-form__panel[data-animation="scaleIn"] {
+  -webkit-transform: scale(0.9);
+          transform: scale(0.9);
+}
+
+.multisteps-form__panel[data-animation="scaleIn"].js-active {
+  transition-property: all;
+  transition-duration: 0.2s;
+  transition-timing-function: linear;
+  transition-delay: 0s;
+  -webkit-transform: scale(1);
+          transform: scale(1);
+}
+
+.table-condensed{
+  font-size: 80%;
+}
+</style>
+<title>Add Referee Page</title>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" style="margin: 1px auto;" href="#">
+            <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="150" alt="Rent4Keeps"/>
+         </a>
+    </div>
+</nav>
+
+<apex:form id="theAppForm">
+  <apex:actionStatus id="counterStatus" style="align:center;">
+    <apex:facet name="start">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+            &nbsp;
+        </div>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+            <center><img src="{!$Resource.LoadingGIF2}"/></center>
+        </div>
+    </apex:facet>
+  </apex:actionStatus>
+<apex:actionFunction action="{!redirectAndAddPreviousReferees}" name="redirectAndAddRefereesFunc" rerender="theAppForm" status="counterStatus">
+    <apex:param id="cpRefId" name="cpRefId" value="" />
+    <apex:param id="prevRefs" name="prevRefs" value="" />
+    <apex:param id="addPrevRefNo" name="addPrevRefNo" value="" />
+    <apex:param id="isFranchiseeAddingPRef" name="isFranchiseeAddingPRef" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!addReferee}" name="addRefereeRecord" rerender="theAppForm" status="counterStatus">
+    <apex:param id="rfirstName" name="rfirstName" value="" />
+    <apex:param id="rlastName" name="rlastName" value="" />
+    <apex:param id="rphone" name="rphone" value="" />
+    <apex:param id="relation" name="relation" value="" />
+    <apex:param id="isFranchiseeAddingRef" name="isFranchiseeAddingRef" value="" />
+</apex:actionFunction>
+</apex:form>
+
+<div class="multisteps-form">
+<div class="row">
+<div class="col-12 col-lg-8 m-auto">
+<form class="multisteps-form__form">
+<!--single form panel 16 Add Referees-->
+<div class="multisteps-form__panel shadow refPanel {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='ref', 'js-active','')}" data-animation="scaleIn">
+  <h5 class="multisteps-form__title mt-4 mb-4">Provide character references &nbsp;<apex:outputPanel rendered="{!IF(noOfRefereesAdded>0,true,false)}"><a class="btn btn-info" href="#" >Added <span class="badge badge-light">{!noOfRefereesAdded}</span></a></apex:outputPanel> </h5>
+  <div class="multisteps-form__content whiteDiv">
+  <div class="silverDiv">
+  <apex:outputPanel rendered="{!(!allRefereesAdded)}">
+  Provide {!totalRefereesRequired} references, {!totalRefereesBeingFamMemberRequired} being a family member.
+  <!--<div id="accordion">-->
+  <apex:outputPanel rendered="{!IF(prevRefContactList!=null && prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds!='none', true, false)}" > 
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h5 class="mb-0">
+        <a class="btn btn-link" data-toggle="collapse" href="#collapseOne" role="button" aria-expanded="false" aria-controls="collapseOne">Previous Referees</a>
+      </h5>
+    </div>
+
+  <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+  <div class="table-responsive">
+      <table class="table table-condensed" id="pRefTable">
+        <thead>
+        <tr class="table-info">
+            <th>&nbsp;</th>
+            <th>Name</th>
+            <th style="display:none;"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <apex:repeat value="{!prevRefContactList}" var="pRef">
+        <tr>
+            <td><input type="checkbox" class="form-control rowPrevRefCheck" name="rowPrevRefCheck[]" style="width:25px;height:25px;"/></td>
+            <td class="pRefName">{!pRef.Referee_Name__r.Name}</td>
+            <!--<td>{!pRef.Relationship__c}</td>
+            <td class="pRefNo">{!pRef.Referee_Name__r.MobilePhone}</td>-->
+            <td class="pRefId" style="display:none;">{!pRef.Id}</td>
+            <!--<td><a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addRefereeModal" onclick="openPrevRefereeModal(this);">Add &nbsp;<i class="fas fa-plus"></i></a></td>-->
+        </tr>
+        </apex:repeat>
+        </tbody>
+      </table>
+  </div>
+  </div>
+  </div>
+    
+    <!--<div class="card">
+    <div class="card-header" id="headingOne">
+      <h5 class="mb-0">
+        <a class="btn btn-link" data-toggle="collapse" href="#moreRefs" role="button" aria-expanded="false" aria-controls="moreRefs" id="lnkAddMoreRefs" onClick="displayAddButton();">Add more Referees</a>
+      </h5>
+    </div>
+    </div>-->
+  </apex:outputPanel> 
+  
+  <apex:outputPanel rendered="{!IF(prevRefContactList!=null && prevRefContactList.size > 0 && currentprevRefId!=null && currentprevRefId!='', true, false)}" > 
+    <div class="card">
+      <h5 class="card-header">{!cprfNameVal} - {!cprfRelationVal}</h5>
+      <div class="card-body">
+        <h5 class="card-title">Confirm the mobile number</h5>
+        <p class="card-text"><input class="multisteps-form__input form-control addRfMobNo" id="addRfMobNo" value="{!addRfMobNo}" type="text" placeholder="04********"/>
+          <input class="hdnRefId" type="hidden" /></p>
+      </div>
+    </div>
+  </apex:outputPanel> 
+  
+  <apex:outputPanel rendered="{!IF((prevRefContactList==null || prevRefContactList.size = 0) || (prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds=='none' ) , true, false)}">
+  <div class="multisteps-form__content">
+  <div class="">
+  <!--<div class="collapse {!IF(prevRefContactList.size > 0 , '', 'show')}" id="moreRefs">-->
+    <div class="form-row p-1 mt-4">
+        <input class="multisteps-form__input form-control" id="rffirstName" value="{!rffirstNameVal}" type="text" placeholder="The person you referred to us First Name*"/>
+    </div>
+    <div class="form-row p-1 mt-4">
+        <input class="multisteps-form__input form-control" id="rflastName" value="{!rflastNameVal}" type="text" placeholder="The person you referred to us Last Name*"/>
+    </div>
+    <div class="form-row p-1 mt-4">
+        <input class="multisteps-form__input form-control" id="rfphone" value="{!rfphoneVal}" type="text" placeholder="Referee Mobile No.*"/>
+    </div>
+    <div class="form-row p-1 mt-4">
+      <div class="col">
+        <select id="ddlRelation" class="multisteps-form__select form-control" value="{!rfRelationVal}">
+          <option value="">--Relationship to you--</option>
+          <option>Family Member</option>
+          <option>Friend</option>
+          <option>Employer / Work Colleague</option>
+          <option>Landlord</option>
+        </select>
+      </div>
+    </div>
+    </div>
+    <!--</div>-->
+    </div>
+    </apex:outputPanel>
+    </apex:outputPanel>
+    
+    <apex:outputPanel rendered="{!allRefereesAdded}">
+        <div class="table-responsive">
+          <table class="table table-condensed" id="addedRefTable">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Contacted</th>
+                <th>Contacted Date</th>
+                <apex:outputPanel rendered="{!IF($User.Alias == 'guest',false,true)}">
+                  <th>&nbsp;</th>
+                </apex:outputPanel>
+            </tr>
+            </thead>
+            <tbody>
+            <apex:repeat value="{!addedRefereesList}" var="aRef">
+            <tr>
+                <td class="pRefName">{!aRef.Referee_Name__r.Name}</td>
+                <td>{!aRef.Referee_Name__r.MobilePhone}</td>
+                <td>{!aRef.Contacted__c}</td>
+                <td><apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!aRef.Contacted_On_Date__c}" /></apex:outputText></td>
+                <apex:outputPanel rendered="{!IF($User.Alias == 'guest',false,true)}">
+                  <td><a href="/apex/RefereeContactFormPage?rf={!aRef.Id}" target="_blank" class="btn btn-primary btn-sm">Contact</a></td>
+                </apex:outputPanel>
+            </tr>
+            </apex:repeat>
+            </tbody>
+          </table>
+      </div>
+    </apex:outputPanel>
+    </div>
+    </div>
+    
+    <div class="button-row d-flex mt-4">
+      <button class="btn btn-success js-btn-prev addMoreRef" id="addMoreRef" onclick="addRefFunction();" style="{!IF(prevRefContactList=null || prevRefContactList.size = 0 || (prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds=='none' ) , '', 'display:none')};width:100%;" type="button" title="Next">Next</button>
+      <!--<button class="btn btn-primary ml-auto js-btn-next comp-ref" style="{!IF(prevRefContactList=null || prevRefContactList.size = 0 || (prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds=='none' ) , '', 'display:none')}" type="button" title="Next">Next</button>-->
+      <button class="btn btn-success ml-auto js-btn-next prev-ref" id="prev-ref" onclick="prevRefFunction();" style="{!IF(prevRefContactList=null || prevRefContactList.size = 0 || (prevRefContactList.size > 0 && (currentprevRefId==null || currentprevRefId=='') && prevRefIds=='none' ) , 'display:none', '')};width:100%;" type="button" title="Next">Next</button>
+    </div>
+  <!--</div>-->
+</div>
+
+</form>
+</div>
+</div>
+</div>
+
+<!-- The Modal -->
+<div class="modal" id="addRefereeModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title"><span id="modalHeading">Confirm the mobile number for </span><span class="spnRefName"></span></h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+          <input class="multisteps-form__input form-control addRfMobNo" id="addRfMobNo" value="{!addRfMobNo}" type="text" placeholder="04********"/>
+          <input class="hdnRefId" type="hidden" />
+          <!--<textarea class="multisteps-form__textarea form-control" id="modalComments" placeholder="Provide explanation for Defaults"></textarea>-->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" onClick="addPreviousRefereeRecordFunc();">Add</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+const DOMstrings = {
+  addMoreRefNextBtnClass: 'addMoreRef',
+  compRefNextBtnClass: 'comp-ref',
+  prevRefNextBtnClass: 'prev-ref'
+};
+
+var prevRefIds='';
+var acctId = "{!acctId}";
+var allRefereesAdded = "{!allRefereesAdded}";
+if(allRefereesAdded=='true')
+    $(".addMoreRef").css('display','none');
+
+$("input.rowPrevRefCheck").click(getPrevRefsFunc);
+function getPrevRefsFunc(ele) {
+
+ var values = new Array();
+       //$.each($("input[name='rowPrevRefCheck[]']:checked").closest("td").siblings("td"),
+       $.each($("input[name='rowPrevRefCheck[]']:checked").closest('tr').find(".pRefId"),
+              function () {
+                   values.push($(this).text());
+              });
+    
+       prevRefIds= values.join (",");
+ }
+
+//remove class from a set of items
+const removeClasses = (elemSet, className) => {
+
+  elemSet.forEach(elem => {
+
+    elem.classList.remove(className);
+
+  });
+
+};
+
+//return exect parent node of the element
+const findParent = (elem, parentClass) => {
+
+  let currentNode = elem;
+
+  while (!currentNode.classList.contains(parentClass)) {
+    currentNode = currentNode.parentNode;
+  }
+
+  return currentNode;
+
+};
+
+//get active button step number
+const getActiveStep = elem => {
+  return Array.from(DOMstrings.stepsBtns).indexOf(elem);
+};
+
+//set all steps before clicked (and clicked too) to active
+const setActiveStep = activeStepNum => {
+
+  //remove active state from all the state
+  removeClasses(DOMstrings.stepsBtns, 'js-active');
+
+  //set picked items to active
+  DOMstrings.stepsBtns.forEach((elem, index) => {
+
+    if (index <= activeStepNum) {
+      elem.classList.add('js-active');
+    }
+
+  });
+};
+
+//get active panel
+const getActivePanel = () => {
+
+  let activePanel;
+
+  DOMstrings.stepFormPanels.forEach(elem => {
+
+    if (elem.classList.contains('js-active')) {
+
+      activePanel = elem;
+
+    }
+
+  });
+
+  return activePanel;
+
+};
+
+//open active panel (and close unactive panels)
+const setActivePanel = activePanelNum => {
+
+  //remove active class from all the panels
+  removeClasses(DOMstrings.stepFormPanels, 'js-active');
+
+  //show active panel
+  DOMstrings.stepFormPanels.forEach((elem, index) => {
+    if (index === activePanelNum) {
+
+      elem.classList.add('js-active');
+
+      setFormHeight(elem);
+
+    }
+  });
+
+};
+
+//set form height equal to current panel height
+const formHeight = activePanel => {
+
+  const activePanelHeight = activePanel.offsetHeight;
+
+  DOMstrings.stepsForm.style.height = `${activePanelHeight}px`;
+
+};
+
+const setFormHeight = () => {
+  const activePanel = getActivePanel();
+
+  formHeight(activePanel);
+};
+
+function prevRefFunction()
+{
+  var rffirstName = $("#rffirstName").val();
+  var rflastName = $("#rflastName").val();
+  var rfphone = $("#rfphone").val();
+  var prevrfphone = $("#addRfMobNo").val();
+  var relation = $("#ddlRelation").val();
+  var totRequiredReferees = parseInt("{!totalRefereesRequired}");
+  var totFamRequiredReferees = parseInt("{!totalRefereesBeingFamMemberRequired}");
+  var totRefereesAdded = parseInt("{!noOfRefereesAdded}");
+  var totFamRefereesAdded = parseInt("{!noOfRefereesFamAdded}");
+  var cpRefId = "{!currentprevRefId}";
+  var prevRefs = "{!prevRefIds}";
+  var prevRefMobNo = $(".addRfMobNo").val();
+  //alert('totRefereesAdded: '+totRefereesAdded+' totFamRefereesAdded: '+totFamRefereesAdded +' ##TotRequired: '+totRequiredReferees+' ##totFamMemRequired: '+totFamRequiredReferees );
+  
+  if((cpRefId!=null && cpRefId!="") || (prevRefIds!=null && prevRefIds!="") && prevRefs!='none')
+  {
+      //alert("cpRefId: "+cpRefId+' prevRefIds: '+prevRefIds+' prevRefs: '+prevRefs+' prevRefMobNo: '+prevRefMobNo);
+      if(prevRefIds!=null && prevRefIds!='')
+          prevRefs = prevRefIds;
+      if(cpRefId!=null && cpRefId!="")
+      {
+          var isMobileValid = IsMobileNumber(prevrfphone);
+    
+          if (!isMobileValid)
+          {
+              bootbox.alert({
+                message: "Please enter a valid Mobile No. No spaces allowed and number should start from 0.",
+                className: 'rubberBand animated'
+                });
+                return false;
+          }
+      }
+      redirectAndAddRefereesFunc(cpRefId,prevRefs,prevRefMobNo,('{!$User.Alias}' == 'guest' ? 'no' : 'yes'));
+  }
+  else
+  {
+      var randomNumber = Math.random();
+      var redirectURL = '/apex/AddRefereePage?id='+acctId+'&param=ref'+'&prevRefs=none';
+      if('{!$User.Alias}' == 'guest'){
+        redirectURL = ('{!onlineURL}' + '/AddRefereePage?id='+acctId+'&param=ref'+'&prevRefs=none');
+      }
+      window.location.href = redirectURL;
+  }    
+}
+
+
+function addRefFunction()
+{
+  var custMobNumber = '{!phoneVal}';
+  var rffirstName = $("#rffirstName").val();
+  var rflastName = $("#rflastName").val();
+  var rfphone = $("#rfphone").val();
+  var prevrfphone = $("#addRfMobNo").val();
+  var relation = $("#ddlRelation").val();
+  var isMobileValid = IsMobileNumber(rfphone);
+  var totRequiredReferees = parseInt("{!totalRefereesRequired}");
+  var totFamRequiredReferees = parseInt("{!totalRefereesBeingFamMemberRequired}");
+  var totRefereesAdded = parseInt("{!noOfRefereesAdded}");
+  var totFamRefereesAdded = parseInt("{!noOfRefereesFamAdded}");
+  //alert('totRefereesAdded: '+totRefereesAdded+' totFamRefereesAdded: '+totFamRefereesAdded +' ##TotRequired: '+totRequiredReferees+' ##totFamMemRequired: '+totFamRequiredReferees +' rfphone: '+rfphone);
+  
+  if(totRefereesAdded < totRequiredReferees || totFamRefereesAdded < totFamRequiredReferees)
+  { 
+      var totRefRequired = totRequiredReferees - totRefereesAdded;
+      var totFamMemRequired = totFamRequiredReferees - totFamRefereesAdded;
+      var messageVal = '';
+      if(totFamMemRequired > 0 && totRefRequired>0)
+          messageVal = "Please enter "+totRefRequired+" more character reference/s with "+totFamMemRequired+" being the family member.";
+      else if(totFamMemRequired > 0 && totRefRequired==0)
+          messageVal = "Please enter "+totFamMemRequired+" more family member/s as a character reference."
+      else
+          messageVal = "Please enter "+totRefRequired+" more character references.";
+    
+      if(rffirstName==null || rffirstName=='')
+      {
+          bootbox.alert({
+            message: "Please enter First Name of the person you refer. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else if(rflastName==null || rflastName=='')
+      {
+          bootbox.alert({
+            message: "Please enter Last Name of the person you refer. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else if(rfphone==null || rfphone=='')
+      {
+          bootbox.alert({
+            message: "Please enter Mobile No. of the person you refer. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else if (!isMobileValid)
+      {
+          bootbox.alert({
+            message: "Please enter a valid Mobile No. No spaces allowed and number should start with 0. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else if(rfphone!=null && rfphone!='' && custMobNumber!=null && custMobNumber!='' && rfphone == custMobNumber)
+      {
+          bootbox.alert({
+            message: "You cannot enter your Mobile No. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else if(relation==null || relation=='' || relation=='--Relationship to you--')
+      {
+          bootbox.alert({
+            message: "Please enter the relationship to you. "+messageVal,
+            className: 'rubberBand animated'
+            });
+            return false;
+      }
+      else
+          addRefereeRecord(rffirstName,rflastName,rfphone,relation,('{!$User.Alias}' == 'guest' ? 'no' : 'yes'));
+  }
+  else
+  {
+      //performEquifaxSearch();
+  }
+}
+
+function IsMobileNumber(txtMobNo) {
+    var mob = /^[0]{1}[0-9]{9}$/;
+    if (mob.test(txtMobNo) == false) {
+        //alert("Please enter valid mobile number.");
+        return false;
+    }
+    return true;
+}
+
+
+</script>
+</apex:page>

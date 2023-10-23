@@ -1,0 +1,349 @@
+<apex:page controller="PreQualifierSearchController" lightningStylesheets="true">
+    <apex:stylesheet value="{!URLFOR($Resource.JqueryUI_Current, 'css/ui-lightness/jquery-ui-1.10.4.min.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.sweetalert2, 'dist/sweetalert2.css')}"/>
+
+    <apex:includeScript value="{!$Resource.JQuery}"/>
+    <apex:includeScript value="{!URLFOR($Resource.JqueryUI_Current, '/js/jquery-ui-1.10.4.min.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.sweetalert2, 'dist/sweetalert2.js')}"/>
+  <style>
+  .ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight
+    {
+        background: #D81E05;
+    }
+  </style>
+ <apex:form id="theForm">
+  <apex:pageMessages id="errors" />
+    <apex:outputPanel rendered="{!IF($User.Alias == '900' || $User.Alias == '901' || $User.Alias == '902' || leadPresent,true,false)}">
+        <table width="100%" border="0">
+        <tr>  
+            <td width="200" valign="top">
+            <center>
+            <apex:pageBlock title="Applicant Search" mode="edit" id="criteria">
+
+            <script type="text/javascript">
+
+            function doSearch() {
+                searchServer(
+                document.getElementById("firstName").value,
+                document.getElementById("lastName").value,
+                document.getElementById("centrepay").value,
+                document.getElementById("mobile").value
+                );
+            }
+            </script> 
+
+            <apex:actionFunction name="searchServer" action="{!runSearch}" rerender="results,debug,errors">
+                <apex:param name="firstName" value="" />
+                <apex:param name="lastName" value="" />
+                <apex:param name="centrepay" value="" />
+                <apex:param name="mobile" value="" />
+            </apex:actionFunction>
+
+            <table cellpadding="2" cellspacing="2">
+            <apex:outputPanel rendered="{!leadPresent}">
+            <tr>
+                <td colspan="5"><center>
+                <strong><font color="#D81E05">{!leadName} is from {!leadAddress} looking for {!leadROE} {!leadDescription}</font></strong>
+                </center></td>
+            </tr>
+            </apex:outputPanel>
+            <tr>
+                <td style="font-weight:bold;">First Name<br/>
+                <input type="text" id="firstName" onkeyup="doSearch();"/>
+                </td>
+            
+                <td style="font-weight:bold;">Last Name<br/>
+                <input type="text" id="lastName" onkeyup="doSearch();"/>
+                </td>
+            
+                <td style="font-weight:bold;">Centrepay<br/>
+                <input type="text" id="centrepay" onkeyup="doSearch();"/>
+                </td>
+            
+                <td style="font-weight:bold;">Mobile<br/>
+                <input type="text" id="mobile" onkeyup="doSearch();"/>
+                </td>
+                
+                </tr>
+                <tr>
+                <td colspan="5"><center>
+                <input type="button" id="clearApp" class="btn" value="Clear Selected Applicant"></input>&nbsp;
+                <apex:commandButton action="{!save}" value="Next Step" onClick="return validate();"/>
+                </center></td>
+                </tr>
+                <tr>
+                <td colspan="5"><center>
+                <strong><font color="#D81E05"><apex:outputText styleClass="selectApp" id="selectApp" value="No Applicant" /> is currently selected!!!</font></strong>
+                <apex:inputHidden id="selectedAppId" value="{!selectedAppId}"/>
+                <apex:inputHidden id="pfname" value="{!pfname}"/>
+                <apex:inputHidden id="plname" value="{!plname}"/>
+                <apex:inputHidden id="pmobile" value="{!pmobile}"/>
+                </center></td>
+                </tr>
+            </table>
+
+            </apex:pageBlock>
+            </center>
+            </td>
+            </tr>
+            <tr>
+            <td valign="top">
+
+            <apex:pageBlock mode="edit" id="results">
+
+                <apex:pageBlockTable value="{!contacts}" var="contact" rendered="{!showTable}" onRowClick="clickElem(this);">
+
+                    <apex:column styleClass="fname">
+                        <apex:facet name="header">
+                            <apex:commandLink value="First Name" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="firstName" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.firstName}"/>
+                        <input type="hidden" class="appId" value="{!contact.id}"/>
+                    </apex:column>
+
+                    <apex:column styleClass="lname">
+                        <apex:facet name="header">
+                            <apex:commandLink value="Last Name" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="lastName" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.lastName}"/>
+                    </apex:column>
+
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Suburb" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="PersonMailingCity" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.PersonMailingCity}"/>
+                    </apex:column>
+
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Mobile" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="PersonMobilePhone" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.PersonMobilePhone}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Email" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="PersonEmail" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.PersonEmail}"/>
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Birthdate" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="Birthdate__c" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.Birthdate__c}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Territory Name" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="Territory_Short_Name__c" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.Territory_Short_Name__c}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink value="Owner Name" action="{!toggleSort}" rerender="results,debug">
+                                <apex:param name="sortField" value="Territory_Number__r.Owners_Name__c" assignTo="{!sortField}"/>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputField value="{!contact.Territory_Number__r.Owners_Name__c}"/>
+                    </apex:column>
+
+                </apex:pageBlockTable>
+                <apex:outputpanel rendered="{!(!showTable)}">
+                    <span><b>No records found. Please clear the selected applicant, if present and press Next Step to continue</b></span>
+                </apex:outputpanel>
+            </apex:pageBlock>
+
+            </td>
+        </tr>
+        </table>
+    </apex:outputPanel> 
+
+    <apex:outputPanel rendered="{!IF($User.Alias == '900' || $User.Alias == '901' || $User.Alias == '902' || leadPresent,false,true)}">
+        <table width="100%" border="0">
+            <tr>  
+                <td width="200" valign="top">
+                    <center>
+                        <apex:pageBlock title="Direct Lead" mode="edit">
+
+                            <table cellpadding="2" cellspacing="2">
+                                <tr>
+                                    <td style="font-weight:bold;">First Name<br/>
+                                        <apex:inputText styleClass="fname" value="{!fname}"/>
+                                    </td>
+                                
+                                    <td style="font-weight:bold;">Last Name<br/>
+                                        <apex:inputText styleClass="lname" value="{!lname}"/>
+                                    </td>
+                                
+                                    <td style="font-weight:bold;">Postcode<br/>
+                                        <apex:inputText styleClass="postcode" value="{!postcode}"/>
+                                    </td>
+                                
+                                    <td style="font-weight:bold;">Mobile<br/>
+                                        <apex:inputText styleClass="mobile" value="{!mobile}"/>
+                                    </td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td colspan="5">
+                                        <center>
+                                            <apex:commandButton action="{!createDirectLead}" value="Create Lead & Send SMS" onclick="return validateLead();" style="margin-top:10px;"/>
+                                        </center>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </apex:pageBlock>
+                    </center>
+                </td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+
+  </apex:form>
+  <strong><font color="#EAAF0F"><script>
+  
+      function clickElem(elem){
+      $('tr').removeClass('ui-state-highlight');
+      $(elem).addClass('ui-state-highlight');
+      document.getElementById('{!$Component.theForm.criteria.selectApp}').innerHTML=$(elem).find(".fname").text()+" "+$(elem).find(".lname").text();
+      document.getElementById('{!$Component.theForm.criteria.selectedAppId}').value=$(elem).find(".appId").val();
+      }
+  </script></font></strong>
+  <script>
+  $("#mobile").val("{!$CurrentPage.parameters.ldmobile}");
+  $("#firstName").val("{!$CurrentPage.parameters.ldfname}");
+  $("#lastName").val("{!$CurrentPage.parameters.ldlname}");
+  
+  var cpayParam = "{!$CurrentPage.parameters.ldcrn}";
+  if(cpayParam.length >= 10){
+      $("#centrepay").val("{!$CurrentPage.parameters.ldcrn}");
+  }
+  
+  if($("#centrepay").val()!="")
+     $("#centrepay").keyup();
+  else if($("#mobile").val()!="") 
+     $("#mobile").keyup();
+  else
+  {
+      if($("#firstName").val()!="")
+          $("#firstName").keyup();
+      if($("#lastName").val()!="")
+          $("#lastName").keyup(); 
+  }
+  function validate()
+  {
+      var selectedAppId=document.getElementById('{!$Component.theForm.criteria.selectedAppId}').value;
+      var selectedApp=document.getElementById('{!$Component.theForm.criteria.selectApp}').innerHTML;
+      
+      if(selectedAppId==''){
+          if('{!leadState}' != '' && '{!leadState}' != 'null' && '{!leadState}' != 'NZ' || (('{!leadState}' == '' || '{!leadState}' == 'null') && ('{!$User.Alias}' == '900' || '{!$User.Alias}' == '901' || '{!$User.Alias}' == '902'))){
+            alert("Please select an applicant...");  
+            return false;
+          }    
+          alert("Creating a new Applicant...");
+          document.getElementById('{!$Component.theForm.criteria.pfname}').value=$.trim($("#firstName").val());
+          document.getElementById('{!$Component.theForm.criteria.plname}').value=$.trim($("#lastName").val());
+          document.getElementById('{!$Component.theForm.criteria.pmobile}').value=$.trim($("#mobile").val());
+      }else{
+          alert("You are continuing with the existing Applicant "+selectedApp);
+      }
+  }
+  
+  $("#clearApp").click(function(){
+   document.getElementById('{!$Component.theForm.criteria.selectApp}').innerHTML="No Applicant";
+   document.getElementById('{!$Component.theForm.criteria.selectedAppId}').value="";
+   $('tr').removeClass('ui-state-highlight');
+  }); 
+
+   $(document).ready(
+       function()
+       {
+           if('{!$CurrentPage.Parameters.ldMedium}' == 'TR4K SIM')
+           {
+               window.open('/apex/NewApplicationProcessEnquiry?leadId='+'{!$CurrentPage.Parameters.ldId}'+'&acctId='+'{!$CurrentPage.Parameters.acctId}','_self');
+           }
+       }
+   ); 
+
+        function validateLead(){
+            if($('.fname').val().trim() == ''){
+                swal({
+                    position: 'top',
+                    title: "Error!",
+                    text: "Enter First Name",
+                    type: "error",
+                    confirmButtonText: "Cool"
+                });
+                return false;
+            }else if($('.lname').val().trim() == ''){
+                swal({
+                    position: 'top',
+                    title: "Error!",
+                    text: "Enter Last Name",
+                    type: "error",
+                    confirmButtonText: "Cool"
+                });
+                return false;
+            }else if($('.postcode').val().trim() == '' || $('.postcode').val().length != 4){
+                swal({
+                    position: 'top',
+                    title: "Error!",
+                    text: "Enter valid postcode",
+                    type: "error",
+                    confirmButtonText: "Cool"
+                });
+                return false;
+            }else if($('.mobile').val().trim() == '' || !isMobileNumber($('.mobile').val().trim())){
+                swal({
+                    position: 'top',
+                    title: "Error!",
+                    text: "Enter a valid Mobile No. No spaces allowed and number should start from 0.",
+                    type: "error",
+                    confirmButtonText: "Cool"
+                });
+                return false;
+            }else{
+                swal({
+                    position: 'top',
+                    title: "Success!",
+                    text: "Lead has been created and SMS has been sent to the customer.",
+                    type: "success",
+                    confirmButtonText: "Cool"
+                });
+            }
+        }
+
+        function isValidEmail(email) {
+            var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        function isMobileNumber(txtMobNo) {
+            var mob = /^[0]{1}[0-9]{9}$/;
+            if (mob.test(txtMobNo) == false) {
+                //alert("Please enter valid mobile number.");
+                return false;
+            }
+            return true;
+        }
+  </script>
+
+</apex:page>

@@ -1,0 +1,352 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initTCs}" sidebar="false" showHeader="false" standardStylesheets="false" renderAs="{!IF($CurrentPage.Parameters.renderAs = 'pdf','pdf','html')}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- CSS files-->
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<apex:stylesheet value="{!URLFOR($Resource.PDFDocumentStyle, 'PDFDocumentStyle.css')}" />
+<!-- End of CSS files-->
+
+<!-- JS files -->
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.min.js"
+              html-integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+              html-crossorigin="anonymous"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<!-- End of JS files -->
+
+<title>R4K Privacy Collection Statement</title>
+
+<apex:form >
+<apex:actionFunction action="{!sendCreditGuideEmail}" name="sendCreditGuideEmailFunc" rerender="dummy" status="counterStatus">
+<apex:param id="optInMarketing" name="optInMarketing" value="" />
+</apex:actionFunction>
+
+<apex:actionStatus id="counterStatus" style="align:center;">
+    <apex:facet name="start">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 1; z-index: 1000; background-color: white;">
+            &nbsp;
+        </div>
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;z-index: 1001;">
+            <center><img src="{!$Resource.LoadingGIF2}"/></center>
+        </div>
+    </apex:facet>
+</apex:actionStatus>
+
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Please scroll down to agree to the privacy statement and proceed.</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div  style="background-color:#D81E05;cursor: pointer;" class="text-center">
+        <nav class="navbar">
+            <a class="navbar-brand" style="margin: 1px auto;" href="https://rent4keeps.com.au/">
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCCWhiteR)}" width="20%" alt="R4K"/>
+            </a>
+        </nav>
+    </div>
+</apex:outputPanel>
+
+<c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}" headerTitle="R4K Privacy Collection Statement" collection="false" header="true" customerForm="true" removeRightHeader="true" removeLogo="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}"/>
+</c:PDFHeaderFooter>
+
+
+<div style="font-family:calibri;padding:5px;font-size:12px;">
+
+<p>
+    {!oppTerritory.Company_Name__c} ABN {!oppTerritory.A_B_N__c} (R4K) is committed to ensuring the confidentiality and security of your personal information. Our Privacy Policy sets out further information about our collection, use and disclosure of personal information, and is available on our website www.R4K.com.au.
+</p>
+
+<p>
+<strong>How do we collect personal information:</strong><br/>
+R4K generally collects personal information directly from you.  For example, personal information will be collected through our application processes, forms and other interactions with you in the course of providing you with our products and services, including when you provide it to us over the telephone, complete our application forms, visit our website, call us or send us correspondence via SMS or social media messaging.  We may also collect personal information (including credit information) from publicly available sources, or from a third party, such as a referee or a credit reporting body or credit provider. 
+</p>
+
+<p>
+<strong>Why do we collect personal information:</strong>
+R4K collects your personal information (including credit information) for the purposes outlined in the Privacy Policy, which include: <br/>
+<ul>
+<li>enabling R4K to answer your enquiry, or to assess your application to receive our products or services;</li>
+<li>let you know about other products or services we offer, send you information about special offers or any other future marketing purposes; </li>
+<li>protect our business and other customers from fraudulent or unlawful activity;</li>
+<li>obtain consumer credit references;</li>
+<li>provide you with our products or services;</li>
+<li>consider whether to provide you with additional products or services in the future;</li>
+<li>consider any concerns or complaints you may have; </li>
+<li>comply with relevant laws, regulations and other legal obligations; </li>
+<li>help us improve the products and services offered to our customers; </li>
+</ul>
+</p>
+
+<p>
+<strong>What if you don’t provide your personal information?</strong>
+Without this information R4K may not be able to process your application or if you are approved, provide you with the product and/or manage your account. 
+</p>
+
+<p>
+<strong>Disclosure of your personal information:</strong>
+R4K may disclose your personal information to any of the entities listed in the Privacy Policy, which include: <br/>
+<ul>
+<li>other entities within our R4K corporate group; </li>
+<li>any service provider R4K engages to carry out or assist its functions and activities, including agents and professional advisors;</li>
+<li>any third party providing you with a product or service in relation to the R4K product;</li>
+<li>credit reporting agencies;  <br/>
+<ul>
+<li>The credit reporting agencies we use may include: </li>
+<li>Equifax, PO Box 964 North Sydney 2059, www.mycreditfile.com.au, 130 762 007.  </li>
+<li>Illion, Level 7, 479 St. Kilda Road Melbourne 3004, www.illion.com.au, 1300 734 806.  </li>
+</ul>
+</li>
+<li>your referee or any other person nominated by you at the time of application; </li>
+<li>your employer; and </li>
+<li>an intending guarantor, to enable that person to consider whether or not to act as a guarantor. </li>
+<li>a person who is a guarantor.  </li>
+<li>financial institutions involved in managing our payments, such as banks;</li>
+<li>regulatory bodies, government agencies, law enforcement bodies and courts; </li>
+<li>a credit provider to assess a credit application, to assess your credit worthiness, to help you avoid default on your obligations or to inform them of your default.</li>
+</ul>
+</p>
+
+<p>
+By submitting an application to receive our products or services from R4K, you consent to R4K disclosing or obtaining your information to these persons. 
+</p>
+
+<p>
+<strong>Sending information overseas:</strong>
+We are likely to disclose your personal information to recipients located overseas, who provide services to us. <br/>
+We will not disclose your personal information to overseas recipients without your consent unless:<br/>
+<ul>
+    <li>we have taken reasonable steps to ensure that the recipient does not breach the Privacy Act 1988 (‘Privacy Act’), or the Australian Privacy Principles (‘APPs’); or</li>
+    <li>the recipient is subject to a similar information privacy regime.</li>
+</ul>
+</p>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+<c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
+</c:PDFHeaderFooter>
+</apex:outputPanel>
+
+<div style="page-break-after:always;"></div>
+
+<p>
+<strong>Your rights:</strong>
+Our Privacy Policy contains information about how:<br/>
+<ul>
+    <li>you may access the personal information we hold about you;</li>
+    <li>you may seek the correction of your personal information; and</li>
+    <li>you may complain about a breach of the Privacy Act, including the APPs; and</li>
+    <li>we will deal with a privacy complaint.</li>
+</ul>
+</p>
+
+<br/>
+
+<p>
+Our contact details are as follows: <br/>
+{!oppTerritory.Company_Name__c} <br/>
+{!oppTerritory.PPB_Street__c} {!oppTerritory.PPB_Suburb__c} {!oppTerritory.PPB_State__c} {!oppTerritory.PPB_Postcode__c}, customerservice@r4k.com.au 1300 130 077 www.r4K.com.au <br/>
+Australian Credit License {!oppTerritory.A_C_L__c} ACN {!oppTerritory.A_C_N__c} 
+</p>
+
+<br/><br/>
+
+<p>
+<strong>Acknowledgement</strong>
+</p>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+<table>
+<tr>
+<td>
+    <apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
+</td>
+<td>
+    I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="#">here</a>, and the R4K Terms and Conditions located <a href="#">here</a>. 
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
+</td>
+<td>
+I consent to you <strong>collecting sensitive information about me</strong> for the purposes of you providing services to me. 
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
+</td>
+<td>
+I consent to you <strong>sending my personal information to the recipients located outside Australia</strong> as described in the Privacy Policy.
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
+</td>
+<td>
+I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies, as outlined in the R4K Credit Information Management Policy.
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!IF($CurrentPage.Parameters.optInMarketing = 'yes', $Resource.CheckedCheckBox, $Resource.BlankCheckBox)}" style="{!IF($CurrentPage.Parameters.optInMarketing = 'yes', 'width:40px;height:40px;', 'width:20px;height:20px;margin-left:10px;')}"/>
+</td>
+<td>
+I agree to receive direct marketing information about your <strong>products, services or promotions</strong>. OR
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!IF($CurrentPage.Parameters.optInMarketing = 'yes', $Resource.BlankCheckBox, $Resource.CheckedCheckBox)}" style="{!IF($CurrentPage.Parameters.optInMarketing = 'yes', 'width:20px;height:20px;margin-left:10px;', 'width:40px;height:40px;')}"/>
+</td>
+<td>
+Please <strong>do not send me</strong> information about R4K’s products, services or promotions
+</td>
+</tr>
+
+<tr>
+<td>
+<apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
+</td>
+<td>
+By proceeding to use our services, you agree that you fully understand and agree to be bound by the R4K Terms and Conditions.
+</td>
+</tr>
+</table>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+<p>
+<input class="checkbox1" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="#">here</a>, and the R4K Terms and Conditions located <a href="#">here</a>. 
+</p>
+
+<p>
+<input class="checkbox2" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>collecting sensitive information about me</strong> for the purposes of you providing services to me. 
+</p>
+
+<p>
+<input class="checkbox3" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>sending my personal information to the recipients located outside Australia</strong> as described in the Privacy Policy.
+</p>
+
+<p>
+<input class="checkbox4" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies, as outlined in the R4K Credit Information Management Policy.
+</p>
+
+<p>
+<input class="checkbox5" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('.checkbox5');"/>&nbsp;I agree to receive direct marketing information about your <strong>products, services or promotions</strong>. OR
+</p>
+
+<p>
+<input class="checkbox6" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('.checkbox6');"/>&nbsp;Please <strong>do not send me</strong> information about R4K’s products, services or promotions
+</p>
+
+<p>
+<input class="checkbox7" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;By proceeding to use our services, you agree that you fully understand and agree to be bound by the R4K Terms and Conditions.
+</p>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+<c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
+</c:PDFHeaderFooter>
+</apex:outputPanel>
+</div>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+<div class="text-center font-weight-bold" style="margin-top:30px;">
+Click "I Agree" to proceed and provide your consent to our data collection and processing practices.
+A copy of our Privacy Collection Statement will also be emailed to you.
+</div>
+
+<div style="min-height:50px;"></div>
+
+<div class="creditGuideEmailDiv" style="display:none;">
+<p style="font-weight:bold;text-align:center;">
+Please enter your email address below <br/><br/>
+<apex:inputText styleClass="creditGuideEmailText" style="border:2px solid red;width:400px;height:50px;" value="{!creditGuideEmail}"/>
+</p>
+
+<div style="min-height:50px;"></div>
+<div style="min-height:50px;"></div>
+<div style="min-height:50px;"></div>
+</div>
+
+<div class="container-fluid sticky-top proceedBtnDiv" style="bottom:40px;display:none;">
+<div class="row">
+<div class="col text-center">
+<div>
+   <a class="btn btn-lg btn-block btn-success text-white" onclick="sendCreditGuideEmailJS();">I Agree</a>
+</div>
+</div>
+</div>
+</div>
+</apex:outputPanel>
+</apex:form> 
+
+<script>
+function checkConsent(checkboxSelector){
+    if(checkboxSelector == '.checkbox5'){
+        if($('.checkbox5').prop('checked')){
+            $('.checkbox6').prop('checked',false);
+        }else{
+            $('.checkbox6').prop('checked',true);
+        }
+    }
+    if(checkboxSelector == '.checkbox6'){
+        if($('.checkbox6').prop('checked')){
+            $('.checkbox5').prop('checked',false);
+        }else{
+            $('.checkbox5').prop('checked',true);
+        }
+    }
+    
+    if($('.checkbox1').prop('checked') && $('.checkbox2').prop('checked') && $('.checkbox3').prop('checked') && $('.checkbox4').prop('checked') && ($('.checkbox5').prop('checked') || $('.checkbox6').prop('checked')) && $('.checkbox7').prop('checked')){
+        $('.proceedBtnDiv').css('display','');
+    }else{
+        $('.proceedBtnDiv').css('display','none');
+    }
+}
+
+function sendCreditGuideEmailJS(){
+    if(('{!creditGuideEmail}' == 'null' || '{!creditGuideEmail}' == '') && !validateEmail($('.creditGuideEmailText').val())){
+        bootbox.alert({
+            message: "Please enter a valid email address",
+            className: 'rubberBand animated'
+          });
+          return false;
+    }else{
+        $('.proceedBtnDiv').css('display','none');
+        if($('.checkbox5').prop('checked')){
+            sendCreditGuideEmailFunc('yes');
+        }else{
+            sendCreditGuideEmailFunc('no');
+        }
+    }
+}
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+$(document).ready(
+    function(){
+        if('{!creditGuideEmail}' == 'null' || '{!creditGuideEmail}' == ''){
+            $('.creditGuideEmailDiv').css('display','');
+        }
+    }
+);
+</script> 
+</apex:page>

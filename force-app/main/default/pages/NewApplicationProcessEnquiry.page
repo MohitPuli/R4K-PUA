@@ -1,0 +1,491 @@
+<apex:page showHeader="false" standardController="Account" extensions="NewEnquirySectionController" id="thePage" >
+<apex:stylesheet value="{!URLFOR($Resource.OneStarter,'icons.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.OneStarter,'styles.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.OneStarter,'OneStarter.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.JqueryUI_Current, 'css/ui-lightness/jquery-ui-1.10.4.min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.TotalCheckCSS, 'totalcheck-full-min.css')}"/>
+<apex:stylesheet value="{!URLFOR($Resource.BlinkImage, 'BlinkImage.css')}" />
+<apex:stylesheet value="{!URLFOR($Resource.sweetalert2, 'dist/sweetalert2.css')}"/>
+<!--<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>-->
+<apex:stylesheet value="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+
+<style type="text/css">
+.nextbutton{
+color:white !important;
+background:#0eb89b !important;
+}
+
+.searchbutton{
+color:white !important;
+background:#0eb89b !important;
+}
+
+.prevbutton{
+color:white !important;
+background:#d68f07 !important;
+}
+.miscbutton{
+color:white !important;
+background:#079cd6 !important;
+}
+
+.refcontactId{
+display: none;
+}
+.selectedrefId{
+display: none;
+}
+.prodCriteriaHidden{
+display: none;
+}
+.output{
+    width:25%;
+}
+
+.alert {
+  position: relative;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+}
+
+.alert-info hr {
+  border-top-color: #abdde5;
+}
+
+.alert-info .alert-link {
+  color: #062c33;
+}
+.alert-heading {
+  color: inherit;
+}
+.alert-p {
+  color: #1a8b9e;
+}
+</style>
+
+<!-- JavaScript files -->
+<apex:includeScript value="{!URLFOR($Resource.JQuery)}"/>
+<!--<apex:includeScript value="{!URLFOR($Resource.TouchSwipe,'jquery.touchSwipe.min.js')}"/>-->
+<apex:includeScript value="{!URLFOR($Resource.OneStarter,'jquery.onestarter.js')}"/>
+<apex:includeScript value="/canvas/sdk/js/publisher.js"/>
+<apex:includeScript value="{!URLFOR($Resource.JqueryUI_Current, '/js/jquery-ui-1.10.4.min.js')}"/>
+<apex:includeScript value="{!$Resource.TotalCheckJS}"/>    
+<apex:includeScript value="{!URLFOR($Resource.sweetalert2, 'dist/sweetalert2.min.js')}"/>
+<!--<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.js"/>-->
+
+<script type="text/javascript">
+function doSearch() {
+//alert($(".ownerName").val());
+searchServer(
+  $(".ownerName").val()
+  );
+}
+</script>
+
+<title>R4K Enquiry Process</title>
+
+ <div id="one-app">
+  
+ <apex:form id="theForm">
+
+<apex:pageBlock id="theAppInfoBlock" mode="edit">
+  <p class="savingMessage" style="text-align:center;display:none;font-weight:bold;">Saving....</p>
+  <!--<a class="nextbutton" onclick="alertIfBuyout();">Save</a>  <br/>-->
+  <a class="nextbutton" style="font-weight:bold;text-decoration:none;color:white;text-align:center;vertical-align:middle;display:block;width:100%;padding-top:6px;padding-bottom:6px;height:35px;cursor:pointer;" onclick="alertIfBuyout();">Save</a><br/>
+  <!--<apex:commandButton action="{!save}" onclick="return alertIfBuyout();" value="Save" styleClass="nextbutton"/><br/>-->
+  <apex:commandButton rendered="{!showLatestAgreement}" action="{!redirectToEditApplication}" value="Edit Application for {!showLatestAgreementName}" styleClass="prevbutton"/><br/>
+  <apex:commandButton action="{!cancel}" value="Cancel" styleClass="miscbutton"/>
+<apex:pageMessages id="errors" />
+<apex:actionFunction name="searchServer" action="{!runSearch}" rerender="results">
+  <apex:param name="ownerName" value="" />
+</apex:actionFunction>
+<apex:actionFunction name="hideList" action="{!hideSearchList}" rerender="results"/>
+<apex:actionFunction name="saveFunc" action="{!save}"/>
+
+
+<apex:actionFunction name="updateSelectedTeriitory" action="{!updateSelectedTerritory}" rerender="dummy">
+  <apex:param name="selectedTerritoryIndex" value="" />
+</apex:actionFunction>
+
+<table class="detailList" cellspacing="0" cellpadding="0" border="0">
+<tr>
+<td>
+    <apex:outputPanel rendered="{!AND(!showBuyoutSection,!dormantCanConvert,recordaccess)}"> 
+        <center><b><span style="color:red;font-size: 10pt">New Enquiry for {!terName}.</span>
+        <br/><span style="color:red;font-size: 10pt">Only proceed if you are creating a new Agreement.</span>&nbsp;<span style="color:red;font-size: 10pt">Revert back to Applicant screen to edit Applicant details.</span>
+        </b></center>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!showBuyoutSection}"> 
+        <center><b><span style="color:red;font-size: 10pt">This applicant belongs to {!ownerternamefordisplayonbuyout} territory Contact {!ownertermobilefordisplayonbuyout} Email {!ownerteremailfordisplayonbuyout}</span></b></center>
+        <apex:inputHidden id="ownerternamefordisplayonbuyout" value="{!ownerternamefordisplayonbuyout}"/>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!AND(!recordaccess,dormantCanConvert)}"> 
+        <center><b><span style="color:red;font-size: 10pt">This is a Dormant Customer.</span></b></center>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!AND(!recordaccess,!dormantCanConvert,!showBuyoutSection)}"> 
+        <center><b><span style="color:red;font-size: 10pt">This applicant belongs to {!ownerternamefordisplayonbuyout} territory. Click Save to forward the lead.</span></b></center>
+    </apex:outputPanel>
+</td>
+  
+</tr>
+</table>
+
+<apex:outputPanel rendered="{!showSmartRecommendation}">
+<!--Smart Recommendations-->
+<div class="alert alert-info" style="margin-bottom:10px;"> 
+<h2 class="alert-heading"><i class="material-icons">highlight</i> Smart Recommendation</h2><br/>
+<b>
+<apex:outputPanel rendered="{!!isIDR}">
+<!--Enquiry Status - {!currentEnquiryStatus} <br/>-->
+<apex:outputPanel rendered="{!IF(repResponsibleToConvertPreviousLead != null, true, false)}">
+Rep responsible for converting previous lead - {!repResponsibleToConvertPreviousLead} <br/>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!IF(serviceability != null, true, false)}">Serviceability for this applicant is {!serviceability}%.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(serviceability != null, false, true)}">Income and Expenses have not been recorded.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(totalRecentAppStats > 0, true, false)}">The applicant has <apex:outputText rendered="{!IF(recentITICount > 0, true, false)}"> {!recentITICount} ITIs </apex:outputText>
+<apex:outputText rendered="{!IF(recentIVICount > 0, true, false)}">, {!recentIVICount} IVIs </apex:outputText> <apex:outputText rendered="{!IF(recentITBCount > 0, true, false)}">, {!recentITBCount} ITBs</apex:outputText> in the last 30 days. <br/></apex:outputPanel>       
+{!applicantName} has {!totalAgreements} agreements with us <apex:outputText rendered="{!IF(totalActiveAgreements > 0, true, false)}"> out of which {!totalActiveAgreements} is/are active</apex:outputText> <apex:outputText rendered="{!IF(AND(totalActiveAgreements = 0,totalAgreements - totalActiveAgreements > 0), true, false)}"> {!totalAgreements - totalActiveAgreements} is/are inactive.</apex:outputText> <br/>
+<apex:outputPanel rendered="{!IF(totalActiveAgreements > 0, true, false)}">The last active agreement: {!lastActiveAgreementName} was created on &nbsp;<apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!lastActiveAgreementCreatedDate}"/></apex:outputText>.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(applicantScheduledAmount > 0, true, false)}">The current fortnightly payment is &nbsp;<apex:outputText value="{0, number,currency}"><apex:param value="{!applicantScheduledAmount}"/></apex:outputText>.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(lastAgreementCompletedDate != null, true, false)}">The last agreement was completed on &nbsp;<apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!lastAgreementCompletedDate}"/></apex:outputText>.<br/></apex:outputPanel>
+The applicant has missed {!missedPaymentsInLast6Payments} payment from last 6 payments.<br/>
+<apex:outputPanel rendered="{!IF(totalArrears > 0, true, false)}">The applicant is in arrears by&nbsp;<apex:outputText value="{0, number,currency}"><apex:param value="{!totalArrears}"/></apex:outputText>.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(totalAgreementsVaried > 0, true, false)}">The applicant has {!totalAgreementsVaried} active varied agreements. The last variation was on&nbsp;<apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!lastAgreementVariedDate}" /> </apex:outputText><br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(totalRecentAppStats > 0, true, false)}">The applicant has <apex:outputText rendered="{!IF(recentITICount > 0, true, false)}"> {!recentITICount} ITIs </apex:outputText> <apex:outputText rendered="{!IF(recentIVICount > 0, true, false)}">, {!recentIVICount} IVIs </apex:outputText> <apex:outputText rendered="{!IF(recentITBCount > 0, true, false)}">, {!recentITBCount} ITBs</apex:outputText> in the last 30 days.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(lastITICreatedDate != null, true, false)}">The last ITI was created on &nbsp;<apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!lastITICreatedDate}"/></apex:outputText> and is effective from &nbsp;<apex:outputText value="{0,date,dd/MM/yyyy}"><apex:param value="{!lastITIEffectiveDate}"/></apex:outputText>.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(totalLatePaymentFeesApplied > 0, true, false)}">The applicant has been charged late payment fees {!totalLatePaymentFeesApplied} times for all active agreements.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(maxFortnightlyPayment> 0, true, false)}">Depending on the current income and expense, the applicant can afford to rent a product for a max amount of &nbsp;<apex:outputText value="{0, number,currency}"><apex:param value="{!maxFortnightlyPayment}"/></apex:outputText> per fortnight.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(maxFortnightlyPayment> 0, false, true)}">Depending on the current income and expense, the applicant cannot afford to rent a product.<br/></apex:outputPanel>
+<apex:outputPanel rendered="{!IF(maxFortnightlyPayment> 0, true, false)}">Also, the COGS for the product can be&nbsp;<apex:outputText value="{0, number,currency}"><apex:param value="{!maxCOGS}"/></apex:outputText> *<br/></apex:outputPanel>
+
+<apex:outputPanel rendered="{!showQuickConvert}">
+Next CAM Step: {!nextCAMStep} <br/>
+Please click <b>Quick Convert</b> to continue with the existing application.<br/>
+<apex:commandButton value="Quick Convert" action="{!quickConvert}" style="color:white !important;background:#0eb89b !important;"/>
+</apex:outputPanel>
+
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!isIDR}">
+<p class="alert-p">This applicant is in IDR. Please do not communicate with this customer.</p>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!isSCI}">
+<p class="alert-p">This applicant is in SCI.</p>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!AND(isDefault,!isSCI)}">
+<p class="alert-p">This applicant has been Defaulted.</p>
+</apex:outputPanel>
+</b>
+</div>
+</apex:outputPanel>
+          
+<apex:pageblocksection id="theAppInfoBlockSection" title="Enquiry Basic Details">
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="First Name" /><apex:inputText value="{!Account.Firstname}"/></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Last Name" /><apex:inputText value="{!Account.LastName}"/></apex:pageBlockSectionItem>  
+<apex:pageBlockSectionItem id="enquiryStatus"><apex:outputLabel value="Enquiry Status" />
+<apex:selectList size="1" value="{!enquiryStatus}" styleClass="ddlEnquiryStatus">
+    <apex:selectOptions value="{!enquiryStatuses}" />    
+</apex:selectList>
+</apex:pageBlockSectionItem>
+<apex:inputfield value="{!Account.Reason_for_Enquiry__c}" id="ddlReasonForEnquiry"/>
+<apex:pageBlockSectionItem id="appReason" dataStyleClass="appReasonDiv" labelStyleClass="appReasonDiv"><apex:outputLabel value="Reason why application did not go ahead" /><apex:inputfield value="{!Account.Reason_why_application_did_not_go_ahead__c}" id="ddlReason" styleClass="ddlReason"/></apex:pageBlockSectionItem>
+<!--<apex:pageBlockSectionItem ><apex:outputLabel value="Enquiry Notes" /><apex:inputTextArea rows="4" value="{!enquiryNotes}"/></apex:pageBlockSectionItem>  -->
+<apex:pageBlockSectionItem id="leadOwner" rendered="{!showLeadOwner}"><apex:outputLabel value="Transfer Lead To" /><apex:inputText value="{!ownerName}" styleClass="ownerName" onkeyup="doSearch();"/></apex:pageBlockSectionItem>
+<apex:inputHidden rendered="{!showLeadOwner}" id="hdnownerId" value="{!Account.OwnerId}"/>
+</apex:pageblocksection>
+</apex:pageBlock>
+
+<apex:pageBlock id="results" title="User Search" rendered="{!showLeadOwner}">
+<apex:pageBlockTable value="{!users}" var="user" rendered="{!showTable}" onRowClick="clickElem(this);" >
+    <apex:column styleClass="fname" headerValue="User">
+        <apex:outputField value="{!user.Name}"/>
+        <input type="hidden" class="ownerId" value="{!user.id}"/>
+    </apex:column>
+</apex:pageBlockTable>
+<apex:outputpanel rendered="{!IF(AND((!showTable),(!showTableSelected)),true,false)}">
+    <span><b>No records found.</b></span>
+</apex:outputpanel>
+<apex:outputpanel rendered="{!IF(AND((!showTable),showTableSelected),true,false)}">
+    <span><b>User has been selected.</b></span>
+</apex:outputpanel>
+</apex:pageBlock>
+
+<apex:pageBlock rendered="{!IF(showTerritories,true,false)}">
+
+<apex:pageblocksection title="Assigned Territory">
+<apex:pageBlockSectionItem >
+<apex:outputLabel value="Territory:" /> <apex:inputText value="{!territorySearchQuery}" html-placeholder="Enter Territory Name or Territory Number or Postcode or Suburb" styleClass="territorySearchQuery"/>
+</apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem />
+<apex:pageBlockSectionItem >
+<apex:commandButton action="{!searchTerritories}" value="Search" reRender="terrResults" styleClass="searchbutton"/>
+</apex:pageBlockSectionItem>
+
+</apex:pageblocksection>
+</apex:pageBlock>
+
+<apex:pageBlock title="Territory Search Results" id="terrResults"  rendered="{!IF(showTerritories,true,false)}">
+
+<apex:pageBlockTable value="{!availableTerritories}" var="terr" rendered="{!IF(showTerritories,true,false)}" onRowClick="clickTerritory(this);">
+    <apex:column styleClass="Number" headerValue="Number" style="font-weight:bold;padding:5px;">
+        <apex:outputField value="{!terr.Name}"/>
+    </apex:column>
+    <apex:column styleClass="ShortName" headerValue="Short Name" style="font-weight:bold;padding:5px;">
+        <apex:outputField value="{!terr.Short_Name__c}"/>
+    </apex:column>
+    <apex:column styleClass="Postcodes" headerValue="Postcodes" style="font-weight:bold;padding:5px;">
+        <apex:outputField value="{!terr.Territory_post_codes__c}"/>
+    </apex:column>
+</apex:pageBlockTable>
+</apex:pageBlock>
+
+<apex:pageBlock id="theAppInfoBlock2" mode="edit">
+
+   
+<apex:pageblocksection id="theContactSection" title="Enquiry Contact">
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Mobile" /><apex:inputfield id="Mobile" value="{!Account.PersonMobilePhone}"/></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Email" /><apex:inputfield id="Email" value="{!Account.PersonEmail}"/></apex:pageBlockSectionItem>
+</apex:pageblocksection>
+   
+<apex:pageblocksection id="theExistingPaymentSection" rendered="{!(!showBuyoutSection)}" title="High Level Serviceability Per Fortnight">
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="No of active agreements" /><apex:outputText styleClass="padded" value="{0, number, 0}"><apex:param value="{!noofactiveagreements}" /></apex:outputText></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"/>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Total Income" /><apex:outputText styleClass="padded" value="{0, number, currency}"><apex:param value="{!Account.Highlevel_Income__c}" /></apex:outputText></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Total Expense" /><apex:outputText styleClass="padded" value="{0, number, currency}"><apex:param value="{!Account.Comfortable_Spending__c}" /></apex:outputText></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="Serviceability" /><apex:outputText styleClass="padded" value="{0, number, 00.00}%"><apex:param value="{!Account.Serviceability__c}" /></apex:outputText></apex:pageBlockSectionItem>
+</apex:pageblocksection>
+
+<apex:pageblocksection id="thePageLeadServiceabilitySection" rendered="{!showBuyoutSection}" title="High Level Serviceability Per Fortnight">
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%" id="leadEmpIncome"><apex:outputLabel value="Employment Income"/><apex:inputfield id="txtLeadEmpIncome" value="{!Account.Lead_Employment_Income__c}" onchange="calculateLeadIncome();return false;"/></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%" id="leadRent"><apex:outputLabel value="Rent"/><apex:inputfield id="txtLeadRent" value="{!Account.Lead_Rent__c}" onchange="calculateLeadExpense();return false;"/></apex:pageBlockSectionItem>
+<apex:inputfield id="txtLeadcbAmt" value="{!Account.Lead_Total_Centrelink_Benefit_Amount__c}" onchange="calculateLeadIncome();return false;"/>
+<apex:inputfield id="txtLeadUtilities" value="{!Account.Lead_Utilities__c}" onchange="calculateLeadExpense();return false;"/>
+<apex:inputfield id="txtLeadTotalIncome" value="{!Account.Lead_Highlevel_Income__c}"/>
+<apex:inputfield id="txtLeadFood" value="{!Account.Lead_Food__c}" onchange="calculateLeadExpense();return false;"/>
+<apex:inputfield id="lblLeadServicebility" value="{!Account.Lead_Serviceability__c}"/>
+<apex:inputfield id="txtLeadOther" value="{!Account.Lead_Other_Outgoings__c}" onchange="calculateLeadExpense();return false;"/>
+<apex:pageBlockSectionItem />
+<apex:pageBlockSectionItem id="previousPayment" helptext="Previous R4K Payment"><apex:outputLabel value="Existing R4K Payment (2)" /><apex:inputText id="txtpreviousPayment" value="{!existingR4KPayment}" html-readonly="readonly"/></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem />
+<apex:inputfield id="txtLeadTotalExpenses" value="{!Account.Lead_Comfortable_Spending__c}"/>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"><apex:outputLabel value="No of active agreements" /><apex:outputText styleClass="padded" value="{0, number, 0}"><apex:param value="{!noofactiveagreements}" /></apex:outputText></apex:pageBlockSectionItem>
+<apex:pageBlockSectionItem dataStyle="width:25%" labelStyle="width:15%"/>
+</apex:pageblocksection>
+
+<apex:pageblocksection title="Buyout" rendered="false" id="theBuyoutSection">
+<apex:pageBlockSectionItem dataStyle="width:30%" labelStyle="width:18%" id="buyoutRequest" ><apex:outputLabel value="Request Owner for Buyout?" />
+<apex:selectList size="1" id="ddlRequestToBuyout" value="{!requestForBuyout}">
+    <apex:selectOptions value="{!requestForBuyouts}" />
+</apex:selectList>
+</apex:pageBlockSectionItem>
+
+</apex:pageblocksection>
+
+</apex:pageBlock>
+
+</apex:form>
+</div>
+<script>
+$(document).ready(function() {
+oneStarter = $('div#one-app').oneStarter('record-action');
+});
+ 
+var showBuyoutSection="{!showBuyoutSection}";
+var showLatestAgreement="{!showLatestAgreement}";
+//alert(showLatestAgreement);
+if(showBuyoutSection=='false')
+{
+    //alert(showLatestAgreement);
+    if(showLatestAgreement=='true')
+    {
+        //alert('hi');
+        var showLatestAgreementName="{!showLatestAgreementName}";
+        var showLatestAgreementCreatedDate="{!showLatestAgreementCreatedDate}";
+        //alert(showLatestAgreementName + " is created on "+showLatestAgreementCreatedDate+ " which is within 21 days.");
+        alert("Looks like a similar Enquiry has been created within the last 21 days. You have two options : \n1. Create a new Enquiry - (Click Save). \n2. Edit Existing Application - (Click Edit Application for "+showLatestAgreementName+").");
+    }
+}
+
+/*
+function checkBenefits(){
+    toggleOtherBenefits();
+}
+*/
+
+function alertIfBuyout()
+{   
+    console.log('****Territories : ' + '{!allTerritoryNamesWithRecordAccess}');
+    var allTerritoryNamesWithRecordAccess = '{!allTerritoryNamesWithRecordAccess}';
+    var allTerritoryNamesWithRecordAccessList = '{!allTerritoryNamesWithRecordAccess}'.split('-');
+    if('{!showTerritories}' == 'true' && allTerritoryNamesWithRecordAccess != '' && ($('.territorySearchQuery').val() == '' || !allTerritoryNamesWithRecordAccessList.includes($('.territorySearchQuery').val())))
+    {
+        swal({
+          title: "Warning!",
+          text: "Please select a territory",
+          type: "warning",
+          confirmButtonText: "Cool"
+        });
+        return false;
+    }
+
+    var appStatus = $('.ddlEnquiryStatus').val();
+    var appReason = $('.ddlReason').val();
+    
+    if((appStatus=="DNQ - Did Not Qualify" || appStatus=="DNS - Did Not Service" || appStatus=="DNC - Did Not Contact" || appStatus=="DNP - Did Not Proceed" || appStatus=="DND - Do Not Deal" || appStatus=="Incarcerated" || appStatus=="Deceased" || appStatus=="IDR") && appReason.trim() == '')
+    {
+        $('.ddlReason').css('border','2px solid red');
+        swal({
+          title: "Warning!",
+          text: "Please enter the reason why application did not go ahead",
+          type: "warning",
+          confirmButtonText: "Cool"
+        });
+        return false;
+    }
+    
+    saveFunc();    
+}
+
+function calculateLeadIncome()
+{
+   var empIncome=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.leadEmpIncome.txtLeadEmpIncome}').value;
+   var cb1=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadcbAmt}').value;
+   
+   var expense=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadTotalExpenses}').value;
+   //alert(empIncome);
+   expense=expense.replace(/\,/g,'');
+    if(isNaN(expense) || expense=="")
+    {
+        expense=0;
+    }
+   var totalIncome=0;
+   var serviceability=0;
+   
+   empIncome=empIncome.replace(/\,/g,'');
+   if(isNaN(empIncome) || empIncome=='')
+    {
+        empIncome=0;
+    }
+   cb1=cb1.replace(/\,/g,'');
+   if(isNaN(cb1) || cb1=='')
+    {
+        cb1=0;
+    }
+    
+   totalIncome=parseFloat(cb1)+parseFloat(empIncome);
+   //alert('exp: '+expense+'income: '+totalIncome);
+   if(totalIncome!=0)
+    {
+        serviceability=(parseFloat(totalIncome)-parseFloat(expense))*100 / parseFloat(totalIncome);
+    }
+   document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadTotalIncome}').value=totalIncome.toFixed(2);
+   document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.lblLeadServicebility}').value=serviceability.toFixed(1);
+   if(serviceability<25)
+   {
+       //alert("You cannot service this applicant as serviceablity percent is "+ serviceability.toFixed(1));
+       swal({
+          title: "Warning!",
+          text: "You cannot service this applicant as serviceablity percent is "+ serviceability.toFixed(1),
+          type: "warning",
+          confirmButtonText: "Cool"
+        });
+       return false;
+   }
+}
+
+function calculateLeadExpense()
+{
+    var rent=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.leadRent.txtLeadRent}').value;
+    var utilities=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadUtilities}').value;
+    
+    var food=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadFood}').value
+    var other=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadOther}').value;
+    
+    var income=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadTotalIncome}').value;
+    var txtpreviouspayment=document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.previousPayment.txtpreviousPayment}').value;
+    income=income.replace(/\,/g,'');
+    
+    if(isNaN(income) || income=="")
+    {
+        income=0;
+    }
+    var totalExpenses=0;
+    var serviceability=0;
+    
+    rent=rent.replace(/\,/g,'');
+    if(isNaN(rent) || rent=='')
+    {
+        rent=0;
+    }
+    
+    utilities=utilities.replace(/\,/g,'');
+    if(isNaN(utilities) || utilities=='')
+    {
+        utilities=0;
+    }
+    food=food.replace(/\,/g,'');
+    if(isNaN(food) || food=='')
+    {
+        food=0;
+    }
+    other=other.replace(/\,/g,'');
+    if(isNaN(other) || other=='')
+    {
+        other=0;
+    }
+    
+    while(txtpreviouspayment.charAt(0) === '$')
+    txtpreviouspayment = txtpreviouspayment.substr(1);
+    txtpreviouspayment=txtpreviouspayment.replace(/\,/g,'');
+    if(isNaN(txtpreviouspayment) || txtpreviouspayment=='')
+    {
+        txtpreviouspayment=0;
+    }
+    totalExpenses=parseFloat(rent)+parseFloat(utilities)+parseFloat(food)+parseFloat(other)+parseFloat(txtpreviouspayment);
+    
+    //alert('exp: '+totalExpenses+'income: '+income);
+    if(income!=0)
+        {
+            serviceability=(parseFloat(income)-parseFloat(totalExpenses))*100 / parseFloat(income);
+        }
+    document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.txtLeadTotalExpenses}').value=totalExpenses.toFixed(2);
+    document.getElementById('{!$Component.theForm.theAppInfoBlock2.thePageLeadServiceabilitySection.lblLeadServicebility}').value=serviceability.toFixed(1);
+    if(serviceability<25)
+    {
+       //swal("You cannot service this applicant as serviceablity percent is "+ serviceability.toFixed(1));
+       swal({
+          title: "Warning!",
+          text: "You cannot service this applicant as serviceablity percent is "+ serviceability.toFixed(1),
+          type: "warning",
+          confirmButtonText: "Cool"
+        });
+       return false;
+    }
+}
+
+function clickElem(elem){
+  $('tr').removeClass('ui-state-highlight');
+  $(elem).addClass('ui-state-highlight');
+  //document.getElementById("firstName").value=$(elem).find(".fname").text();
+  $(".ownerName").val($(elem).find(".fname").text());
+  document.getElementById('{!$Component.theForm.theAppInfoBlock.theAppInfoBlockSection.hdnownerId}').value=$(elem).find(".ownerId").val();
+  hideList();
+  }
+
+function clickTerritory(elem){
+   $('tr').removeClass('ui-state-highlight');
+   $(elem).addClass('ui-state-highlight');
+   alert('You have selected ' + $(elem).find(".ShortName").text() ); 
+   updateSelectedTeriitory($(elem).closest('tr').index()); 
+   $(".territorySearchQuery").val($(elem).find(".Number").text());
+}
+</script>
+</apex:page>

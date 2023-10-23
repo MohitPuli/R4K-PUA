@@ -1,0 +1,175 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initTCs}" sidebar="false" showHeader="false" standardStylesheets="false" renderAs="{!IF($CurrentPage.Parameters.renderAs = 'pdf','pdf','html')}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- CSS files-->
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<apex:stylesheet value="{!URLFOR($Resource.PDFDocumentStyle, 'PDFDocumentStyle.css')}" />
+<!-- End of CSS files-->
+
+<!-- JS files -->
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.min.js"
+              html-integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+              html-crossorigin="anonymous"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<!-- End of JS files -->
+
+<title>R4K Credit Guide</title>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Please scroll down to agree to the credit guide and proceed.</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div  style="background-color:#D81E05;cursor: pointer;" class="text-center">
+        <nav class="navbar">
+            <a class="navbar-brand" style="margin: 1px auto;" href="https://rent4keeps.com.au/">
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCCWhiteR)}" width="20%" alt="R4K"/>
+            </a>
+        </nav>
+    </div>
+</apex:outputPanel>
+
+<c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}" headerTitle="Credit Guide" collection="false" header="true" customerForm="true" removeLogo="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}"/>
+</c:PDFHeaderFooter>
+
+        
+        
+     <div style="font-family:calibri;padding:5px;page-break-after:always;">
+        
+          <p style="font-weight: bold">Credit licensee details </p>
+
+          <p>Licensee Name: {!oppTerritory.Company_Name__c} ACN {!oppTerritory.A_C_N__c} <br/>
+            Australian Credit Licence (ACL) number: {!oppTerritory.A_C_L__c} <br/>
+            Address: {!oppTerritory.PPB_Street__c} {!oppTerritory.PPB_Suburb__c} {!oppTerritory.PPB_State__c} {!oppTerritory.PPB_Postcode__c}<br/>
+            Telephone: {!oppTerritory.Mobile__c} <br/>
+            Email: {!oppTerritory.Email__c}
+          </p>
+    
+          <p style="font-weight: bold">Introduction</p>
+          <p>
+              This Credit Guide is designed to assist you in deciding whether to use the services we offer.  This Credit Guide sets out: <br/>
+              <ul>
+              <li>Who we are and how we can be contacted;</li>
+              <li>What services we provide;</li>
+              <li>our responsible lending obligations; and</li> 
+              <li>how we deal with complaints.</li>
+              </ul>
+          </p>
+          
+          <p style="font-weight: bold">Our services</p>
+          <p>
+              We are a credit provider.  We provide sale of goods by instalments contracts for household goods.
+          </p>
+
+          <p style="font-weight: bold">Our responsible lending obligations</p>          
+          <p>
+              We are prohibited from entering into a credit contract, consumer lease or credit limit increase that would be unsuitable for you. It will be unsuitable for you if you would be unable to comply with your financial obligations under the contract or could only comply with substantial hardship, or it does not meet your requirements or objectives. We must assess whether a credit contract, consumer lease or credit limit increase would be unsuitable for you before we enter into it with you.  As part of our assessment, we are required to make inquiries into your financial situation, requirements, and objectives, and to take reasonable steps to verify this information. This will require you to provide certain documents to us.
+          </p>
+          
+          <p style="font-weight: bold">Requesting a copy of our assessment</p>
+          <p>
+              We will provide you with a free copy of our assessment upon request if you ask within 7 years.  We will give you a copy of the assessment within the following timeframes:<br/>
+              <ul>
+              <li>If you request a copy within 2 years of entering into</li>
+              <li>
+                  if you ask for a copy of your assessment before entering into the contract, consumer lease or increasing your credit limit, we <br/>
+                  &nbsp;&nbsp; will provide a copy before providing you credit.<br/>
+                  &nbsp;&nbsp; your credit contract, we will provide a copy within 7 business days
+              </li>
+              <li>If you request a copy within 7 years of entering into your contract, we will provide a copy within 21 business days.</li> 
+              </ul>
+          </p>
+            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+                <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+                    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
+                </c:PDFHeaderFooter>
+            </apex:outputPanel>
+       </div> 
+       <div style="font-family:calibri;margin-bottom:50px;padding:5px;"> 
+          <p style="font-weight: bold">Complaints</p>
+          <p>
+              If you have a complaint, you should first discuss the matter with us to see whether we can resolve your concerns. Please contact our compliance team on the following (email: compliance@r4k.com.au, phone: 0388777400). You can find out more about our internal dispute resolution procedure on our website <a href="www.r4k.com.au/complaints" target="_blank">www.r4k.com.au/complaints</a>.
+          </p>
+          <p>
+             If we cannot resolve your complaint to your satisfaction, or if we do not resolve it within the maximum timeframe allowed under the law, you can contact the Australian Financial Complaints Authority (AFCA).  AFCA is a fair and independent dispute resolution scheme for financial services complaints that is free to consumers.
+          </p>
+          <p>
+             Website: <a href="www.afca.org.au" target="_blank">www.afca.org.au</a>  <br/>
+             Email: info@afca.org.au<br/>
+             Telephone: 1800 931 678 (free call)<br/>
+             In writing to: Australian Financial Complaints Authority, GPO Box 3, Melbourne VIC 3001<br/>
+             Australian Credit Licence Number : {!oppTerritory.A_C_L__c}
+          </p>
+            
+      </div>  
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+    <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+        <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
+    </c:PDFHeaderFooter>
+</apex:outputPanel>      
+
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+<div class="text-center font-weight-bold" style="margin-top:30px;">
+    Click "I Agree" to proceed to the Privacy Statement. <br/>
+    A copy of our Credit Guide will also be emailed to you.
+</div>
+
+<div style="min-height:50px;"></div>
+<div style="min-height:50px;"></div>
+<div style="min-height:50px;"></div>
+
+<div class="container-fluid sticky-top proceedBtnDiv" style="bottom:40px;">
+<div class="row">
+<div class="col text-center">
+<div>
+   <a class="btn btn-lg btn-block btn-success text-white" onclick="redirectToPrivacy();">I Agree</a>
+</div>
+</div>
+</div>
+</div>
+</apex:outputPanel>
+
+
+<script>
+/*
+window.onscroll = function(e) {
+  // print "false" if direction is down and "true" if up
+  if(this.oldScroll > this.scrollY)
+  {
+      $('.proceedBtnDiv').css('display','none');
+  }
+  
+  if($(document).height() - ($(window).scrollTop() + $(window).height()) <=100 ) {
+       $('.proceedBtnDiv').css('display','');
+   }
+  
+  this.oldScroll = this.scrollY;
+}
+*/
+
+var onlineURL =  '{!onlineURL}';
+var acctId = "{!acctId}";
+var ldId = "{!ldId}";
+
+$(document).ready(
+    function(){
+        if('{!acctId}' != '' && '{!acctId}' != 'null' && '{!$User.Alias}' == 'guest'){
+            $('body').css('display','none');
+            window.location.href = onlineURL +'/R4KEnquiryLandingPage?id='+acctId+'&ld='+ldId+'&n='+Math.random();
+        }
+    }
+);
+
+function redirectToPrivacy(){
+    window.open('{!onlineURL}/R4KPrivacyStatement?terId={!oppTerritory.Id}&ld={!ldId}&id={!acctId}&n='+Math.random(),'_self');
+}
+</script> 
+</apex:page>

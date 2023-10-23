@@ -1,0 +1,165 @@
+<apex:page controller="R4KOnlineApplicationController" standardstylesheets="false" showheader="false" action="{!initAcknowledgementRedirect}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+<apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
+
+<style>
+html { height: 100%; }
+
+body {
+  height: 100%;
+  background-color:#fcb813;
+}
+
+.silverDiv
+{
+    min-height:400px;
+    background-color:#cbcccb;
+    border-radius:20%;
+    padding:10%;
+}
+
+.whiteDiv
+{
+    background-color:#FFFFFF;
+    border-radius:20%;
+    margin-bottom:20px;
+    padding:10%;
+}
+
+.vertical-center {
+  min-height: 100%; 
+  //min-height: 100vh; 
+
+  display: flex;
+  align-items: center;
+}
+
+.table-condensed{
+  font-size: 80%;
+}
+
+.multisteps-form__title{
+    text-align:center;
+    fon-weight:bold;
+}
+
+.labelName{
+    font-size: 14px;
+}
+</style>
+<title>R4K Online Application Form</title>
+
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid d-flex">
+        <div>
+            
+        </div>
+        <div>
+            <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCC)}" width="20%" alt="R4K"/>
+        </div>
+        <div>
+            
+        </div>
+    </div>
+</nav>
+
+<apex:form id="theAppForm">
+
+<div class="multisteps-form__content">
+  <div class="container mt-2 mb-2">
+  <div class="row">
+    <div class="col text-center">
+        <div style="margin-top:20px;">
+            <apex:image value="{!$Resource.R4KLoading}" width="300" height="200" styleClass="r4kloading"/>
+        </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+</apex:form>
+
+<script>
+var onlineURL = '{!onlineURL}';
+var webURL = '{!webURL}';
+var acctId = "{!acctId}";
+var ldId = "{!ldId}";
+var redo = "{!redo}";
+var activeAgreements=parseInt("{!noOfActiveAgreements}");
+var leadEnquiryDynamicStatus="{!leadEnquiryDynamicStatus}";
+
+function redirectToLandingPage()
+{
+    console.log('acctId ' + acctId);
+    console.log('ldId ' + ldId);
+    console.log('redo ' + redo);
+    console.log('activeAgreements ' + activeAgreements);
+    console.log('leadEnquiryDynamicStatus ' + leadEnquiryDynamicStatus);
+    
+    var randomNumber = Math.random();
+    var redirectURL;
+    if('{!isCreditContract}' == 'true' && parseInt('{!cartItems.size}') <= 0 && (leadEnquiryDynamicStatus=='New Enquiry' || leadEnquiryDynamicStatus=='Recent Application') && !(acctId!=null && acctId!='' && acctId != 'null'))
+    {
+        redirectURL = onlineURL +'/R4KAddCartItemPage?n='+randomNumber;
+        window.location.href = redirectURL;   
+    }
+    else if('{!isCreditContract}' == 'true' && (leadEnquiryDynamicStatus=='New Enquiry' || leadEnquiryDynamicStatus=='Recent Application' || leadEnquiryDynamicStatus=='Delivery Status') && acctId != null && acctId != "" && acctId != "null")
+    {
+        redirectURL = onlineURL +'/R4KEnquiryLandingPage?id='+acctId+'&ld='+ldId+'&n='+randomNumber;
+        window.location.href = redirectURL;   
+    }
+    else if((leadEnquiryDynamicStatus=='Account Enquiry' || leadEnquiryDynamicStatus=='Service Enquiry') && (acctId!=null && acctId!='' && acctId != 'null') && activeAgreements>0)
+    {
+        redirectURL = onlineURL +'/R4KAccountEnquiry?ld='+ldId+'&id='+acctId+'&param=opt'+'&n='+randomNumber;
+        window.location.href = redirectURL;   
+    }
+    else if((leadEnquiryDynamicStatus=='Account Enquiry' || leadEnquiryDynamicStatus=='Service Enquiry'))
+    {
+        redirectURL = onlineURL +'/R4KAccountEnquiry?ld='+ldId+'&id='+acctId+'&param=smperror'+'&n='+randomNumber;
+        window.location.href = redirectURL;   
+    }
+    else if(leadEnquiryDynamicStatus=='Collection' && (acctId!=null && acctId!='' && acctId != 'null') && activeAgreements>0)
+    {
+        redirectURL = onlineURL +'/R4KAccountEnquiry?ld='+ldId+'&id='+acctId+'&param=smp'+'&n='+randomNumber;
+        window.location.href = redirectURL;   
+    }
+    else
+    {
+        if('{!isCreditContract}' == 'true' && acctId!=null && acctId!='' && acctId != 'null' && redo=='yes')
+            redirectURL = onlineURL +'/R4KOnlineForm?id='+acctId+'&ld='+ldId+'&n='+randomNumber+'&redo=yes';
+        else if('{!isCreditContract}' == 'true' && acctId!=null && acctId!='' && acctId != 'null')
+            redirectURL = onlineURL +'/R4KEnquiryLandingPage?id='+acctId+'&ld='+ldId+'&n='+randomNumber;
+        else if('{!isCreditContract}' == 'true' && ldId!=null && ldId!='' && ldId != 'null' && '{!lead.Credit_Check_Consent__c}' == 'true' && '{!lead.RO_Online__c}' == 'true')
+            redirectURL = onlineURL +'/R4KOnlineForm?ld='+ldId+'&n='+randomNumber;
+        else if('{!isCreditContract}' == 'true' && ldId!=null && ldId!='' && ldId != 'null' && '{!lead.Credit_Check_Consent__c}' == 'true' && '{!lead.RO_Online__c}' == 'false')
+            redirectURL = onlineURL +'/R4KProductRequirements?ld='+ldId+'&n='+randomNumber;
+        else if('{!isCreditContract}' == 'true' && ldId!=null && ldId!='' && ldId != 'null')
+            redirectURL = onlineURL +'/R4KCreditGuide?ld='+ldId+'&n='+randomNumber;
+        else
+            redirectURL = 'https://www.r4k.com.au/products/';
+        window.location.href = redirectURL;   
+    }
+}
+
+$(document).ready(
+    function()
+    {
+        if('{!$CurrentPage.Parameters.cc}' == ''){
+            var currentDate = new Date();
+            window.location.href = window.location.href + '&cc=' + currentDate.getTime();
+        }else{
+            redirectToLandingPage();
+        }
+    }
+);
+</script>
+
+</apex:page>
