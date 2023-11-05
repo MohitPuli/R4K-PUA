@@ -6,13 +6,13 @@ public without sharing class R4KLeadController{
             Boolean leadMerged = false;
             List<Lead> ldList = [SELECT Id,FirstName,LastName,MobilePhone,crn__c,Country,Lead_Medium__c,Territory_Number__c,PostalCode,Territory_Number__r.Name,
                                Territory_Number__r.State_Master_State__c,Territory_Number__r.Company_Territory__c,Territory_Number__r.Short_Name__c,Incoming_Count__c,
-                               Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,Outgoing_Count__c,
+                               Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,Outgoing_Count__c,OTP_Code__c,
                                SMS_Mobile__c,Email,Reason_For_Enquiry__c,Form_Type__c,Opt_In_Info_From_Rent4keeps__c,Rent4Keeps_Account__c,Call_Time_Charged_minutes__c,
                                CreatedDate,Street,City,State,Desired_Product__c,contact_desc__c,did_your_hear__c,Territory_State__c,TwilioRecordingSid__c,TwilioCallSid__c,
                                Territory_Number__r.SMSTemplate__c,Territory_Number__r.SMSTemplate__r.GENSMS_Lead_Action_Key__c,Territory_Number__r.SMSTemplate__r.JMPQ_Lead_Action_Key__c,Automated_Bot_Message_Tracking__c   
                                FROM Lead WHERE Id =: strLead LIMIT 1];
             
-            if(ldList.size() > 0 && ldList[0].Form_Type__c != 'Buy Now'){
+            if(ldList.size() > 0 && ldList[0].Lead_Medium__c != 'Direct' && ldList[0].Form_Type__c != 'Buy Now'){
                 Lead lead = ldList[0];
                 String newLeadMedium = ldList[0].Lead_Medium__c;
                 String newLeadFormType = ldList[0].Form_Type__c;
@@ -29,26 +29,12 @@ public without sharing class R4KLeadController{
                 }
 
                 //merge leads if there is a similar lead with same mobile number in 1000 territory
-                List<Lead> matchingLeads = new List<Lead>();
+                List<Lead> matchingLeads = R4KLeadController.findMasterLeadForLicensing(lead.MobilePhone, lead.Id);
                 if(Test.isRunningTest()){
-                    matchingLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,
+                    matchingLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,OTP_Code__c,
                                         State,PostalCode,Lead_Medium__c,Email,CreatedDate,did_your_hear__c,contact_desc__c,Call_Time_Charged_minutes__c,Phone_Recording__c,Desired_Product__c,Territory_State__c,CRN__c,Incoming_Count__c,Outgoing_Count__c,
                                         TwilioCallSid__c,TwilioRecordingSid__c,Automation_Outcome__c,Last_Automated_Bot_Message__c,Next_Automated_Bot_Message__c,Automated_Bot_Message_Tracking__c,Bot_Call_Datetime__c,Next_Bot_Call_Datetime__c
                                         FROM Lead WHERE IsConverted = false AND Id <>: lead.Id ORDER BY CreatedDate DESC LIMIT 2];
-                }else{
-                    String alternateMobilePhone = lead.MobilePhone;
-                    if(lead.MobilePhone != null && lead.MobilePhone.length() == 9 && !lead.MobilePhone.startsWith('0')){
-                        alternateMobilePhone = ('0' + lead.MobilePhone);
-                    }
-                    matchingLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,
-                                    State,PostalCode,Lead_Medium__c,Email,CreatedDate,did_your_hear__c,contact_desc__c,Call_Time_Charged_minutes__c,Phone_Recording__c,Desired_Product__c,Territory_State__c,CRN__c,Incoming_Count__c,Outgoing_Count__c,
-                                    TwilioCallSid__c,TwilioRecordingSid__c,Automation_Outcome__c,Last_Automated_Bot_Message__c,Next_Automated_Bot_Message__c,Automated_Bot_Message_Tracking__c,Bot_Call_Datetime__c,Next_Bot_Call_Datetime__c
-                                    FROM Lead WHERE 
-                                    (MobilePhone =: lead.MobilePhone OR MobilePhone =: alternateMobilePhone) AND
-                                    IsConverted = false AND Id <>: lead.Id AND  
-                                    Form_Type__c != 'Buy Now' AND 
-                                    Territory_Number__r.Name = '1000'
-                                    ORDER BY CreatedDate ASC LIMIT 2];
                 }
                 if(matchingLeads.size() > 0 && !Test.isRunningTest()){
                     hybridLink = onlineURL+'/R4KOnlineFormAcknowledgementPage?ld='+matchingLeads[0].Id+'&n='+randomNumber;
@@ -60,7 +46,7 @@ public without sharing class R4KLeadController{
                 if(!String.valueOf(lead.Id).substring(0,15).equals(String.valueOf(masterLeadId).substring(0,15))){
                     lead = [SELECT Id,FirstName,LastName,MobilePhone,crn__c,Country,Lead_Medium__c,Territory_Number__c,PostalCode,Territory_Number__r.Name,
                                Territory_Number__r.State_Master_State__c,Territory_Number__r.Company_Territory__c,Territory_Number__r.Short_Name__c,
-                               Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,
+                               Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,OTP_Code__c,
                                SMS_Mobile__c,Email,Reason_For_Enquiry__c,Form_Type__c,Opt_In_Info_From_Rent4keeps__c,Rent4Keeps_Account__c,Call_Time_Charged_minutes__c,
                                CreatedDate,Street,City,State,Desired_Product__c,contact_desc__c,did_your_hear__c,Territory_State__c,TwilioRecordingSid__c,TwilioCallSid__c,
                                Territory_Number__r.SMSTemplate__c,Territory_Number__r.SMSTemplate__r.GENSMS_Lead_Action_Key__c,Territory_Number__r.SMSTemplate__r.JMPQ_Lead_Action_Key__c,Automated_Bot_Message_Tracking__c   
@@ -169,6 +155,31 @@ public without sharing class R4KLeadController{
         }
     }
 
+    //find master lead for R4K Licensing
+    // @param newLeadId is the latest lead Id or null
+    public static List<Lead> findMasterLeadForLicensing(String newLeadMobile, String newLeadId){
+        List<Lead> masterLeads = new List<Lead>();
+        try{
+            String alternateMobilePhone = newLeadMobile;
+            if(newLeadMobile != null && newLeadMobile.length() == 9 && !newLeadMobile.startsWith('0')){
+                alternateMobilePhone = ('0' + newLeadMobile);
+            }
+            masterLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,OTP_Code__c,
+                                        State,PostalCode,Lead_Medium__c,Email,CreatedDate,did_your_hear__c,contact_desc__c,Call_Time_Charged_minutes__c,Phone_Recording__c,Desired_Product__c,Territory_State__c,CRN__c,Incoming_Count__c,Outgoing_Count__c,
+                                        TwilioCallSid__c,TwilioRecordingSid__c,Automation_Outcome__c,Last_Automated_Bot_Message__c,Next_Automated_Bot_Message__c,Automated_Bot_Message_Tracking__c,Bot_Call_Datetime__c,Next_Bot_Call_Datetime__c
+                                        FROM Lead WHERE 
+                                        (MobilePhone =: newLeadMobile OR MobilePhone =: alternateMobilePhone) AND
+                                        IsConverted = false AND Id <>: newLeadId AND  
+                                        Form_Type__c != 'Buy Now' AND 
+                                        Territory_Number__r.Name = '1000'
+                                        ORDER BY CreatedDate ASC LIMIT 2];
+            return masterLeads;
+        }catch(Exception ex){
+            System.debug('LeadException: Line - ' + ex.getLineNumber() + ' msg - ' + ex.getMessage());
+            return masterLeads;
+        }
+    }
+
     //get bucket
     public static string getAccountCategory(Account probableAccount, Lead ld){
         String applicantStatus = 'New Enquiry';
@@ -208,7 +219,7 @@ public without sharing class R4KLeadController{
         }
         
         if(matchingLeads == null || matchingLeads.size() == 0){
-            matchingLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,
+            matchingLeads = [SELECT Id,FirstName,LastName,Name,MobilePhone,OwnerId,Owner.Name,Territory_Number__c,Territory_Short_Name__c,Reason_for_Enquiry__c,Street,City,OTP_Code__c,
                                     State,PostalCode,Lead_Medium__c,Email,CreatedDate,did_your_hear__c,contact_desc__c,Call_Time_Charged_minutes__c,Phone_Recording__c,Desired_Product__c,Territory_State__c,CRN__c,Incoming_Count__c,Outgoing_Count__c,
                                     TwilioCallSid__c,TwilioRecordingSid__c,Automation_Outcome__c,Last_Automated_Bot_Message__c,Next_Automated_Bot_Message__c,Automated_Bot_Message_Tracking__c,Bot_Call_Datetime__c,Next_Bot_Call_Datetime__c
                                     FROM Lead WHERE 
@@ -222,13 +233,14 @@ public without sharing class R4KLeadController{
         {
             String masterFirstName; String masterLastName; String masterEmail; String masterPostalCode; String masterStreet; 
             String masterCity; String masterState; String masterDesiredProduct; String masterNatureOfEnquiry; String masterhowDidYouHear; 
-            String masterReasonForEnquiry; String masterCRN; String masterCallSID; String masterRecordingSID;
+            String masterReasonForEnquiry; String masterCRN; String masterCallSID; String masterRecordingSID; String masterOTPCode;
             Decimal totalOutgoingSMS = 1;
             Decimal totalIncomingSMS = 0;
             Decimal totalCallTime = 0;
             DateTime masterLeadCreatedTime = newLead.CreatedDate;
             DateTime masterLeadFinishTime = newLead.CreatedDate;
             Lead masterLead;
+            masterOTPCode = newLead.OTP_Code__c;
             
             List<Lead> mergeLeads = new List<Lead>();
             List<Lead> leadsInOrder = new List<Lead>();
@@ -256,6 +268,7 @@ public without sharing class R4KLeadController{
                 masterhowDidYouHear = masterhowDidYouHear == null ? leadsInOrder[i].did_your_hear__c : masterhowDidYouHear;
                 masterReasonForEnquiry = masterReasonForEnquiry == null ? leadsInOrder[i].Reason_for_Enquiry__c : masterReasonForEnquiry;
                 masterCRN = masterCRN == null ? leadsInOrder[i].crn__c : masterCRN;
+                masterOTPCode = masterOTPCode == null ? leadsInOrder[i].OTP_Code__c : masterOTPCode;
                 
                 if((leadsInOrder[i].TwilioCallSid__c <> null && masterCallSID == null) || (leadsInOrder[i].TwilioCallSid__c <> null && leadsInOrder[i].TwilioRecordingSid__c <> null && masterRecordingSID == null))
                 {
@@ -271,7 +284,7 @@ public without sharing class R4KLeadController{
             masterLeadCreatedTime = DateTime.newInstance(masterLeadCreatedTime.year(),masterLeadCreatedTime.month(),masterLeadCreatedTime.day(),masterLeadCreatedTime.hour(),masterLeadCreatedTime.minute(),masterLeadCreatedTime.second());
             masterLeadFinishTime = masterLeadCreatedTime <> null ? masterLeadCreatedTime.addMinutes(Integer.valueOf(totalCallTime)) : null;
             System.debug('****masterLeadId ' + masterLeadId);
-            masterLead = new Lead(Id=masterLeadId,FirstName=masterFirstName,LastName=masterLastName,crn__c=masterCRN,Reason_for_Enquiry__c=masterReasonForEnquiry,Desired_Product__c=masterDesiredProduct,Street=masterStreet,City=masterCity,State=masterState,PostalCode=masterPostalCode,Email=masterEmail,did_your_hear__c=masterhowDidYouHear,contact_desc__c=masterNatureOfEnquiry,Twilio_Call_Finish_Datetime__c=masterLeadFinishTime,TwilioCallSid__c=masterCallSId,TwilioRecordingSid__c=masterRecordingSID,Merged_Datetime__c=DateTime.now(),Incoming_Count__c=totalIncomingSMS,Outgoing_Count__c=totalOutgoingSMS);
+            masterLead = new Lead(Id=masterLeadId,FirstName=masterFirstName,LastName=masterLastName,crn__c=masterCRN,Reason_for_Enquiry__c=masterReasonForEnquiry,Desired_Product__c=masterDesiredProduct,Street=masterStreet,City=masterCity,State=masterState,PostalCode=masterPostalCode,Email=masterEmail,did_your_hear__c=masterhowDidYouHear,contact_desc__c=masterNatureOfEnquiry,Twilio_Call_Finish_Datetime__c=masterLeadFinishTime,TwilioCallSid__c=masterCallSId,TwilioRecordingSid__c=masterRecordingSID,Merged_Datetime__c=DateTime.now(),Incoming_Count__c=totalIncomingSMS,Outgoing_Count__c=totalOutgoingSMS,OTP_Code__c=masterOTPCode);
     
             if(masterLead <> null && mergeLeads.size() > 0 && !Test.isRunningTest())
             {
@@ -363,7 +376,7 @@ public without sharing class R4KLeadController{
                         originalquery += ' and State_Master_State__c!=\'NZ\' ';
                                         
                     String searchquery = originalquery;
-                    if(leadList[0].Lead_Medium__c == 'Smart IVR' && leadList[0].Identity_Confirmed_By_Customer__c && ldCRN != null && ldCRN!='' && ldMobile!=null && ldMobile!='' && allAccts.size()==0)
+                    /*if(leadList[0].Lead_Medium__c == 'Smart IVR' && leadList[0].Identity_Confirmed_By_Customer__c && ldCRN != null && ldCRN!='' && ldMobile!=null && ldMobile!='' && allAccts.size()==0)
                     {
                         Integer ldDOB = Integer.valueOf(ldCRN);
                         searchquery = originalquery;
@@ -399,7 +412,7 @@ public without sharing class R4KLeadController{
                         system.debug('searchquery: '+searchquery); 
                         autoAllocationLogs = 'Found Full Match based on CRN';
                         allAccts = Database.query(searchquery);
-                    }
+                    }*/
                     if(ldMobile != null && ldMobile!='' && ldLastName!=null && ldLastName!='' && !specialCharacterInName && allAccts.size()==0)
                     {
                         searchquery = originalquery;

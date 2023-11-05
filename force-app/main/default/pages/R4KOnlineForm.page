@@ -284,7 +284,6 @@ ul{
 <apex:param id="lastNameF" name="lastName" value="" />
 <apex:param id="dobF" name="dob" value="" />
 <apex:param id="genderF" name="gender" value="" />
-<apex:param id="crnF" name="crn" value="" />
 </apex:actionFunction>
 
 <apex:actionFunction action="{!updateContactDetails}" name="updateContactDetailsFunc" rerender="theAppForm">
@@ -377,6 +376,9 @@ ul{
     <apex:param id="poaTerm1" name="poaTerm1" value="" />
     <apex:param id="poaTerm2" name="poaTerm2" value="" />
     <apex:param id="poaTerm3" name="poaTerm3" value="" />
+    <apex:param id="poaTerm4" name="poaTerm4" value="" />
+    <apex:param id="poaTerm5" name="poaTerm5" value="" />
+    <apex:param id="poaTerm6" name="poaTerm6" value="" />
 </apex:actionFunction>
 </apex:form>
 
@@ -444,7 +446,7 @@ ul{
 <div class="fixed-bottom" style="{!IF($CurrentPage.parameters.param=='com','display:none;','')}"> 
     <div class="card">
         <div class="card-body">
-            <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Next">{!IF($CurrentPage.parameters.param=='sdida','Attach Front page of ID', IF($CurrentPage.parameters.param=='sdcpa','Attach Selfie', IF($CurrentPage.parameters.param=='sdid','Attach Back page of ID','Next')))}</button>
+            <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="Next">{!IF($CurrentPage.parameters.param=='sdida','Attach Front page of ID', IF($CurrentPage.parameters.param=='sdcpa','Attach Selfie', IF($CurrentPage.parameters.param=='sdid','Attach Back page of ID',IF($CurrentPage.parameters.param=='finTerms','Submit my PUA Application','Next'))))}</button>
         </div>
     </div>
 </div>
@@ -480,20 +482,27 @@ ul{
 
         
         <div class="multisteps-form__panel reqdocPanel shadow {!IF($CurrentPage.parameters.param=='reqdoc', 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Application Progress &amp; Mandatory Documentation</h5>
-          <div class="multisteps-form__content whiteDiv">
-          <div class="silverDiv">
-              <p class="mt-2">Please make sure you have the following documents handy for the next steps, as part of responsible lending:</p>  
-              <ol style="list-style-type: square;" class="mt-2">
-                  <li style="padding:5px;">
-                      Identification document (Drivers Licence or Passport, or Keypass) to verify your identity.
-                  </li>
-                  <li style="padding:5px;">
-                      Bank account credentials (proof of income and expenses) to determine your ability to make regular payments.
-                  </li>
-              </ol>
-          </div>            
-          </div>          
+            <h5 class="multisteps-form__title mt-4 mb-4">Application Progress &amp; Mandatory Documentation</h5>
+            <div class="multisteps-form__content whiteDiv">
+                <div class="silverDiv">
+                    <p class="mt-2">Grab these things and keep handy for your assessment application:</p>  
+                    <ol style="list-style-type: square;" class="mt-2">
+                        <li style="padding:5px;">
+                        Australian drivers licence, passport, or Keypass (We&apos;ll use this information to verify your identity)
+                        </li>
+                        <li style="padding:5px;">
+                        Online banking details for all your financial institutions (We&apos;ll securely get 3 months of income and expenses straight from your banks)
+                        </li>
+                    </ol>
+
+                    <div style="margin-top:50px;">
+                        <p>
+                            <strong>Save and finish later?</strong><br/>
+                            No Problem! We&apos;ll text you a link so you can continue at anytime. Click the &apos;Save and Finish Later&apos;, or &apos;Continue to ID&apos;
+                        </p>
+                    </div>
+                </div>            
+            </div>          
         </div>
         
         
@@ -581,7 +590,7 @@ ul{
         
         
         <div class="multisteps-form__panel sdiddPanel shadow {!IF($CurrentPage.parameters.param=='sdidd', 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Confirm Your Details</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Let&apos;s get to know you - Confirm Your Details</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
             <div class="form-row p-1 mt-4">
@@ -650,11 +659,17 @@ ul{
         <div class="multisteps-form__panel shadow sdbsaPanel {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='sdbsa' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
             <h5 class="multisteps-form__title mt-4 mb-4">Bank Statement Retrieval</h5>
             <div class="multisteps-form__content whiteDiv">
-            <div class="silverDiv" style="min-height:400px;">
-            <p class="card-text">So, we can provide you with faster Approval, we need to retrieve and review your bank statements instantly and securely with one click.<br/><br/>
-                            We need to verify that you can afford to own your new product(s) without financial hardship.<br/><br/>
-                            BankStatements is independently designed and vetted by world-class security experts to ensure the highest levels of data protection and security. <a href="https://bankstatements.com.au/about/security"><b>Read More</b></a></p> 
-            </div>
+                <div class="silverDiv" style="min-height:400px;">
+                    <p class="card-text">
+                        To expedite your assessment process, we need to retrieve and review your bank statements instantly and securely with a single click.
+                    </p>
+                    <p class="card-text">
+                        We need to assess that you can afford to purchase your new product(s) without substanstial hardship.
+                    </p>
+                    <p class="card-text">
+                        Rest assured, we utilise BankStatements, a platform designed and vetted by world-class security experts to ensure the highest levels of data protection and security. 
+                    </p>
+                </div>
             </div>
             <div style="margin-top:50px;">
                 <button class="btn btn-success ml-auto js-btn-next bank-next" id="bank-next" style="width:100%;display:none;" type="button" title="Next">Next</button>
@@ -882,7 +897,7 @@ ul{
         
         <!--single form panel 6-->
         <div class="multisteps-form__panel shadow biPanel {!IF((acctId!=null && acctId!='') &&($CurrentPage.parameters.param=='bi' || $CurrentPage.parameters.param=='' || $CurrentPage.parameters.param==null) && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Basic Information</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Let&apos;s continue to get to know you - Your details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -915,12 +930,12 @@ ul{
                 </select>
               </div>
             </div>
-            <div class="form-row p-1 mt-4">
+            <!--<div class="form-row p-1 mt-4">
                 <div class="col">
                 <label class="labelName">{!IF(stateMasterState=='NZ','WINZ No.','CRN')}</label>
                 <input class="multisteps-form__input form-control" id="crn" type="text" value="{!crnVal}" placeholder="CRN No" />
-                </div>
-        </div>
+            </div>
+        </div>-->
             </div>
           </div>
           
@@ -933,7 +948,7 @@ ul{
                       
         <!--single form panel 28-->
         <div class="multisteps-form__panel dependentsPanel dependPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='depend' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Basic Information</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Let&apos;s continue to get to know you - Your details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -966,7 +981,7 @@ ul{
         
         <!--single form panel 7-->
         <div class="multisteps-form__panel shadow cdPanel {!IF((acctId!=null && acctId!='') &&($CurrentPage.parameters.param=='cd' || $CurrentPage.parameters.param=='' || $CurrentPage.parameters.param==null) && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Contact Details</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Contact Details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -1104,7 +1119,7 @@ ul{
         
         <!--single form panel 7-->
         <div class="multisteps-form__panel shadow addrPanel {!IF((acctId!=null && acctId!='') &&$CurrentPage.parameters.param=='addr' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Enter Your Address</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Enter Your Current Address</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <apex:outputPanel id="currentAddressPanel">
@@ -1148,7 +1163,7 @@ ul{
         
         <!--single form panel 25-->
         <div class="multisteps-form__panel addressproofPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='addressproof' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Mailing &amp; Delivery Address</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Current Mailing &amp; Delivery Address</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <div class="form-row p-1 mt-4">
@@ -1156,7 +1171,7 @@ ul{
                     
                 </div>
                 <div class="col-10 text-center font-weight-bold">
-                    Does the address match the Id? <br/>
+                    Does the address match the ID you provided to us earlier? <br/>
                     <input type="hidden" class="hdnCurrentPageVal" value="addressproof"/>
                 </div>
                 <div class="col-1">
@@ -1294,7 +1309,7 @@ ul{
         
         <!--single form panel 32-->
         <div class="multisteps-form__panel employmentAgreePanel employmentagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='employmentag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Fortnightly Employment</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Fortnightly Employment Income</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <apex:outputPanel id="mogoEmploymentDiv">
@@ -1354,7 +1369,7 @@ ul{
         
         <!--single form panel 33-->
         <div class="multisteps-form__panel empincAgreePanel empincagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='empincag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Employment Income</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Employment Income</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -1403,7 +1418,7 @@ ul{
         
         <!--single form panel 32-->
         <div class="multisteps-form__panel employmentPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='employment' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Fortnightly Employment</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Fortnightly Employment Income</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <div class="form-row p-1 mt-4">
@@ -1449,7 +1464,7 @@ ul{
         
         <!--single form panel 32-->
         <div class="multisteps-form__panel cbenagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='cbenag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">{!IF(stateMasterState=='NZ','WINZ','Centrelink')}</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your {!IF(stateMasterState=='NZ','WINZ','Centrelink')} Benefit Income</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <div class="form-row p-1 mt-4">
@@ -1506,7 +1521,7 @@ ul{
         
         <!--single form panel 33-->
         <div class="multisteps-form__panel cbenincAgreePanel cbenincagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='cbenincag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">{!IF(stateMasterState=='NZ','WINZ Income','Centrelink Income')}</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your {!IF(stateMasterState=='NZ','WINZ','Centrelink')} Benefit Income</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -1555,11 +1570,11 @@ ul{
         
         <!--single form panel 32-->
         <div class="multisteps-form__panel clinkbenPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='clinkben' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">{!IF(stateMasterState=='NZ','WINZ','Centrelink')} Benefits</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your {!IF(stateMasterState=='NZ','WINZ','Centrelink')} Benefits</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <div class="form-row p-1 mt-4">
-                Select the benefits you receive:
+                Select the benefits you receive: (you may select more than one)
                 <input type="hidden" class="hdnCurrentPageVal" value="clinkben"/>
             </div>
             <div class="form-row p-1 mt-4">
@@ -1602,7 +1617,7 @@ ul{
         
         <!--single form panel 33-->
         <div class="multisteps-form__panel otherincAgreePanel otherincagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='otherincag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Other Income</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Other Income Details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
                 <apex:outputPanel rendered="{!IF(otherInc != null && otherInc > 0,true,false)}">
@@ -1697,7 +1712,7 @@ ul{
         
         <!--single form panel 32-->
         <div class="multisteps-form__panel incomeotherPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='incomeother' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Other Income</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Other Income Details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">
             <div class="form-row p-1 mt-4">
@@ -1742,7 +1757,7 @@ ul{
         
         <!--single form panel 33-->
         <div class="multisteps-form__panel boardingAgreePanel boardingagPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='boardingag' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Other Income</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Other Income Details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -1790,7 +1805,7 @@ ul{
         
         <!--single form panel 31-->
         <div class="multisteps-form__panel incomeotherSharingPanel incomeothershPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='incomeothersh' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
-          <h5 class="multisteps-form__title mt-4 mb-4">Other Income</h5>
+          <h5 class="multisteps-form__title mt-4 mb-4">Your Other Income Details</h5>
           <div class="multisteps-form__content whiteDiv">
             <div class="silverDiv">  
             <div class="form-row p-1 mt-4">
@@ -1877,20 +1892,35 @@ ul{
         <div class="multisteps-form__panel finTermsPanel shadow {!IF((acctId!=null && acctId!='') && $CurrentPage.parameters.param=='finTerms' && !ishybridLinkCompleted, 'js-active','')}" data-animation="scaleIn">
             <h5 class="multisteps-form__title mt-4 mb-4">Responsible Lending Acknowledgement</h5>
             <div class="multisteps-form__content whiteDiv">
-                <div class="silverDiv">  
+                <div class="silverDiv">
+                    <div class="p-1 mt-2 mb-2">
+                        Tick to acknowledge before you lodge your Preliminary Unsuitability Assessment application:
+                    </div>  
                     <div class="p-1 mt-2">
-                        <input class="finTerms finTerms1 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms1val" style="display:inline;">Do you plan or anticipate changes to your future financial circumstances  that could ADVERSELY impact your ability to repay this loan? </span> <br/>
+                        <input class="finTerms finTerms1 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms1val" style="display:inline;">I understand that the information provided in my PUA application will be used to assess my suitability for a Sale of Goods by Instalment (Instalment Agreement) loan. </span> <br/>
                     </div>
                     <div class="p-1 mt-2">
-                        <input class="finTerms finTerms2 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms2val" style="display:inline;">Are you aware of any circumstances that may impact your ability to meet your financial commitments? </span> <br/>
+                        <input class="finTerms finTerms2 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms2val" style="display:inline;">I acknowledge that I am responsible for providing accurate and complete information about my financial status. </span> <br/>
                     </div>
                     <div class="p-1 mt-2">
-                        <input class="finTerms finTerms3 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms3val" style="display:inline;">Would you be able to maintain your commitments &amp; lifestyle if you or your partner were unable to earn an income? </span> <br/>
+                        <input class="finTerms finTerms3 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms3val" style="display:inline;">I understand that my credit history may be checked as part of this assessment. </span> <br/>
                     </div>
+                    <div class="p-1 mt-2">
+                        <input class="finTerms finTerms4 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms4val" style="display:inline;">I acknowledge that it is my responsibility to inform R4K Licensing of any changes in my circumstances during the application process. </span> <br/>
+                    </div>
+                    <div class="p-1 mt-2">
+                        <input class="finTerms finTerms5 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms5val" style="display:inline;">I am aware the information I am providing is to determine if I can afford the proposed Instalment Loan or credit product. </span> <br/>
+                    </div>
+                    <div class="p-1 mt-2">
+                        <input class="finTerms finTerms6 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="finTerms6val" style="display:inline;">I understand that I am not obliged to proceed with the application, and I can withdraw at any time before accepting the Credit Proposal &amp; Preliminary Unsuitability Assessment decision.  </span> <br/>
+                    </div>
+                    <div class="p-1 mt-4 mb-2">
+                        By ticking each of these statements, I confirm my understanding and acceptance of the responsible lending practices involved in the Preliminary Unsuitability Assessment process.
+                    </div> 
                 </div>
             </div>
             <div style="margin-top:50px;">
-              <button class="btn btn-success ml-auto js-btn-next financialTermsNext" id="financialTermsNext" style="width:100%;display:none;" type="button" title="Next">Next</button>
+              <button class="btn btn-success ml-auto js-btn-next financialTermsNext" id="financialTermsNext" style="width:100%;display:none;" type="button" title="Submit my PUA Application">Submit my PUA Application</button>
             </div>
         </div>
         
@@ -3443,22 +3473,6 @@ DOMstrings.stepsForm.addEventListener('click', e => {
                 });
                 return false;
           }
-          else if('{!stateMasterState}' != 'NZ' && crn != '' && crn.length != 10)
-          {
-              bootbox.alert({
-                message: "Centrepay Ref No should only have 10 characters.",
-                className: 'rubberBand animated'
-              });
-              return false;
-          }
-          else if('{!stateMasterState}' == 'NZ' && crn != '' && crn.length != 9)
-          {
-              bootbox.alert({
-                message: "WINZ No should only have 9 characters.",
-                className: 'rubberBand animated'
-              });
-              return false;
-          }
           else
           {
               var dateRep,dobFormat;
@@ -3467,7 +3481,7 @@ DOMstrings.stepsForm.addEventListener('click', e => {
                   dateRep = dob.replace('/','-').replace('/','-');
                   dobFormat = dateRep.split("-").reverse().join("-");
               }
-              updateBasicInfoFunc(firstName,lastName,dobFormat,genderTyp,crn);
+              updateBasicInfoFunc(firstName,lastName,dobFormat,genderTyp);
           }
       }
       else if(eventTarget.className.includes(`${DOMstrings.contactDetailsBtnNextClass}`))
@@ -4453,7 +4467,7 @@ DOMstrings.stepsForm.addEventListener('click', e => {
             }
         }
 
-        if(checkedCount < 3)
+        if(checkedCount < 6)
         {
             /*
             bootbox.confirm({
@@ -4499,7 +4513,7 @@ DOMstrings.stepsForm.addEventListener('click', e => {
                                     if(result != null && result != undefined && result.toLowerCase() == 'decline'){
                                         activePanelNum = 0;
                                         $('.fixed-bottom').css('display','none');
-                                        acceptPOATermsFunc($(finTermsCheckboxes[0]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[1]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[2]).prop('checked') ? 'yes' : 'no');
+                                        acceptPOATermsFunc($(finTermsCheckboxes[0]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[1]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[2]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[3]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[4]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[5]).prop('checked') ? 'yes' : 'no');
                                     }else{
                                         activePanelNum--;
                                     }
@@ -4509,7 +4523,7 @@ DOMstrings.stepsForm.addEventListener('click', e => {
         }else{
             activePanelNum = 0;
             $('.fixed-bottom').css('display','none');
-            acceptPOATermsFunc($(finTermsCheckboxes[0]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[1]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[2]).prop('checked') ? 'yes' : 'no');
+            acceptPOATermsFunc($(finTermsCheckboxes[0]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[1]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[2]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[3]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[4]).prop('checked') ? 'yes' : 'no', $(finTermsCheckboxes[5]).prop('checked') ? 'yes' : 'no');
         }
       }
       else

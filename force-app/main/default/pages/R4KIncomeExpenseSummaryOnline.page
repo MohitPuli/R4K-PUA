@@ -258,9 +258,12 @@ background-color:#cbcccb;
 
 <!--Expense Summary-->        
 <div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='expsum', 'js-active','')}" data-animation="scaleIn">
-     <h5 class="multisteps-form__title mt-4 mb-4">Expense Summary</h5>
+     <h5 class="multisteps-form__title mt-4 mb-4">Your Expense Summary</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
+                <p class="mt-4 mb-4">
+                    The amounts summarised have been taken from the information you have provided. To confirm these figures are correct, click &apos;Confirm Expenses&apos;
+                </p>
                <div class="table-responsive">
                   <table class="table table-condensed table-rounded borderless">
                     <tr class="cellStyle" style="border:none;">
@@ -348,9 +351,12 @@ background-color:#cbcccb;
 
 <!--Income Summary-->
 <div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='incsum', 'js-active','')}" data-animation="scaleIn">
-     <h5 class="multisteps-form__title mt-4 mb-4">Income Summary</h5>
+     <h5 class="multisteps-form__title mt-4 mb-4">Your Income Summary</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
+                <p class="mt-4 mb-4">
+                    The amounts summarised have been taken from the information you have provided. To confirm these figures are correct, click &apos;Confirm Income&apos;
+                </p>
                <div class="table-responsive">
                   <table class="table table-condensed table-rounded borderless">
                     <tr class="cellStyle">
@@ -395,9 +401,12 @@ background-color:#cbcccb;
 
 <!--Surplus Summary-->
 <div class="multisteps-form__panel shadow {!IF($CurrentPage.parameters.param=='sursum', 'js-active','')}" data-animation="scaleIn">
-     <h5 class="multisteps-form__title mt-4 mb-4">Serviceability Summary</h5>
+     <h5 class="multisteps-form__title mt-4 mb-4">Your Serviceability Summary</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
+                <p class="mt-4 mb-4">
+                    Disclaimer: This serviceability doesn&apos;t take into account your complete financial position and may affect the outcome of your assessment.
+                </p>
                <div class="table-responsive">
                   <table class="table table-condensed table-rounded borderless">
                     <tr class="table-light">    

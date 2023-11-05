@@ -1,13 +1,13 @@
 @isTest(SeeAllData=true)
 public class R4KLeadControllerTest {
 
-    static Account applicant;
-    static Account applicant2;
-    static Opportunity opp2;
-    static Territory__c territory;
-    static Lead lead;
+    public static Account applicant;
+    public static Account applicant2;
+    public static Opportunity opp2;
+    public static Territory__c territory;
+    public static Lead lead;
 
-    static void createTestData() {
+    public static void createTestData() {
         territory = [
                 SELECT
                     Id,
@@ -78,7 +78,8 @@ public class R4KLeadControllerTest {
             PostalCode = '3130',
             Referring_Customer__c = null,
             Not_Spam__c='yes',
-            Form_Type__c='Credit Contract'
+            Form_Type__c='Credit Contract',
+            Lead_Medium__c = 'Web'
         );
         insert lead;
     }
@@ -104,6 +105,7 @@ public class R4KLeadControllerTest {
             Company = 'Test Company',
             PostalCode = '3130',
             Referring_Customer__c = null,
+            Lead_Medium__c = 'Web',
             Not_Spam__c='yes'
         );
         insert lead2;
@@ -124,6 +126,7 @@ public class R4KLeadControllerTest {
             Company = 'Test Company',
             PostalCode = '3130',
             Referring_Customer__c = null,
+            Lead_Medium__c = 'Web',
             Not_Spam__c='yes'
         );
         insert lead2;
@@ -183,6 +186,66 @@ public class R4KLeadControllerTest {
         if(ldList.size() > 0){
             R4KLeadController.assignLeadOwner(ldList[0].Id);
         }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testConvertToApplicant(){    
+        Test.startTest();
+        List<Lead> ldList = [SELECT Id,FirstName,LastName,MobilePhone,crn__c,Country,Lead_Medium__c,Territory_Number__c,PostalCode,Territory_Number__r.Name,
+                                Territory_Number__r.State_Master_State__c,Territory_Number__r.Company_Territory__c,Territory_Number__r.Short_Name__c,Incoming_Count__c,
+                                Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,Outgoing_Count__c,OTP_Code__c,
+                                SMS_Mobile__c,Email,Reason_For_Enquiry__c,Form_Type__c,Opt_In_Info_From_Rent4keeps__c,Rent4Keeps_Account__c,Call_Time_Charged_minutes__c,
+                                CreatedDate,Street,City,State,Desired_Product__c,contact_desc__c,did_your_hear__c,Territory_State__c,TwilioRecordingSid__c,TwilioCallSid__c,
+                                Territory_Number__r.SMSTemplate__c,Territory_Number__r.SMSTemplate__r.GENSMS_Lead_Action_Key__c,Territory_Number__r.SMSTemplate__r.JMPQ_Lead_Action_Key__c,Automated_Bot_Message_Tracking__c   
+                                FROM Lead WHERE MobilePhone != null AND LastName != null AND IsConverted = false AND
+                                Territory_Number__r.State_Master_State__c != 'NZ' AND Probable_Account__c != null AND Territory_Number__r.Is_Credit_Contract__c = true
+                                ORDER BY CreatedDate DESC LIMIT 1];
+
+        List<Account> acctList = [SELECT Id,Enquiry_Date__c,State_Master_State__c,Company_Territory__c,Rep_Responsible_For_Converting_Lead__c,Rep_Responsible_For_Converting_Lead__r.Name,
+                                No_of_times_lead_has_been_converted__c,No_Of_Active_Agreements__c,Days_Since_Expected_Payment__c,WrittenOff_s_Count__c,Last_Default_Letter_Sent_Date__c,
+                                Actual_Arrears__c,Total_Paid_Amount_Active_Only__c,Enquiry_Status__c 
+                                FROM Account WHERE PersonMobilePhone != null AND LastName != null AND 
+                                PersonMailingPostalCode != null AND Territory_Number__r.Is_Credit_Contract__c = true AND Territory_Number__r.Company_Territory__c = true AND
+                                Territory_Number__r.Name != '1000' AND Territory_Number__r.State_Master_State__c != 'NZ' ORDER BY CreatedDate DESC LIMIT 1];
+        if(ldList.size() > 0 && acctList.size() > 0){
+            R4KLeadController.convertToApplicant(ldList[0],acctList[0],'Delivery Status');
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testAcctCategory(){    
+        Test.startTest();
+        List<Lead> ldList = [SELECT Id,FirstName,LastName,MobilePhone,crn__c,Country,Lead_Medium__c,Territory_Number__c,PostalCode,Territory_Number__r.Name,
+                                Territory_Number__r.State_Master_State__c,Territory_Number__r.Company_Territory__c,Territory_Number__r.Short_Name__c,Incoming_Count__c,
+                                Identity_Confirmed_By_Customer__c,OwnerId,Territory_Number__r.Lead_Phone__c,Territory_Number__r.SMS_Lead_Phone__c,Outgoing_Count__c,OTP_Code__c,
+                                SMS_Mobile__c,Email,Reason_For_Enquiry__c,Form_Type__c,Opt_In_Info_From_Rent4keeps__c,Rent4Keeps_Account__c,Call_Time_Charged_minutes__c,
+                                CreatedDate,Street,City,State,Desired_Product__c,contact_desc__c,did_your_hear__c,Territory_State__c,TwilioRecordingSid__c,TwilioCallSid__c,
+                                Territory_Number__r.SMSTemplate__c,Territory_Number__r.SMSTemplate__r.GENSMS_Lead_Action_Key__c,Territory_Number__r.SMSTemplate__r.JMPQ_Lead_Action_Key__c,Automated_Bot_Message_Tracking__c   
+                                FROM Lead WHERE MobilePhone != null AND LastName != null AND IsConverted = false AND
+                                Territory_Number__r.State_Master_State__c != 'NZ' AND Probable_Account__c != null AND Territory_Number__r.Is_Credit_Contract__c = true
+                                ORDER BY CreatedDate DESC LIMIT 1];
+
+        List<Account> acctList = [SELECT Id,Enquiry_Date__c,State_Master_State__c,Company_Territory__c,Rep_Responsible_For_Converting_Lead__c,Rep_Responsible_For_Converting_Lead__r.Name,
+                                No_of_times_lead_has_been_converted__c,No_Of_Active_Agreements__c,Days_Since_Expected_Payment__c,WrittenOff_s_Count__c,Last_Default_Letter_Sent_Date__c,
+                                Actual_Arrears__c,Total_Paid_Amount_Active_Only__c,Enquiry_Status__c 
+                                FROM Account WHERE PersonMobilePhone != null AND LastName != null AND 
+                                PersonMailingPostalCode != null AND Territory_Number__r.Is_Credit_Contract__c = true AND Territory_Number__r.Company_Territory__c = true AND
+                                Territory_Number__r.Name != '1000' AND Territory_Number__r.State_Master_State__c != 'NZ' ORDER BY CreatedDate DESC LIMIT 1];
+        if(ldList.size() > 0 && acctList.size() > 0){
+            R4KLeadController.getAccountCategory(acctList[0], ldList[0]);
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testFindProbTerritory(){    
+        Test.startTest();
+        R4KLeadController.findTerritory('3130','AU',true);
+        R4KLeadController.findTerritory('3130','AU',false);
+        R4KLeadController.findTerritory('0110','NZ',false);
+        R4KLeadController.findTerritory('3999','AU',false);
         Test.stopTest();
     }
 

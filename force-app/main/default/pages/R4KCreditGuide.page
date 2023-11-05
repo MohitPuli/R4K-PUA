@@ -35,7 +35,7 @@
 </apex:outputPanel>
 
 <c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
-    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}" headerTitle="Credit Guide" collection="false" header="true" customerForm="true" removeLogo="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}"/>
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}" headerTitle="Credit Guide" collection="false" header="true" customerForm="true" removeLogo="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}" removeRightHeader="{!IF(oppTerritory.Name == '1000',true,false)}"/>
 </c:PDFHeaderFooter>
 
         
@@ -85,7 +85,7 @@
               <li>If you request a copy within 7 years of entering into your contract, we will provide a copy within 21 business days.</li> 
               </ul>
           </p>
-            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+            <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf' && oppTerritory.Name != '1000',true,false)}">
                 <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
                     <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
                 </c:PDFHeaderFooter>

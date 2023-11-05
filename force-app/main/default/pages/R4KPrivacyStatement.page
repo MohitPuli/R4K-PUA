@@ -147,12 +147,23 @@ Our Privacy Policy contains information about how:<br/>
 
 <br/>
 
-<p>
-Our contact details are as follows: <br/>
-{!oppTerritory.Company_Name__c} <br/>
-{!oppTerritory.PPB_Street__c} {!oppTerritory.PPB_Suburb__c} {!oppTerritory.PPB_State__c} {!oppTerritory.PPB_Postcode__c}, customerservice@r4k.com.au 1300 130 077 www.r4K.com.au <br/>
-Australian Credit License {!oppTerritory.A_C_L__c} ACN {!oppTerritory.A_C_N__c} 
-</p>
+<apex:outputPanel rendered="{!IF(oppTerritory.Name != '1000', true, false)}">
+    <p>
+        Our contact details are as follows: <br/>
+        {!oppTerritory.Company_Name__c} <br/>
+        {!oppTerritory.PPB_Street__c} {!oppTerritory.PPB_Suburb__c} {!oppTerritory.PPB_State__c} {!oppTerritory.PPB_Postcode__c}, customerservice@r4k.com.au 1300 130 077 www.r4K.com.au <br/>
+        Australian Credit License {!oppTerritory.A_C_L__c} ACN {!oppTerritory.A_C_N__c} 
+    </p>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF(oppTerritory.Name = '1000', true, false)}">
+    <p>
+        Our contact details are as follows: <br/>
+        {!oppTerritory.Company_Name__c} <br/>
+        {!oppTerritory.PPB_Street__c} {!oppTerritory.PPB_Suburb__c} {!oppTerritory.PPB_State__c} {!oppTerritory.PPB_Postcode__c}, pualicensing@r4k.com.au 1300 130 077 www.r4K.com.au <br/>
+        Credit Representative No: {!oppTerritory.Credit_Representative_Number__c} ACN {!oppTerritory.A_C_N__c} 
+    </p>
+</apex:outputPanel>
 
 <br/><br/>
 
@@ -167,7 +178,7 @@ Australian Credit License {!oppTerritory.A_C_L__c} ACN {!oppTerritory.A_C_N__c}
     <apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
 </td>
 <td>
-    I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="#">here</a>, and the R4K Terms and Conditions located <a href="#">here</a>. 
+    I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="https://r4k.com.au/privacy-policy/" target="_blank">here</a>, and the <strong>R4K Terms and Conditions</strong> located <a href="https://r4k.com.au/terms-of-user/" target="_blank">here</a>. 
 </td>
 </tr>
 
@@ -185,7 +196,7 @@ I consent to you <strong>collecting sensitive information about me</strong> for 
 <apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
 </td>
 <td>
-I consent to you <strong>sending my personal information to the recipients located outside Australia</strong> as described in the Privacy Policy.
+I consent to you <strong>sending my personal information to the recipients located outside Australia.</strong>
 </td>
 </tr>
 
@@ -194,7 +205,7 @@ I consent to you <strong>sending my personal information to the recipients locat
 <apex:image value="{!$Resource.CheckedCheckBox}" style="width:40px;height:40px;"/>
 </td>
 <td>
-I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies, as outlined in the R4K Credit Information Management Policy.
+I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies.
 </td>
 </tr>
 
@@ -229,7 +240,7 @@ By proceeding to use our services, you agree that you fully understand and agree
 
 <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
 <p>
-<input class="checkbox1" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="#">here</a>, and the R4K Terms and Conditions located <a href="#">here</a>. 
+<input class="checkbox1" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I have read R4K’s <strong>Privacy Policy and Collection Statement</strong> located <a href="https://r4k.com.au/privacy-policy/" target="_blank">here</a>, and the <strong>R4K Terms and Conditions</strong> located <a href="https://r4k.com.au/terms-of-user/" target="_blank">here</a>
 </p>
 
 <p>
@@ -237,11 +248,11 @@ By proceeding to use our services, you agree that you fully understand and agree
 </p>
 
 <p>
-<input class="checkbox3" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>sending my personal information to the recipients located outside Australia</strong> as described in the Privacy Policy.
+<input class="checkbox3" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>sending my personal information to the recipients located outside Australia.</strong>
 </p>
 
 <p>
-<input class="checkbox4" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies, as outlined in the R4K Credit Information Management Policy.
+<input class="checkbox4" type="checkbox" style="width:25px;height:25px;" onclick="checkConsent('');"/>&nbsp;I consent to you <strong>collecting credit information</strong> about me from credit reporting agencies, and also <strong>providing it to</strong> credit reporting agencies.
 </p>
 
 <p>

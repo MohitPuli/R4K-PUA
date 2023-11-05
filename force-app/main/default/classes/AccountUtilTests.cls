@@ -108,7 +108,26 @@ private class AccountUtilTests {
     {
         Test.startTest();
         List<BankStatement_Transaction__c> bts = [select id,name,Provider_Category__c,Transaction_Date__c,Credit_Amount__c,Debit_Amount__c,ApplicantId__c from BankStatement_Transaction__c where Credit_Amount__c>0 and Provider_Category__c='Wages' and CreatedDate=TODAY order by Transaction_Date__c desc LIMIT 1];
-        Decimal avgDays = AccountUtil.getAverageDaysToDepleteTheIncome(bts[0].ApplicantId__c,30);
+        if(bts.size() > 0)
+            Decimal avgDays = AccountUtil.getAverageDaysToDepleteTheIncome(bts[0].ApplicantId__c,30);
+        Test.stopTest();
+    }
+
+    static testmethod void testGetLatestCreditGuidelineId() {
+        Test.startTest();
+        List<Territory__c> terrList = [SELECT Id FROM Territory__c WHERE Name = '1000' ORDER BY CreatedDate DESC LIMIT 1];
+        if(terrList.size() > 0){
+            AccountUtil.getLatestCreditGuidelineId(terrList[0].Id);
+        }
+        Test.stopTest();
+    }
+
+    static testmethod void testTransferToCreditProvider() {
+        Test.startTest();
+        List<Account> acctList = [SELECT Id FROM Account WHERE PersonEmail != null AND Probable_Account__c != null ORDER BY CreatedDate DESC LIMIT 1];
+        if(acctList.size() > 0){
+            AccountUtil.transferToCreditProvider(acctList[0].Id);
+        }
         Test.stopTest();
     }
 }

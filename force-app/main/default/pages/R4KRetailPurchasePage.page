@@ -45,7 +45,7 @@ body{
         </apex:outputPanel>
 
         <apex:outputPanel rendered="{!IF(formType = 'product', true, false)}" id="productPanel">
-            <div>
+            <div class="productDiv">
                 <table class="table table-bordered table-striped prodDetailsDiv">
                     <thead class="thead-dark text-white">
                         <th colspan="2">Product Details</th>
@@ -148,12 +148,12 @@ body{
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <a class="btn btn-block btn-danger text-white buyNowBtn" onclick="validateDelivery('buynow');"></a>
+                                <a class="btn btn-block btn-danger text-white buyNowBtn" onclick="validateDelivery('buynow','yes');"></a>
                             </td>   
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <a class="btn btn-block btn-success text-white payWeeklyBtn" onclick="validateDelivery('payweekly');"></a>
+                                <a class="btn btn-block btn-success text-white payWeeklyBtn" onclick="validateDelivery('payweekly','no');"></a>
                             </td>
                         </tr>
                         <tr style="display:none;">
@@ -190,6 +190,17 @@ body{
                 <apex:inputText value="{!gaKeyword}" styleClass="gaKeyword" style="display:none;"/>
                 <apex:inputText value="{!pagesVisited}" styleClass="pagesVisited" style="display:none;"/>
                 <apex:inputText value="{!ipAddress}" styleClass="ipAddress" style="display:none;"/>
+            </div>
+            <div class="puaDiv" style="display:none;">
+                <div class="container font-weight-bold mt-4">
+                    Thank you for choosing R4K&apos;s Instalment Agreement to purchase your product.
+                    Before you proceed, we need to conduct a Preliminary Unsuitability Assessment (PUA). 
+                    This assessment is based on information you will provide to us in the next coming screens and
+                    it will assist in assessing whether you are suitable for the Instalment Agreement.
+                    This is not an offer or agreement to provide you with credit. This assessment is valid for 90
+                    days from the date you are issued with a Credit Proposal &amp; Preliminary Unsuitability Assessment document.
+                </div>
+                <a class="btn btn-block btn-success text-white mt-4" onclick="validateDelivery('payweekly','yes');">Next</a>
             </div>
         </apex:outputPanel>
 
@@ -311,7 +322,7 @@ body{
                                 <apex:inputText html-placeholder="Email *" styleClass="email form-control" value="{!email}" style="{!IF(emailMissing,'border:2px solid red;','')}"/>
                             </td>
                         </tr>
-                                            </tbody>
+                    </tbody>
                 </table>
                 <apex:inputText value="{!userAgent}" styleClass="userAgent" style="display:none;"/>
                 <apex:inputText value="{!gcid}" styleClass="gcid" style="display:none;"/>
@@ -601,7 +612,7 @@ function setDeliveryDetails() {
     $('.longitude').val(window.longitude);
 }
 
-function validateDelivery(buyOption){
+function validateDelivery(buyOption, addLead){
     if($('.mobile').val().trim() == '' || !isMobileNumber($('.mobile').val().trim())){
         bootbox.alert({
             message: "Please enter a valid Mobile No. No spaces allowed and number should start from 0.",
@@ -620,7 +631,10 @@ function validateDelivery(buyOption){
             className: 'rubberBand animated'
         });
         return false;
-    }else{
+    }else if(addLead == 'no'){
+        $('.puaDiv').css('display','');
+        $('.productDiv').css('display','none');
+    }else if(addLead == 'yes'){
         addBuyNowLeadFunc(buyOption);
     }
 }

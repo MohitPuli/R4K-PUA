@@ -177,7 +177,7 @@ background-color:#cbcccb;
 <div class="fixed-bottom"> 
     <div class="card">
       <div class="card-body">
-        <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="I Confirm" onclick="validate();">I Confirm</button>
+        <button class="btn btn-success mainBtn" id="mainBtn" style="width:100%;" type="button" title="{!IF(showSelectedProduct,'I Confirm','I would like to proceed')}" onclick="validate();">{!IF(showSelectedProduct,'I Confirm','I would like to proceed')}</button>
       </div>
     </div> 
 </div>
@@ -245,7 +245,7 @@ background-color:#cbcccb;
 
 <!--Product Summary-->        
 <div class="multisteps-form__panel shadow {!IF(showSelectedProduct, 'js-active','')}" data-animation="scaleIn" style="margin-top:70px;">
-     <h5 class="multisteps-form__title mt-4 mb-4">Product Summary</h5>
+     <h5 class="multisteps-form__title mt-4 mb-4">Proposed Instalment Agreement Summary - Confirm your proposed instalment loan details</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
                <div class="form-row p-1 mt-4">
@@ -341,7 +341,7 @@ background-color:#cbcccb;
 
 <!--Product Selection Screen-->
 <div class="multisteps-form__panel shadow {!IF(!showSelectedProduct, 'js-active','')}" data-animation="scaleIn" style="margin-top:70px;">
-     <h5 class="multisteps-form__title mt-4 mb-4">Select the product to proceed.</h5>
+     <h5 class="multisteps-form__title mt-4 mb-4">Select Your Product to Proceed</h5>
           <div class="multisteps-form__content whiteDiv">
           <div class="silverDiv">
                <div class="table-responsive">

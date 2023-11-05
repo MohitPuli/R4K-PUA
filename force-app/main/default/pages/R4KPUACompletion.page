@@ -4,13 +4,143 @@
     <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
     <apex:stylesheet value="{!$Resource.R4KOnlineCSS}" />
-    
+
     <apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
     <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
     <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
     <apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/> 
     <apex:includeScript value="{!$Resource.bootbox}"/>
 
+    <style>
+        body 
+        {
+            background-color:#fcb813;
+        }
+
+        .silverDiv
+        {
+            min-height:60vh;
+            background-color:#cbcccb;
+            border-radius:5% 5% 0% 0%;
+            padding:1%;
+        }
+
+        .whiteDiv
+        {
+            background-color:#FFFFFF;
+            border-radius:5% 5% 0% 0%;
+            margin-bottom:20px;
+            padding:3%;
+            width: 100%;
+        }
+
+        .vertical-center {
+            min-height: 100%; 
+            //min-height: 100vh; 
+
+            display: flex;
+            align-items: center;
+        }
+
+        .table-condensed{
+            font-size: 80%;
+        }
+
+        .multisteps-form__title{
+            text-align:center;
+            fon-weight:bold;
+        }
+
+        .labelName{
+            font-size: 14px;
+            padding-left: 5px;
+        }
+
+        .wrap {
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        }
+
+        .range {
+        width: 100%;
+        cursor: pointer;
+        opacity: 0;
+        }
+        .range::-ms-tooltip {
+        display: none;
+        }
+
+        .track {
+            width: 100%;
+            height: 15px;
+            background: white;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+        .track-inner {
+            width: 0;
+            height: 100%;
+            background: #E24F4F;
+        }
+
+        .thumb {
+            width: 30px;
+            height: 30px;
+            background: #DCDCDC;
+            border-radius: 15%;
+            border: 1px solid black;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(0%, -50%);
+            pointer-events: none;
+        }
+
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            background-color: white;
+            overflow-x: hidden;
+            transition: 0.5s;
+            border-radius:0px 25px 25px 0px;
+        }
+
+        .sidebar a {
+            padding: 8px 8px 8px 2px;
+            text-decoration: none;
+            font-size: 15px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+            border-bottom: 1px solid black;
+        }
+
+        .sidebar .closebtn {
+            //position: absolute;
+            //top: 0;
+            //margin-left:50%;
+            //right: 25px;
+            //font-size: 36px;
+            //margin-left: 50px;
+            //border-bottom: none;
+            //float:right;
+            //padding:10px;
+        }
+
+        ul{
+            list-style-type: none;
+        }
+    </style>
     <title>R4K PUA</title>
 
     <div style="cursor: pointer;">
@@ -29,12 +159,31 @@
         </nav>
     </div>
 
-	<div class="container mt-4">
-		<p class="font-weight-bold text-success">
-			Thank you for successfully completing your application. <br/>
-            Your application has been sent to the credit provider for further assessment. <br/>
-            We will contact you soon.
-		</p>
-	</div>
+    <div class="multisteps-form">
+        <!--form panels-->
+        <div class="row">
+            <div class="col-12 col-lg-8 m-auto">
+                <form class="multisteps-form__form secondForm">
+
+                    <div class="multisteps-form__panel productPanel productPanelPanel shadow js-active mt-4" data-animation="scaleIn">
+                        <div class="multisteps-form__content whiteDiv">
+                            <div class="silverDiv">
+
+                                <p class="p-4">
+                                    Good News!<br/><br/>
+                                    Based on your answers, you may qualify for a Sale of Goods by Instalment Loan (<strong>Instalment Agreement</strong>).<br/>
+                                    One of our representatives will be in touch with you to confirm the information submitted and discuss your assessment application.<br/>
+                                    In the meantime, head to our facebook page and give us a like and keep up to date! <br/><br/>
+                                    <a href="https://www.facebook.com/R4Ktoday" target="_self"><i class="fab fa-facebook fa-lg"></i></a> &nbsp;&nbsp; <a href="https://www.instagram.com/r4k_today/" target="_self"><i class="fab fa-instagram fa-lg"></i></a>
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
 
 </apex:page>

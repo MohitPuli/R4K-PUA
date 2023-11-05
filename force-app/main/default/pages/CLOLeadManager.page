@@ -1,0 +1,1402 @@
+<apex:page controller="CollectionBotController" action="{!getWIPUnassignedLeads}" showheader="false" standardStylesheets="false">
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous"/>
+
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<apex:includeScript value="{!$Resource.bootbox}"/>
+<script type="text/javascript" src="https://media.twiliocdn.com/sdk/js/client/releases/1.10.0/twilio.js"></script>
+<apex:includeScript value="{!$Resource.Twilioquickstart}"/>
+<style>
+.cursorHand{
+    cursor: pointer;
+}
+.table-condensed{
+  font-size: 15px;
+}
+.table-supercondensed{
+  font-size: 11px;
+}
+
+.tableFixHead {
+  height: 1000px;
+  overflow-y: auto;
+}
+
+thead th {
+  background: #fff;
+}
+
+.btn-transparent {
+    background-color: transparent;
+    border-color: transparent;
+    color: #000;  /* You can set the text color you want */
+}
+.btn-transparent:hover {
+    background-color: rgba(0, 0, 0, 0.1);  /* Slight grey background on hover */
+    border-color: transparent;
+}
+
+//.tooltip-inner {
+//    max-width: 220px !important; //define whatever width you want
+//}
+
+</style>
+
+<title>CLO Lead Manager</title>
+
+<apex:form id="thePAForm">
+<apex:actionFunction action="{!callCustomersForLeadFollowup}" name="callCustomersFunc"/>
+<apex:actionFunction action="{!addBusinessHours}" name="addBusinessHoursFunc"/>
+<apex:actionFunction action="{!stopBotForLeadFollowUp}" name="stopBotFunc"/>
+<apex:actionFunction action="{!getWIP}" rerender="pnlWIPTable" oncomplete="hideAlertMessage();" name="getWIPList"/>
+<apex:actionFunction action="{!sendHybridLinkSMS}" rerender="pnlWIPTable" oncomplete="showAlertMessage();" name="sendHybridLinkSMSFunc"/>
+<apex:actionFunction action="{!sendReminderSMS}" rerender="pnlWIPTable" oncomplete="showAlertMessage();" name="sendReminderSMSFunc">
+  <apex:param id="smsText" name="smsText" value="" />
+  <apex:param id="signLink" name="signLink" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!getWIP}" rerender="pnlWIPTable" oncomplete="hideAlertMessageAndChangeButtonColour();" name="toggleProductSourcing">
+    <apex:param id="showProductSourcingValue" name="showProductSourcingValue" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!getRefereesToBeContacted}" rerender="pnlRefereesContact" name="getRefereesToBeContactedFunc">
+    <apex:param id="acctId" name="acctId" value="" />
+</apex:actionFunction>
+<apex:actionFunction action="{!sendRefereeContactFollowupSMS}" oncomplete="showAlertMessage();" rerender="pnlWIPTable,pnlColTable,pnlLICENSINGColTable,pnlLICENSINGAPRTable" name="sendRefereeContactFollowupSMSFunc"/>
+
+<apex:actionFunction action="{!sendHybridLinkSMSForHA}" rerender="pnlColTable,pnlLICENSINGColTable,pnlLICENSINGAPRTable" oncomplete="showAlertMessage();" name="sendHybridLinkSMSForHAFunc"/>
+
+<apex:actionFunction action="{!sendResetHybridLinkSMS}" rerender="pnlWIPTable" oncomplete="showAlertMessage();" name="sendResetHybridSMSFunc">
+  <apex:param id="chkClearSelfie" name="chkClearSelfie" value="" />
+  <apex:param id="chkClearPhotoId" name="chkClearPhotoId" value="" />
+  <apex:param id="chkClearMyGov" name="chkClearMyGov" value="" />
+  <apex:param id="chkClearBankSt" name="chkClearBankSt" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!sendResetHybridLinkSMSForHA}" rerender="pnlColTable,pnlLICENSINGColTable,pnlLICENSINGAPRTable" oncomplete="showAlertMessage();" name="sendResetHybridSMSForHAFunc">
+  <apex:param id="chkClearSelfieHA" name="chkClearSelfieHA" value="" />
+  <apex:param id="chkClearPhotoIdHA" name="chkClearPhotoIdHA" value="" />
+  <apex:param id="chkClearMyGovHA" name="chkClearMyGovHA" value="" />
+  <apex:param id="chkClearBankStHA" name="chkClearBankStHA" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!sendReminderSMSForHA}" rerender="pnlColTable,pnlLICENSINGColTable,pnlLICENSINGAPRTable" oncomplete="showAlertMessage();" name="sendReminderSMSForHAFunc">
+  <apex:param id="smsTextHA" name="smsTextHA" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!getAndMapApplicantsTobeConverted}" rerender="pnlApplicantSearch" name="getAndMapApplicantsTobeConvertedFunc">
+</apex:actionFunction>
+
+<apex:actionFunction action="{!getEmployeesToAssign}" rerender="pnlEmployeeLst" name="getEmployeesForApprovedPUA">
+</apex:actionFunction>
+
+<apex:actionFunction action="{!convertToDN}" rerender="thePAForm" name="convertToDNFunc">
+  <apex:param id="dnType" name="dnType" value="" />
+</apex:actionFunction>
+
+<apex:actionFunction action="{!communicatedBack}" rerender="thePAForm" name="communicatedBackFunc"/>
+
+<apex:actionFunction action="{!addToWeCare}" rerender="thePAForm" name="addToWeCareFunc"/>
+
+<apex:actionFunction action="{!assignRepResponsible}" rerender="thePAForm" oncomplete="hideAlertMessage();" name="assignRepResponsibleFunc"/>
+
+<apex:actionFunction action="{!markNotificationAsRead}" name="markNotificationAsReadFunc" rerender="theAppForm">
+    <apex:param id="pcId" name="pcId" value="" />
+</apex:actionFunction>
+<apex:actionFunction action="{!cancelToLeads}" name="cancelFunc"/>
+<apex:actionPoller action="{!getWIPUnassignedLeads}" rerender="pnlColTable,btnBusinessHours,pnlLICENSINGColTable,pnlLICENSINGAPRTable,pnlLICENSINGCALLTable,pnlLICENSINGSMSTable" oncomplete="startTimerFunc();" interval="300"/>
+
+
+<!--<div class="container mt-2 mb-2">
+  <div class="row">
+    <div class="col text-center">
+      <apex:outputPanel id="btnBusinessHours"><a href="#" data-toggle="modal" data-target="#businessHoursModal" class="btn btn-{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'success','danger')} active">Business Hours {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,botStartTime&'-'&botFinishTime,'- Please Set')} &nbsp;<i class="fas fa-stopwatch fa-lg"></i></a></apex:outputPanel> 
+      <a href="#" class="btn btn-warning active" onclick="cancelFunc();">Close &nbsp;<i class="fas fa-long-arrow-alt-left"></i></a>
+    </div>
+  </div>
+</div>-->
+<div class="alert alert-secondary" role="alert">
+    <b>{!$CurrentPage.parameters.tp} - Personal Assistant</b>
+    <apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && $CurrentPage.parameters.type<>null && $CurrentPage.parameters.type<>'',true,false)}">
+    <div class="h-100 d-flex align-items-center justify-content-center">
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='call','success','primary')} btn-sm" onclick="redirectRegionFunction('call');">Missed Call <span class="badge badge-light">{!misCallCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='sms','success','primary')} btn-sm" onclick="redirectRegionFunction('sms');">Incoming SMS <span class="badge badge-light">{!incSMSCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='nonst','success','primary')} btn-sm" onclick="redirectRegionFunction('nonst');">Non Starter <span class="badge badge-light">{!nonStartCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type=null || $CurrentPage.parameters.type="" || $CurrentPage.parameters.type='aipid','success','primary')} btn-sm" onclick="redirectRegionFunction('aipid');">AIP - Pending ID <span class="badge badge-light">{!aippiCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='aipbs','success','primary')} btn-sm" onclick="redirectRegionFunction('aipbs');">AIP - Pending Bank St <span class="badge badge-light">{!aipbsCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='aippa','success','primary')} btn-sm" onclick="redirectRegionFunction('aippa');">AIP - Pending Answers <span class="badge badge-light">{!aippaCount}</span></a>&nbsp;
+      <a href="#" class="btn btn-{!IF($CurrentPage.parameters.type='apr','success','primary')} btn-sm" onclick="redirectRegionFunction('apr');">PUA Approved <span class="badge badge-light">{!aprCount}</span></a>
+  </div>
+  </apex:outputPanel>
+</div>
+
+<apex:outputPanel id="pnlShowMessage">
+<div class="alert alert-success alert-dismissible fade show" id="alertFade" role="alert">
+   SMS has been sent
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="alert alert-warning alert-dismissible fade show" id="sendingSMS" role="alert">
+   Sending SMS..........
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && ($CurrentPage.parameters.type=null || $CurrentPage.parameters.type=''),true,false)}">
+  <div class="input-group mb-3" style="width:400px; margin:0 auto;margin-top:50px;">
+  <div class="container mt-2 mb-2">
+  <div class="row">
+    <div class="col text-center">
+    <table class="table">
+    <thead class="thead-light">
+        <th colspan="2">Select to proceed</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td width="50%" style="text-align:left;" class="font-weight-bold">Select Region</td>
+            <td width="50%" style="text-align:left;">
+                <select id="ddlRegion">
+                    <option value="VIC">VIC/SA</option>
+                    <option value="NSW">NSW</option>
+                    <option value="QLD">QLD/WA</option>
+                </select>
+            </td>
+        </tr>
+    </tbody>
+   </table>
+   <button type="button" class="btn btn-primary" style="margin-top:50px;" onclick="redirectRegionFunction('aipid');">Proceed to PA Console</button>
+   </div>
+  </div>
+ </div>
+ </div>
+</apex:outputPanel>
+<apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp!='Sharon' && $CurrentPage.parameters.tp!='Dean' && $CurrentPage.parameters.tp!='Gordon' && $CurrentPage.parameters.tp!='Sina' && twilioProfile!='R4K LICENSING',true,false)}" id="pnlWIPTable">
+
+<div class="alert alert-secondary sticky-top" role="alert">
+  <span style="font-size:15px;"><b>WIP</b></span> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!acctWrapLst.size}</span>
+    <span style="margin-left:350px;">
+      <a href="#" class="btn btn-primary btn-sm" onclick="sendHybridLinkSMSFunction();">{!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#resetHybridSMSModal" onclick="">Reset {!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Reminder SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getRefereesForAccountFunc();">SMS Reminder to Referees &nbsp;<i class="far fa-paper-plane"></i></a>
+      <a href="#" class="btn btn-warning btn-sm signLink" style="display:none;" data-toggle="modal" onclick="clearSMSReminderTextAndAddSignLink();">Reset Sign-Link SMS &nbsp;<i class="far fa-paper-plane"></i></a>
+      <a href="#" class="btn btn-success toggleProductSourcing" data-toggle="modal" onclick="toggleProductSourcingFunc();"><i class="fas fa-shopping-cart"></i></a>
+    </span>
+    
+    <span style="margin-left:250px;"><a href="#" class="btn btn-success active" onclick="getWIPList();"><i class="fas fa-sync fa-spin"></i></a></span>
+</div>
+
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"><!--<apex:inputCheckbox styleClass="form-control rowcheckAll" onclick="checkAllRows(this);" style="width:25px; height:25px;"/>--></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Mobile No</td>
+  <td class="sticky-top" scope="col">Territory</td>
+  <td class="sticky-top" scope="col">Product</td>
+  <td class="sticky-top" scope="col">Latest Activity by Cust</td>
+  <td class="sticky-top" scope="col">Next Stage</td>
+  <td class="sticky-top" scope="col">Latest Activity by R4K</td>
+  <td class="sticky-top" scope="col">Lead to Applicant</td>
+  <td class="sticky-top" scope="col">Latest Comm by Cust</td>
+  <td class="sticky-top" scope="col">Progress</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!acctWrapLst}" var="aWrap">
+<tr style="{!IF(aWrap.isLatestCommunicationByCustHighlighted,'background-color: #ffff99;','')}">
+  <td><apex:inputCheckbox value="{!aWrap.isSelectedToCall}" styleclass="form-control rowCheckWIP" style="width:25px; height:25px;"/></td>
+  <td><a href="/{!aWrap.acct.id}" target="_blank">{!aWrap.acct.Name}</a> 
+      <!--<apex:outputPanel rendered="{!IF(aWrap.latestMissedPhoneCall!=null && aWrap.latestMissedPhoneCall.Call_Type__c='Missed',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipWIPMissed" data-placement="top" title="{!aWrap.latestMissedPhoneCall.CreatedDateTime__c}" onclick="readNotification('{!aWrap.latestMissedPhoneCall.Id}');"><i class="fas fa-phone-slash" style="color:red;"></i></span> </apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF(aWrap.latestMissedPhoneCall!=null && aWrap.latestMissedPhoneCall.Call_Type__c='Incoming SMS',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipWIPMissed" data-placement="top" title="{!aWrap.latestMissedPhoneCall.SMS_Message__c}" onclick="readNotification('{!aWrap.latestMissedPhoneCall.Id}');"><i class="far fa-comments" style="color:red;"></i></span></apex:outputPanel>-->
+      <span style="font-size:10px;">({!aWrap.allIncomingComm}/{!aWrap.allOutgoingComm})</span>
+      <apex:outputPanel rendered="{!IF(aWrap.acct.Rent4Keeps_Account__c!=null, true,false)}"><a href="/apex/Rent4KeepsAccountHistory?acctId={!aWrap.acct.Rent4Keeps_Account__c}" target="_blank"><i class="fas fa-hand-holding" style="color:green;"></i></a></apex:outputPanel>
+  </td>
+  <td>{!aWrap.acct.PersonMobilePhone} <input type="hidden" class="hdnWIPAccountId" value="{!aWrap.acct.id}"/> <input type="hidden" class="hdnWIPAgreementSignLink" value="{!aWrap.opp.TaxInvoice_Short_Link__c}"/></td>
+  <td>{!aWrap.acct.Territory_Short_Name__c}</td>
+  <td>{!IF(aWrap.opp!=null, TRIM(RIGHT(aWrap.opp.Name,LEN(aWrap.opp.Name)-FIND('-',aWrap.opp.Name))), aWrap.acct.Product_Interested_In__c)}</td>
+  <td>{!aWrap.currentStage} <apex:outputPanel rendered="{!IF(aWrap.currentStage='Referees Added' || aWrap.currentStage='Add Referees',true,false)}">&nbsp; <span style="font-size:12px;color:blue;font-weight: bold;">({!aWrap.totRefCount}/{!aWrap.toRefExpected})</span></apex:outputPanel>  <apex:outputPanel rendered="{!IF(aWrap.currentStage='Contact Referees' || aWrap.currentStage='Referees Contacted',true,false)}">&nbsp; <span style="font-size:12px;color:blue;font-weight: bold;">({!aWrap.totRefContactedCount}/{!aWrap.toRefExpected})</span></apex:outputPanel> &nbsp;<span style="font-size:10px;">({!aWrap.lastActivityInDayFormatted})</span> 
+      <!--<apex:outputPanel rendered="{!IF(aWrap.currentStage='Forms Signed',true,false)}">&nbsp; <a href="/{!aWrap.opp.TIApplicantSignatureId__c}" target="_blank"><img src="https://partial-rent4keeps.cs113.force.com/MOGO/servlet/servlet.FileDownload?file={!aWrap.opp.TIApplicantSignatureId__c}" width="40" height="40"/></a> &nbsp; <a href="/{!aWrap.opp.TIApplicantInitialId__c}" target="_blank"><img src="https://partial-rent4keeps.cs113.force.com/MOGO/servlet/servlet.FileDownload?file={!aWrap.opp.TIApplicantInitialId__c}" width="40" height="40"/></a></apex:outputPanel></td> -->
+      <apex:outputPanel rendered="{!IF(aWrap.currentStage='Forms Signed',true,false)}">&nbsp; <a href="/{!aWrap.opp.TIApplicantSignatureId__c}" target="_blank"><img src="https://rent4keeps.secure.force.com/MOGO/servlet/servlet.FileDownload?file={!aWrap.opp.TIApplicantSignatureId__c}" width="40" height="40"/></a> &nbsp; <a href="/{!aWrap.opp.TIApplicantInitialId__c}" target="_blank"><img src="https://rent4keeps.secure.force.com/MOGO/servlet/servlet.FileDownload?file={!aWrap.opp.TIApplicantInitialId__c}" width="40" height="40"/></a></apex:outputPanel></td> 
+  <td>{!aWrap.nextStage} <apex:outputPanel rendered="{!IF(aWrap.nextStage='Referees Added' || aWrap.nextStage='Add Referees',true,false)}">&nbsp; <span style="font-size:12px;color:blue;font-weight: bold;">({!aWrap.totRefCount}/{!aWrap.toRefExpected})</span></apex:outputPanel>  <apex:outputPanel rendered="{!IF(aWrap.nextStage='Contact Referees' || aWrap.nextStage='Referees Contacted',true,false)}">&nbsp; <span style="font-size:12px;color:blue;font-weight: bold;">({!aWrap.totRefContactedCount}/{!aWrap.toRefExpected})</span></apex:outputPanel></td> 
+  <td><apex:outputPanel rendered="{!If(aWrap.latestCommunicationFromR4K!=null && aWrap.latestCommunicationFromR4K.type=='Outgoing',true,false)}"><i class="fas fa-phone" style="color:green;"></i> &nbsp; <span style="font-size:10px;">({!aWrap.latestCommunicationFromR4KInDayFormatted})</span></apex:outputPanel>  <apex:outputPanel rendered="{!If(aWrap.latestCommunicationFromR4K!=null && aWrap.latestCommunicationFromR4K.type=='Outgoing SMS',true,false)}"><i class="far fa-comments" style="color:green;"/> &nbsp; <span style="font-size:10px;">({!aWrap.latestCommunicationFromR4KInDayFormatted})</span></apex:outputPanel></td>
+  <td>{!aWrap.enquiryDatetimeInDayFormatted}</td>
+  <td><apex:outputPanel rendered="{!If(aWrap.latestCommunicationByCust!=null && aWrap.latestCommunicationByCust.callType=='Missed',true,false)}"><i class="fas fa-phone-slash" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!aWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span></apex:outputPanel>
+  <apex:outputPanel rendered="{!If(aWrap.latestCommunicationByCust!=null && aWrap.latestCommunicationByCust.callType=='Incoming SMS',true,false)}"><i class="far fa-comments" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!aWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span> <br/><span style="font-size:10px;">{!aWrap.latestCommunicationByCust.smsText}</span></apex:outputPanel></td>
+  <td>{!aWrap.acct.Next_CAM_Step__c} &nbsp;<a href="/apex/CAMProcess?id={!aWrap.acct.id}" target="_blank"><i class="fab fa-css3-alt fa-lg" style="color:#e200e2;"></i></a></td>
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{!IF(($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina') && twilioProfile!='R4K LICENSING',true,false)}" id="pnlColTable">
+<!--{!counter}-->
+
+<div class="alert alert-secondary sticky-top" role="alert">
+  <b>Unassigned / Hybrid Leads</b> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!paUnlockCount} / {!unAssignedCount}</span>
+  <span style="margin-left:150px;">
+      <!--<apex:outputPanel id="btnBusinessHours"><a href="#" data-toggle="modal" data-target="#businessHoursModal" class="btn btn-{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'success','danger')} active">Business Hours {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,botStartTime&'-'&botFinishTime,'- Please Set')} &nbsp;<i class="fas fa-stopwatch"></i></a></apex:outputPanel> 
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Bot Call &nbsp;<i class="fas fa-phone-square"></i></a>&nbsp;-->
+      <apex:outputPanel rendered="{!IF((botStartTime!=null && botFinishTime!=null && isValidTimeToCall) || twilioProfile=='Helpdesk',false,true)}"><a href="#" data-toggle="modal" data-target="#businessHoursModal" class="btn btn-danger btn-sm">Start Bot Call&nbsp;<i class="fas fa-phone-square"></i></a>&nbsp;</apex:outputPanel> 
+      <a href="#" class="btn btn-primary btn-sm" onclick="sendHybridLinkSMSForHAFunction();">{!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#resetHybridSMSModal" onclick="">Reset {!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Reminder SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getRefereesForHybridAccountFunc();">SMS Reminder to Referees &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getApplicantsForLeadFunc();">Add to &nbsp;<i class="fas fa-plus"></i></a>&nbsp;
+      <apex:outputPanel rendered="{!IF((botStartTime!=null && botFinishTime!=null && isValidTimeToCall && twilioProfile!='Helpdesk'),true,false)}"><a href="#" class="btn btn-danger btn-sm" onclick="stopBotFunc();">Stop Bot &nbsp;<i class="fas fa-user-slash"></i></a></apex:outputPanel> 
+    </span>
+  <div style="float:right;"> <p class="{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'text-success','text-danger')}"> {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'Bot-Active','Bot-Inactive')}  <b>Refresh Time: <span id="spnTimer">05:00</span></b></p>
+      <!--<apex:outputpanel rendered="{!IF(twilioProfile='Helpdesk',true,false)}">Darranda: Kapex: NZ: <b>Refresh Time: <span id="spnTimer">02:00</span></b></apex:outputpanel>-->
+  </div>
+</div>
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"><!--<apex:inputCheckbox styleClass="form-control rowcheckAll" onclick="checkAllRows(this);" style="width:25px; height:25px;"/>--></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Mobile No</td>
+  <td class="sticky-top" scope="col">Medium</td>
+  <td class="sticky-top" scope="col">Territory</td>
+  <td class="sticky-top" scope="col">Reason For Enquiry</td>
+  <td class="sticky-top" scope="col">Product</td>
+  <!--<th scope="col">Territory</th>-->
+  <!--<th scope="col">No of times bot called</th>-->
+  <!--<th scope="col">Call Date</th>-->
+  <!--<th scope="col">Is Hybrid</th>-->
+  <td class="sticky-top" scope="col">Hybrid Link</td>
+  <td class="sticky-top" scope="col">Latest Activity</td>
+  <td class="sticky-top" scope="col">Next Action</td>
+  <td class="sticky-top" scope="col">Time Since Lead</td>
+  <td class="sticky-top" scope="col">Unlock Reason</td>
+  <td class="sticky-top" scope="col">Latest Comm by Cust</td>
+  <td class="sticky-top" scope="col">&nbsp;</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!leadWrapLst}" var="cWrap">
+<tr style="{!IF(cWrap.isLatestCommunicationByCustHighlighted,'background-color: #ffff99;','')}">
+  <td><apex:inputCheckbox rendered="{!(!cWrap.isAutomationOn)}" value="{!cWrap.isSelectedToCall}" styleclass="form-control rowCheckUnAssigned" style="width:25px; height:25px;"/></td>
+  <td><!--<apex:outputPanel rendered="{!IF(cWrap.isAutomationOn, true,false)}">{!cWrap.ld.Name}</apex:outputPanel> -->
+  <apex:outputPanel rendered="true"><a onclick="openLeadToAssign('{!IF(cWrap.isHybrid,cWrap.ld.Account__c,cWrap.ld.Id)}');" href="#">{!cWrap.ld.Name}</a></apex:outputPanel> 
+      <!--<apex:outputPanel rendered="{!IF(cWrap.latestMissedPhoneCall!=null && cWrap.latestMissedPhoneCall.Call_Type__c='Missed',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipUnassignedMissed" data-placement="top" title="{!cWrap.latestMissedPhoneCall.CreatedDateTime__c}" onclick="readNotification('{!cWrap.latestMissedPhoneCall.Id}');"><i class="fas fa-phone-slash" style="color:red;"></i></span> </apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF(cWrap.latestMissedPhoneCall!=null && cWrap.latestMissedPhoneCall.Call_Type__c='Incoming SMS',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipUnassignedMissed" data-placement="top" title="{!cWrap.latestMissedPhoneCall.SMS_Message__c}" onclick="readNotification('{!cWrap.latestMissedPhoneCall.Id}');"><i class="far fa-comments" style="color:red;"></i></span></apex:outputPanel>-->
+      <span style="font-size:10px;">({!cWrap.allIncomingComm}/{!cWrap.allOutgoingComm})</span>
+      <apex:outputPanel rendered="{!IF(cWrap.ld.Probable_Account_Summary__c!=null, true,false)}"><span data-toggle="tooltipProbableAccount" data-placement="top" title="{!cWrap.ld.Probable_Account_Summary__c}" style="margin-left:1px;"><i class="fas fa-info-circle" style="color:#187fc2;"></i></span></apex:outputPanel>
+      <apex:outputPanel rendered="{!IF(cWrap.ld.Rent4Keeps_Account__c!=null, true,false)}"><a href="/apex/Rent4KeepsAccountHistory?acctId={!cWrap.ld.Rent4Keeps_Account__c}" target="_blank"><i class="fas fa-hand-holding" style="color:green;"></i></a></apex:outputPanel>
+      <apex:outputPanel rendered="{!IF(cWrap.autoDeclineReason!=null, true,false)}"><span data-toggle="tooltipProbableAccount" data-placement="top" title="{!cWrap.autoDeclineReason}" style="margin-left:1px;"><i class="far fa-times-circle" style="color:red;"></i></span></apex:outputPanel>
+ </td> 
+  <td>{!cWrap.ld.MobilePhone}</td>
+  <td>{!cWrap.ld.Lead_Medium__c}</td>
+  <td>{!cWrap.ld.Territory_Number__r.Short_Name__c} <input type="hidden" class="hdnHybridAccountId" value="{!cWrap.ld.Account__c}"/></td>
+  <td>{!cWrap.ld.Reason_for_Enquiry__c}</td>
+  <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;" data-toggle="tooltipProduct" data-placement="top" title="{!cWrap.ld.Desired_Product__c}">{!IF(cWrap.ld.Desired_Product__c!=null && LEN(cWrap.ld.Desired_Product__c)>10 ,LEFT(cWrap.ld.Desired_Product__c,15)&"...", cWrap.ld.Desired_Product__c)}</td>
+  <!--<td>{!cWrap.ld.Territory_Number__r.Short_Name__c}</td>-->
+  <!--<td class="text-center">{!cWrap.ld.No_of_times_Bot_Called__c}</td>-->
+  <!--<td> <apex:outputField value="{!cWrap.ld.Bot_Call_Datetime__c}" id="BotCallDate"/></td> -->
+  <!--<td><apex:outputPanel rendered="{!cWrap.isHybrid}"><i class="fas fa-check"></i></apex:outputPanel> <apex:outputPanel rendered="{! (!cWrap.isHybrid)}"><i class="fas fa-times"></i></apex:outputPanel></td>-->
+  <td class="text-center"><apex:outputPanel rendered="{!cWrap.isHybrid}">{!cWrap.ld.Hybrid_link_Status__c} <apex:outputPanel rendered="{!IF(cWrap.lastHybridActivityInMins!=null && cWrap.lastHybridActivityInMins>0,true,false)}">&nbsp;<span style="font-size:10px;">({!cWrap.lastHybridActivityInDayFormatted})</span></apex:outputPanel></apex:outputPanel> <apex:outputPanel rendered="{! (!cWrap.isHybrid)}"><i class="fas fa-times"></i></apex:outputPanel></td> 
+  <!--<td><i class="fas fa-robot"></i>{!cWrap.ld.Bot_Followup_Status__c} <apex:outputPanel rendered="{!IF(cWrap.lastActivityInMins!=null && cWrap.lastActivityInMins>0,true,false)}">&nbsp;<span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel></td>-->
+  <td><apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-phone" style="color:green;"></i></a> &nbsp; <span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>  
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing SMS',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="far fa-comments" style="color:green;"/></a> &nbsp; <span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing Bot',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-robot" style="color:green;"></i> &nbsp;<i class="fas fa-phone" style="color:green;"></i></a> &nbsp; <span style="font-size:10px;">{!cWrap.ld.Bot_Followup_Status__c} &nbsp; ({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>  
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing Bot SMS',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-robot" style="color:green;"></i> &nbsp;<i class="far fa-comments" style="color:green;"/></a> &nbsp; <span style="font-size:10px;">{!cWrap.ld.Bot_Followup_Status__c} &nbsp; ({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel></td>
+  <td>{!cWrap.botMedium} <apex:outputPanel rendered="{!IF(cWrap.botMedium!='CLO call' && cWrap.ld.Next_Bot_Call_Datetime__c!=null,true, false)}"> &nbsp; <span style="font-size:10px;"><apex:outputField value="{!cWrap.ld.Next_Bot_Call_Datetime__c}" id="nextActionDate"/></span></apex:outputPanel></td> 
+  <td>{!cWrap.ld.Days_and_Hours_Since_Lead_Created__c}</td> 
+  <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;" data-toggle="tooltipReason" data-placement="top" title="{!cWrap.ld.Description}">{!cWrap.unlockReason}</td> 
+  <td><apex:outputPanel rendered="{!If(cWrap.latestCommunicationByCust!=null && cWrap.latestCommunicationByCust.callType=='Missed',true,false)}"><i class="fas fa-phone-slash" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!cWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span></apex:outputPanel>
+  <apex:outputPanel rendered="{!If(cWrap.latestCommunicationByCust!=null && cWrap.latestCommunicationByCust.callType=='Incoming SMS',true,false)}"><i class="far fa-comments" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!cWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span> <br/><span style="font-size:10px;">{!cWrap.latestCommunicationByCust.smsText}</span></apex:outputPanel></td>
+  <td><apex:outputPanel rendered="{!cWrap.isAutomationOn}"><i class="fas fa-lock" style="color:red;"></i> &nbsp;<span style="font-size:10px;">({!cWrap.minutesToGetUnlocked})</span></apex:outputPanel> <apex:outputPanel rendered="{!(!cWrap.isAutomationOn)}"><i class="fas fa-lock-open" style="color:green;"></i> &nbsp; <apex:outputPanel rendered="{!IF(cWrap.appStatus!=null && cWrap.appStatus!='', true,false)}"><span style="font-size:10px;">({!cWrap.appStatus})</span></apex:outputPanel></apex:outputPanel></td>
+  <!--<td><apex:outputPanel rendered="{!cWrap.isAutomationOn}"><i class="fas fa-lock" style="color:red;"></i> </apex:outputPanel> <apex:outputPanel rendered="{!(!cWrap.isAutomationOn)}"><i class="fas fa-lock-open" style="color:green;"></i> </apex:outputPanel></td>-->
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<!--R4K LICENSING Param type = aipid,aipbs,aippa,nonst-->
+<apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && ($CurrentPage.parameters.type='aipid' || $CurrentPage.parameters.type='aipbs' || $CurrentPage.parameters.type='aippa' || $CurrentPage.parameters.type='nonst'),true,false)}" id="pnlLICENSINGColTable">
+<!--{!counter}-->
+
+<div class="alert alert-secondary sticky-top" role="alert">
+  <b>Unassigned / Hybrid Leads</b> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!paUnlockCount} / {!unAssignedCount}</span>
+  <span style="margin-left:200px;">
+      <!--<apex:outputPanel id="btnBusinessHours"><a href="#" data-toggle="modal" data-target="#businessHoursModal" class="btn btn-{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'success','danger')} active">Business Hours {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,botStartTime&'-'&botFinishTime,'- Please Set')} &nbsp;<i class="fas fa-stopwatch"></i></a></apex:outputPanel> 
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Bot Call &nbsp;<i class="fas fa-phone-square"></i></a>&nbsp;-->
+      <apex:outputPanel rendered="{!IF((botStartTime!=null && botFinishTime!=null && isValidTimeToCall) || twilioProfile=='Helpdesk',false,true)}"><a href="#" data-toggle="modal" data-target="#businessHoursModal" class="btn btn-danger btn-sm">Start Bot Call&nbsp;<i class="fas fa-phone-square"></i></a>&nbsp;</apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF($CurrentPage.parameters.type='apr',false,true)}"><a href="#" class="btn btn-primary btn-sm" onclick="sendHybridLinkSMSForHAFunction();">{!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO' || twilioProfile=='R4K LICENSING','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;</apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF($CurrentPage.parameters.type='apr',false,true)}"><a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#resetHybridSMSModal" onclick="">Reset {!IF(twilioProfile=='NSW CLO' || twilioProfile=='Darranda CLO' || twilioProfile=='QLD CLO' || twilioProfile=='R4K LICENSING','Online','Hybrid')} SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;</apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF($CurrentPage.parameters.type='apr',false,true)}"><a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Reminder SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;</apex:outputPanel> 
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getApplicantsForLeadFunc();">Add to &nbsp;<i class="fas fa-plus"></i></a>&nbsp;
+      <apex:outputPanel rendered="{!IF((botStartTime!=null && botFinishTime!=null && isValidTimeToCall && twilioProfile!='Helpdesk'),true,false)}"><a href="#" class="btn btn-danger btn-sm" onclick="stopBotFunc();">Stop Bot &nbsp;<i class="fas fa-user-slash"></i></a></apex:outputPanel> 
+    </span>
+  <div style="float:right;"> <p class="{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'text-success','text-danger')}"> {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'Bot-Active','Bot-Inactive')}  <b>Refresh Time: <span id="spnTimer">05:00</span></b></p>
+  </div>
+</div>
+
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"><!--<apex:inputCheckbox styleClass="form-control rowcheckAll" onclick="checkAllRows(this);" style="width:25px; height:25px;"/>--></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Mobile No</td>
+  <td class="sticky-top" scope="col">Medium</td>
+  <td class="sticky-top" scope="col">Territory</td>
+  <td class="sticky-top" scope="col">Reason For Enquiry</td>
+  <td class="sticky-top" scope="col">Product</td>
+  <!--<th scope="col">Territory</th>-->
+  <!--<th scope="col">No of times bot called</th>-->
+  <!--<th scope="col">Call Date</th>-->
+  <!--<th scope="col">Is Hybrid</th>-->
+  <td class="sticky-top" scope="col">Hybrid Link</td>
+  <td class="sticky-top" scope="col">Latest Activity</td>
+  <td class="sticky-top" scope="col">Next Action</td>
+  <td class="sticky-top" scope="col">Time Since Lead</td>
+  <td class="sticky-top" scope="col">Unlock Reason</td>
+  <td class="sticky-top" scope="col">Latest Comm by Cust</td>
+  <td class="sticky-top" scope="col">&nbsp;</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!leadWrapLst}" var="cWrap">
+<tr style="{!IF(cWrap.isLatestCommunicationByCustHighlighted,'background-color: #ffff99;','')}">
+  <td><apex:inputCheckbox rendered="{!(!cWrap.isAutomationOn)}" value="{!cWrap.isSelectedToCall}" styleclass="form-control rowCheckUnAssigned" style="width:25px; height:25px;"/></td>
+  <td><!--<apex:outputPanel rendered="{!IF(cWrap.isAutomationOn, true,false)}">{!cWrap.ld.Name}</apex:outputPanel> -->
+  <apex:outputPanel rendered="true"><a onclick="openLeadToAssign('{!IF(cWrap.isHybrid,cWrap.ld.Account__c,cWrap.ld.Id)}');" href="#">{!cWrap.ld.Name}</a></apex:outputPanel> 
+      <!--<apex:outputPanel rendered="{!IF(cWrap.latestMissedPhoneCall!=null && cWrap.latestMissedPhoneCall.Call_Type__c='Missed',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipUnassignedMissed" data-placement="top" title="{!cWrap.latestMissedPhoneCall.CreatedDateTime__c}" onclick="readNotification('{!cWrap.latestMissedPhoneCall.Id}');"><i class="fas fa-phone-slash" style="color:red;"></i></span> </apex:outputPanel> 
+      <apex:outputPanel rendered="{!IF(cWrap.latestMissedPhoneCall!=null && cWrap.latestMissedPhoneCall.Call_Type__c='Incoming SMS',true,false)}">&nbsp;<span class="cursorHand" data-toggle="tooltipUnassignedMissed" data-placement="top" title="{!cWrap.latestMissedPhoneCall.SMS_Message__c}" onclick="readNotification('{!cWrap.latestMissedPhoneCall.Id}');"><i class="far fa-comments" style="color:red;"></i></span></apex:outputPanel>-->
+      <span style="font-size:10px;">({!cWrap.allIncomingComm}/{!cWrap.allOutgoingComm})</span>
+      <apex:outputPanel rendered="{!IF(cWrap.ld.Probable_Account_Summary__c!=null, true,false)}"><span data-toggle="tooltipProbableAccount" data-placement="top" title="{!cWrap.ld.Probable_Account_Summary__c}" style="margin-left:1px;"><i class="fas fa-info-circle" style="color:#187fc2;"></i></span></apex:outputPanel>
+      <apex:outputPanel rendered="{!IF(cWrap.ld.Rent4Keeps_Account__c!=null, true,false)}"><a href="/apex/Rent4KeepsAccountHistory?acctId={!cWrap.ld.Rent4Keeps_Account__c}" target="_blank"><i class="fas fa-hand-holding" style="color:green;"></i></a></apex:outputPanel>
+      <apex:outputPanel rendered="{!IF(cWrap.autoDeclineReason!=null, true,false)}"><span data-toggle="tooltipProbableAccount" data-placement="top" title="{!cWrap.autoDeclineReason}" style="margin-left:1px;"><i class="far fa-times-circle" style="color:red;"></i></span></apex:outputPanel>
+ </td> 
+  <td>{!cWrap.ld.MobilePhone}</td>
+  <td>{!cWrap.ld.Lead_Medium__c}</td>
+  <td>{!cWrap.ld.Territory_Number__r.Short_Name__c} <input type="hidden" class="hdnHybridAccountId" value="{!cWrap.ld.Account__c}"/></td>
+  <td>{!cWrap.ld.Reason_for_Enquiry__c}</td>
+  <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;" data-toggle="tooltipProduct" data-placement="top" title="{!cWrap.ld.Desired_Product__c}">{!IF(cWrap.ld.Desired_Product__c!=null && LEN(cWrap.ld.Desired_Product__c)>10 ,LEFT(cWrap.ld.Desired_Product__c,15)&"...", cWrap.ld.Desired_Product__c)}</td>
+  <!--<td>{!cWrap.ld.Territory_Number__r.Short_Name__c}</td>-->
+  <!--<td class="text-center">{!cWrap.ld.No_of_times_Bot_Called__c}</td>-->
+  <!--<td> <apex:outputField value="{!cWrap.ld.Bot_Call_Datetime__c}" id="BotCallDate"/></td> -->
+  <!--<td><apex:outputPanel rendered="{!cWrap.isHybrid}"><i class="fas fa-check"></i></apex:outputPanel> <apex:outputPanel rendered="{! (!cWrap.isHybrid)}"><i class="fas fa-times"></i></apex:outputPanel></td>-->
+  <td class="text-center"><apex:outputPanel rendered="{!IF(cWrap.ld.Hybrid_link_Status__c=='1. PUA - Attention Required',true,false)}"><a href="/apex/CAMProcess?formType=assessment&id={!cWrap.ld.Account__c}&sectionType=equifax" target="_blank"> {!cWrap.ld.Hybrid_link_Status__c} </a></apex:outputPanel> <apex:outputPanel rendered="{!IF(cWrap.ld.Hybrid_link_Status__c=='1. PUA - Attention Required',false,true)}">{!cWrap.ld.Hybrid_link_Status__c}</apex:outputPanel> <apex:outputPanel rendered="{!IF(cWrap.lastHybridActivityInMins!=null && cWrap.lastHybridActivityInMins>0,true,false)}">&nbsp;<span style="font-size:10px;">({!cWrap.lastHybridActivityInDayFormatted})</span></apex:outputPanel></td> 
+  <!--<td><i class="fas fa-robot"></i>{!cWrap.ld.Bot_Followup_Status__c} <apex:outputPanel rendered="{!IF(cWrap.lastActivityInMins!=null && cWrap.lastActivityInMins>0,true,false)}">&nbsp;<span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel></td>-->
+  <td><apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-phone" style="color:green;"></i></a> &nbsp; <span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>  
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing SMS',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="far fa-comments" style="color:green;"/></a> &nbsp; <span style="font-size:10px;">({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing Bot',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-robot" style="color:green;"></i> &nbsp;<i class="fas fa-phone" style="color:green;"></i></a> &nbsp; <span style="font-size:10px;">{!cWrap.ld.Bot_Followup_Status__c} &nbsp; ({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel>  
+      <apex:outputPanel rendered="{!If(cWrap.latestCommunicationFromR4K!=null && cWrap.latestCommunicationFromR4K.type=='Outgoing Bot SMS',true,false)}"><a href="/{!cWrap.latestCommunicationFromR4K.id}" target="_blank"><i class="fas fa-robot" style="color:green;"></i> &nbsp;<i class="far fa-comments" style="color:green;"/></a> &nbsp; <span style="font-size:10px;">{!cWrap.ld.Bot_Followup_Status__c} &nbsp; ({!cWrap.lastActivityInDayFormatted})</span></apex:outputPanel></td>
+  <td>{!cWrap.botMedium} <apex:outputPanel rendered="{!IF(cWrap.botMedium!='CLO call' && cWrap.ld.Next_Bot_Call_Datetime__c!=null,true, false)}"> &nbsp; <span style="font-size:10px;"><apex:outputField value="{!cWrap.ld.Next_Bot_Call_Datetime__c}" id="nextActionDate"/></span></apex:outputPanel></td> 
+  <td>{!cWrap.ld.Days_and_Hours_Since_Lead_Created__c}</td> 
+  <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;" data-toggle="tooltipReason" data-placement="top" title="{!cWrap.ld.Description}">{!cWrap.unlockReason}</td> 
+  <td><apex:outputPanel rendered="{!If(cWrap.latestCommunicationByCust!=null && cWrap.latestCommunicationByCust.callType=='Missed',true,false)}"><i class="fas fa-phone-slash" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!cWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span></apex:outputPanel>
+  <apex:outputPanel rendered="{!If(cWrap.latestCommunicationByCust!=null && cWrap.latestCommunicationByCust.callType=='Incoming SMS',true,false)}"><i class="far fa-comments" style="color:red;"></i>&nbsp; <span style="font-size:10px;">(<apex:outputText value="{0, date, dd/MM/YYYY HH:mm:ss}"> <apex:param value="{!cWrap.latestCommunicationByCust.CreatedDate}"/> </apex:outputText>)</span> <br/><span style="font-size:10px;">{!cWrap.latestCommunicationByCust.smsText}</span></apex:outputPanel></td>
+  <td><apex:outputPanel rendered="{!cWrap.isAutomationOn}"><i class="fas fa-lock" style="color:red;"></i> &nbsp;<span style="font-size:10px;">({!cWrap.minutesToGetUnlocked})</span></apex:outputPanel> <apex:outputPanel rendered="{!(!cWrap.isAutomationOn)}"><i class="fas fa-lock-open" style="color:green;"></i> &nbsp; <apex:outputPanel rendered="{!IF(cWrap.appStatus!=null && cWrap.appStatus!='', true,false)}"><span style="font-size:10px;">({!cWrap.appStatus})</span></apex:outputPanel></apex:outputPanel></td>
+  <!--<td><apex:outputPanel rendered="{!cWrap.isAutomationOn}"><i class="fas fa-lock" style="color:red;"></i> </apex:outputPanel> <apex:outputPanel rendered="{!(!cWrap.isAutomationOn)}"><i class="fas fa-lock-open" style="color:green;"></i> </apex:outputPanel></td>-->
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<!--R4K Licensing Param type = apr-->
+<apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && $CurrentPage.parameters.type!=null && $CurrentPage.parameters.type='apr',true,false)}" id="pnlLICENSINGAPRTable">
+<div class="alert alert-secondary sticky-top" role="alert">
+  <b>PUA Approved</b> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!acctWrapLst.size}</span>
+  <span class="d-flex align-items-center justify-content-center">
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getEmployeesForApprovedPUAFunc();">Assign to &nbsp;<i class="fas fa-plus"></i></a>&nbsp;
+    </span>
+  <div style="float:right;"> <p class="{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'text-success','text-danger')}"> {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'Bot-Active','Bot-Inactive')}  <b>Refresh Time: <span id="spnTimer">05:00</span></b></p>
+  </div>
+</div>
+
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"><!--<apex:inputCheckbox styleClass="form-control rowcheckAll" onclick="checkAllRows(this);" style="width:25px; height:25px;"/>--></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Mobile No</td>
+  <td class="sticky-top" scope="col">Territory</td>
+  <td class="sticky-top" scope="col">Product</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!acctWrapLst}" var="aWrap">
+<tr style="{!IF(aWrap.isLatestCommunicationByCustHighlighted,'background-color: #ffff99;','')}">
+  <td><apex:inputCheckbox value="{!aWrap.isSelectedToCall}" styleclass="form-control rowCheckPUA" style="width:25px; height:25px;"/></td>
+  <td><a href="/{!aWrap.acct.id}" target="_blank">{!aWrap.acct.Name}</a> 
+      <apex:outputPanel rendered="{!IF(aWrap.acct.Rent4Keeps_Account__c!=null, true,false)}"><a href="/apex/Rent4KeepsAccountHistory?acctId={!aWrap.acct.Rent4Keeps_Account__c}" target="_blank"><i class="fas fa-hand-holding" style="color:green;"></i></a></apex:outputPanel>
+  </td>
+  <td>{!aWrap.acct.PersonMobilePhone} <input type="hidden" class="hdnWIPAccountId" value="{!aWrap.acct.id}"/></td>
+  <td>{!aWrap.acct.Territory_Short_Name__c}</td>
+  <td>{!IF(aWrap.opp!=null, TRIM(RIGHT(aWrap.opp.Name,LEN(aWrap.opp.Name)-FIND('-',aWrap.opp.Name))), aWrap.acct.Product_Interested_In__c)}</td>
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<!--R4K Licensing Param type = call-->
+<apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && $CurrentPage.parameters.type!=null && $CurrentPage.parameters.type='call',true,false)}" id="pnlLICENSINGCALLTable">
+<div class="alert alert-secondary sticky-top" role="alert">
+  <b>Missed Calls</b> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!acctWrapLst.size}</span>
+  <span class="d-flex align-items-center justify-content-center">
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Send SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="communicatedBackJS();">Communicated Back &nbsp;<i class="fas fa-check"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getApplicantsForLeadFunc();">Add to &nbsp;<i class="fas fa-plus"></i></a>&nbsp;
+    </span>
+  <div style="float:right;"> <p class="{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'text-success','text-danger')}"> {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'Bot-Active','Bot-Inactive')}  <b>Refresh Time: <span id="spnTimer">05:00</span></b></p>
+  </div>
+</div>
+
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Mobile</td>
+  <td class="sticky-top" scope="col"># Missed Calls</td>
+  <td class="sticky-top" scope="col">Last Call At</td>
+  <td class="sticky-top" scope="col">Call Time(seconds)</td>
+  <td class="sticky-top" scope="col">Phone recording</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!leadWrapLst}" var="lWrap">
+<tr style="{!IF(lWrap.isLatestCommunicationByCustHighlighted,'background-color: #ffff99;','')}">
+  <td><apex:inputCheckbox value="{!lWrap.isSelectedToCall}" styleclass="rowCheckUnAssigned" style="width:25px; height:25px;"/></td>
+  <td>
+    <apex:outputPanel rendered="{!IF(lWrap.ld != null, true, false)}">
+      <a href="/{!IF(lWrap.ld != null && lWrap.ld.Account__c != null, lWrap.ld.Account__c, lWrap.ld.Id)}" target="_blank">{!IF(lWrap.ld != null && lWrap.ld.Account__c != null, lWrap.ld.Account__r.Name, lWrap.ld.Name)}</a>
+    </apex:outputPanel> &nbsp; <a href="#" class="btn btn-primary active" onclick="openCallCustomers('{!lWrap.latestMissedPhoneCall.Mobile__c}','{!lWrap.ld.Id}','{!lWrap.ld.Account__c}');"><i class="fas fa-phone-square fa-lg"/></a>
+  </td> 
+  <td>{!IF(lWrap.latestMissedPhoneCall != null, lWrap.latestMissedPhoneCall.Mobile__c, IF(lWrap.latestSMSMagicFromR4K != null, lWrap.latestSMSMagicFromR4K.smagicinteract__PhoneNumber__c, null))}</td>
+  <td class="text-center">{!lWrap.missedCallCount}</td>
+  <td><apex:outputText value="{0, date, dd/MM/yyyy HH:mm:ss}"> <apex:param value="{!IF(lWrap.latestMissedPhoneCall != null, lWrap.latestMissedPhoneCall.CreatedDate + offset, IF(lWrap.latestSMSMagicFromR4K != null, lWrap.latestSMSMagicFromR4K.CreatedDate + offset, null))}"/> </apex:outputText></td>
+  <td style="text-align:center;">{!IF(lWrap.latestMissedPhoneCall <> null,lWrap.latestMissedPhoneCall.Call_Time_seconds__c,'')}</td>
+  <td><apex:outputText value="{!IF(lWrap.latestMissedPhoneCall != null, lWrap.latestMissedPhoneCall.Phone_Recording__c, 'No Conversations Recorded')}" escape="false"/></td>
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<!--R4K Licensing Param type = sms-->
+<apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING' && $CurrentPage.parameters.type!=null && $CurrentPage.parameters.type='sms',true,false)}" id="pnlLICENSINGSMSTable">
+<div class="alert alert-secondary sticky-top" role="alert">
+  <b>Incoming SMS</b> <span style="margin-left:20px;font-size:15px;" class="badge badge-info">{!acctWrapLst.size}</span>
+  <span class="d-flex align-items-center justify-content-center">
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#reminderSMSModal" onclick="clearSMSReminderText();">Send SMS &nbsp;<i class="far fa-paper-plane"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="communicatedBackJS();">Communicated Back &nbsp;<i class="fas fa-check"></i></a>&nbsp;
+      <a href="#" class="btn btn-primary btn-sm" data-toggle="modal" onclick="getApplicantsForLeadFunc();">Add to &nbsp;<i class="fas fa-plus"></i></a>&nbsp;
+    </span>
+  <div style="float:right;"> <p class="{!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'text-success','text-danger')}"> {!IF(botStartTime!=null && botFinishTime!=null && isValidTimeToCall,'Bot-Active','Bot-Inactive')}  <b>Refresh Time: <span id="spnTimer">05:00</span></b></p>
+  </div>
+</div>
+
+<div class="table-responsive tableFixHead"> 
+<table class="table table-condensed">
+<thead class="thead-dark">
+<tr class="table-info">
+  <td class="sticky-top"></td>
+  <td class="sticky-top" scope="col">Name</td>
+  <td class="sticky-top" scope="col">Lead</td>
+  <td class="sticky-top" scope="col">Account</td>
+  <td class="sticky-top" scope="col">Employee</td>
+  <td class="sticky-top" scope="col">Mobile</td>
+  <td class="sticky-top" scope="col">SMS Message</td>
+  <td class="sticky-top" scope="col">SMS Status</td>
+  <td class="sticky-top" scope="col">Created Date</td>
+</tr>
+</thead>
+<tbody>
+<apex:repeat value="{!conversationWrapperList}" var="cWrap">
+<tr>
+  <td><apex:inputCheckbox value="{!cWrap.isSelected}" styleclass="rowCheckUnAssigned" style="width:25px; height:25px;"/></td>
+  <td><a href="/{!cWrap.recordId}" target="_blank">{!cWrap.recordName}</a> &nbsp; <a href="#" class="btn btn-primary active" onclick="openCallCustomers('{!cWrap.mobileNo}','{!cWrap.leadId}','{!cWrap.accountId}');"><i class="fas fa-phone-square fa-lg"/></a></td>
+  <td><a href="/{!cWrap.leadId}" target="_blank">{!cWrap.leadName}</a></td> 
+  <td><a href="/{!cWrap.accountId}" target="_blank">{!cWrap.accountName}</a></td> 
+  <td><a href="/{!cWrap.empId}" target="_blank">{!cWrap.empName}</a></td>
+  <td>{!cWrap.mobileNo}</td>
+  <td>{!cWrap.smsText}</td>
+  <td>{!IF(cWrap.phoneCall <> null,cWrap.phoneCall.SMS_Status__c,IF(cWrap.smsMagic <> null, cWrap.smsMagic.smagicinteract__deliveryStatus__c, ''))}</td>
+  <td><apex:outputText value="{0, date, dd/MM/yyyy HH:mm:ss}"> <apex:param value="{!cWrap.createdDate}"/> </apex:outputText></td>
+</tr>
+</apex:repeat>
+
+</tbody>
+</table>
+</div>
+</apex:outputPanel>
+
+<!-- Business HoursModal -->
+<div class="modal fade" id="businessHoursModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Business Hours</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container mt-2 mb-2">
+          <div class="row">
+            <div class="col text-center">
+          <b>Start Time (In 24 hrs format) :</b> <br/>
+          <apex:inputText html-placeholder="hh:mm" style="width:100px;" value="{!botStartTime}"/>
+          <br/>
+          <b>Finish Time (In 24 hrs format) :</b> <br/>
+          <apex:inputText html-placeholder="hh:mm" style="width:100px;" value="{!botFinishTime}"/>
+          <!--<br/>
+          <b>WIP Park Duration (mins) :</b> <br/>
+          <apex:inputText html-placeholder="30" style="width:100px;" value="{!wipParkDuration}"/>-->
+        </div>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="addBusinessHoursFunc();">Start Calling</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Reminder SMS Modal -->
+<div class="modal fade" id="reminderSMSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Reminder SMS</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-control" id="txtReminderSMS" placeholder="SMS Text"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina' || twilioProfile=='R4K LICENSING',false,true)}"><button type="button" class="btn btn-success" onclick="sendReminderSMSFunction('rowCheckWIP');">Send</button></apex:outputPanel>
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina' || twilioProfile=='R4K LICENSING',true,false)}"><button type="button" class="btn btn-success" onclick="sendReminderSMSFunction('rowCheckUnAssigned');">Send</button></apex:outputPanel>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Sign-Link SMS Modal -->
+<div class="modal fade" id="signLinkSMSModal" tabindex="-1" role="dialog" aria-labelledby="signLinkModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Sign-Link SMS</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-control" id="txtSignLinkSMS" placeholder="SMS Text"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina' || twilioProfile=='R4K LICENSING',false,true)}"><button type="button" class="btn btn-success" onclick="sendSignLinkSMSFunction();">Send</button></apex:outputPanel>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Reset And Send Hybrid SMS -->
+<div class="modal fade" id="resetHybridSMSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Reset and Send Hybrid SMS</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      <table>
+      <tr>
+          <td>Reset Selfie</td>
+          <td><input class="form-control" style="width:20px; height:20px;" type="checkbox" id="chkClearSelfie"/></td>
+      </tr>
+      <tr>
+          <td>Reset PhotoId</td>
+          <td><input class="form-control" style="width:20px; height:20px;" type="checkbox" id="chkClearPhotoId"/></td>
+      </tr>
+      <tr>
+          <td>Reset myGov</td>
+          <td><input class="form-control" style="width:20px; height:20px;" type="checkbox" id="chkClearMyGov"/></td>
+      </tr>
+      <tr>
+          <td>Reset Bank St</td>
+          <td><input class="form-control" style="width:20px; height:20px;" type="checkbox" id="chkClearBankSt"/></td>
+      </tr>
+      </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina' || twilioProfile=='R4K LICENSING',false,true)}"><button type="button" class="btn btn-success" onclick="sendResetHybridSMSFunction('rowCheckWIP');">Reset &amp; Send</button></apex:outputPanel>
+        <apex:outputPanel rendered="{!IF($CurrentPage.parameters.tp='Sharon' || $CurrentPage.parameters.tp='Dean' || $CurrentPage.parameters.tp='Gordon' || $CurrentPage.parameters.tp='Sina' || twilioProfile=='R4K LICENSING',true,false)}"><button type="button" class="btn btn-success" onclick="sendResetHybridSMSFunction('rowCheckUnAssigned');">Reset &amp; Send</button></apex:outputPanel>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Referee Contact SMS Modal -->
+<div class="modal fade" id="refereeContactSMSModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Referees to Contact</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <apex:outputPanel id="pnlRefereesContact">
+        <div class="table-responsive tableFixHead"> 
+        <table class="table table-supercondensed">
+        <thead class="thead-dark">
+        <tr class="table-info">
+          <td><apex:inputCheckbox styleClass="form-control rowcheckAllReferees" onclick="checkAllRefereeRows(this);" style="width:25px; height:25px;"/></td>
+          <td scope="col">Name</td>
+          <td scope="col">Mobile No</td>
+          <td scope="col">Relationship</td>
+          <td scope="col">Added Date</td>
+          <td scope="col">Contacted</td>
+        </tr>
+        </thead>
+        <tbody>
+        <apex:repeat value="{!refWrapLst}" var="rWrap">
+        <tr>
+          <td><apex:inputCheckbox value="{!rWrap.isSelected}" styleclass="form-control rowCheckReferee" style="width:25px; height:25px;"/></td>
+          <td><a href="/{!rWrap.ref.Id}" target="_blank">{!rWrap.ref.Referee_Name__r.Name}</a></td>
+          <td>{!rWrap.ref.Referee_Name__r.MobilePhone}</td>
+          <td>{!rWrap.ref.Relationship__c}</td>
+          <td><apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!rWrap.ref.Referee_Added_Datetime__c}" /></apex:outputText></td> 
+          <td><apex:outputText value="{0, date, dd/MM/yyyy}"><apex:param value="{!rWrap.ref.Contacted_On_Date__c}" /></apex:outputText></td> 
+        </tr>
+        </apex:repeat>
+        
+        </tbody>
+        </table>
+        </div>
+        </apex:outputPanel>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" onclick="sendRefereeContactFollowupSMSFunction();">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Applicant Search Modal -->
+<div class="modal fade" id="applicantSearchModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Applicant Search</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <apex:outputPanel id="pnlApplicantSearch">
+        <div class="table-responsive tableFixHead"> 
+        <table class="table table-supercondensed">
+        <tbody>
+        <apex:repeat value="{!leadSearchWrapLst}" var="ldSWrap">
+        <tr>
+          <td><a href="/{!ldSWrap.ld.Id}" target="_blank">{!ldSWrap.ld.Name}</a></td>
+          <td>
+              <apex:outputPanel rendered="{!IF(ldSWrap.applicantSearchWrapLst.size>0,true,false)}">
+              <!--Add the applicant search Table-->
+              <table class="table">
+                <thead class="thead-dark">
+                <tr class="table-info">
+                  <td></td>
+                  <td scope="col">Name</td>
+                  <td scope="col">Territory</td>
+                  <td scope="col">Agreements</td>
+                  <td scope="col">Search Based On</td>
+                </tr>
+                </thead>
+                <tbody>
+                    <apex:repeat value="{!ldSWrap.applicantSearchWrapLst}" var="appSWrap">
+                    <tr>
+                      <td><apex:outputPanel rendered="{!IF((appSWrap.acct.Company_Territory__c && (appSWrap.acct.State_Master_State__c='VIC' || appSWrap.acct.State_Master_State__c='SA' || appSWrap.acct.State_Master_State__c='NSW' || appSWrap.acct.State_Master_State__c='NZ' || appSWrap.acct.State_Master_State__c='QLD' || appSWrap.acct.State_Master_State__c='WA')) || appSWrap.acct.Territory_Short_Name__c='Greensborough',true,false)}"> <apex:inputCheckbox value="{!appSWrap.isSelected}" styleclass="form-control rowCheckApplicantSearched" style="width:25px; height:25px;"/></apex:outputPanel></td>
+                      <td><a href="/{!appSWrap.acct.Id}" target="_blank">{!appSWrap.acct.Name}</a></td>
+                      <td>{!appSWrap.acct.Territory_Short_Name__c}</td>
+                      <td>{!appSWrap.acct.No_Of_Active_Agreements__c} / {!appSWrap.acct.No_of_Agreements__c}</td>
+                      <td>{!appSWrap.searchBasedOn}</td> 
+                    </tr>
+                    </apex:repeat>
+                </tbody>
+                </table>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!IF(ldSWrap.applicantSearchWrapLst.size>0,false,true)}">
+                    <span style="color:red;">No applicants in the system. New Applicant will be created.</span>
+                </apex:outputPanel>
+          </td> 
+        </tr>
+        </apex:repeat>
+        
+        </tbody>
+        </table>
+        </div>
+        </apex:outputPanel>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-warning" onclick="convertToDNFunc('DNC');">Convert to DNC</button>
+        <apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING',false,true)}">
+          <button type="button" class="btn btn-success" onclick="addToWeCareFunc();">Add to WeCare</button>
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!IF(twilioProfile=='R4K LICENSING',true,false)}">
+          <button type="button" class="btn btn-warning" onclick="convertToDNFunc('DNP');">Convert to DNP</button>
+        </apex:outputPanel>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!--Employee Search Modal -->
+<div class="modal fade" id="employeeSearchModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Assign Employee</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <apex:outputPanel id="pnlEmployeeLst">
+            <apex:selectList size="1" value="{!selectedRep}" styleclass="clsselectedRep">
+                <apex:selectOptions value="{!employeeOptions}"></apex:selectOptions>
+            </apex:selectList>
+        </apex:outputPanel>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" onclick="assignRepResponsibleFunction();">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calling Modal -->
+<div class="modal fade" id="callModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="callModalLabel">Calling Portal</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="callModalContent">
+      
+        <input type="hidden" id="hdnProfileName" value="{!twilioProfile}"/>
+        <input type="hidden" id="hdnTwilioUserName" value="{!$CurrentPage.parameters.tu}"/>
+        <input type="hidden" id="hdnTwilioPersonName" value="{!$CurrentPage.parameters.tp}"/>
+        <input type="hidden" id="hdnForwardCallSid" value=""/>
+        <input type="hidden" id="hdnBindIncoming" value="false"/>
+        
+          <div id="controls">
+            <div id="info">
+              <div id="client-name" style="display:none;"></div>
+            
+              <div style="display:none;">
+              <div id="output-selection">
+                <label>Ringtone Devices</label>
+                <select id="ringtone-devices" multiple="true"></select>
+                <label>Speaker Devices</label>
+                <select id="speaker-devices" multiple="true"></select><br/>
+                <a id="get-devices">Seeing unknown devices?</a>
+              </div>
+              </div>
+            </div>
+            <div id="call-controls">
+              <input id="phone-number" type="text" placeholder="Enter a phone # in 61 format" />
+              <input id="parent-Id" type="hidden" placeholder="ParentId..." />
+              <a href="#" class="btn btn-primary btn-sm" id="button-call">Call</a>
+              <a href="#" class="btn btn-light btn-sm btn-transparent" id="button-mute" style="display:none;"><span style="color: lightgreen;"><i class="fas fa-microphone-alt fa-2x"></i></span></a>
+              <a href="#" class="btn btn-light btn-sm btn-transparent" id="button-unmute" style="display:none;"><span style="color: Tomato;"><i class="fas fa-microphone-alt-slash fa-2x"></i></span></a>
+              <a href="#" class="btn btn-danger btn-sm" id="button-hangup">Hangup</a>
+              <a href="#" class="btn btn-danger btn-sm btn-transparent" id="button-pickup"></a>
+              <div id="volume-indicators" style="display:none;">
+                <label>Mic Volume</label>
+                <div id="input-volume"></div><br/><br/>
+                <label>Speaker Volume</label>
+                <div id="output-volume"></div>
+              </div>
+            </div>
+            <div id="log" style="display:none;"></div>
+            <div id="keypad" style="display:none;">
+                <button style="width:40px;" class="btn-transparent" id="button-dialOne"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialTwo"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialThree"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialFour"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialFive"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialSix"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialSeven"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialEight"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialNine"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialStar"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialZero"></button>
+                <button style="width:40px;" class="btn-transparent" id="button-dialHash"></button>
+                <button style="width:40px;" class="btn-transparent" id="dvCallFoward"></button>
+                <button style="width:40px;" class="btn-transparent" id="dvKeyStats"></button>
+            </div>
+          </div>
+          
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</apex:form> 
+<script>
+var showProductSourcingRecords;
+function openLeadToAssign(objId)
+{
+    var redirectURL = '/'+objId;
+    var wipCount = parseInt('{!acctWrapLst.size}');
+    /*if(wipCount>=20)
+    {
+        bootbox.alert({
+                message: "You already have 20 in your WIP",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+    else*/
+        window.open(redirectURL, '_blank');
+}
+
+function checkAllRefereeRows(elem){
+    var checkboxes = document.getElementsByClassName('rowCheckReferee');
+    if(elem.checked){
+        for(var i=0;i<checkboxes.length;i++){
+            checkboxes[i].checked = true;
+        }   
+    }else{
+        for(var i=0;i<checkboxes.length;i++){
+            checkboxes[i].checked = false;
+        }
+    }
+}
+
+startTimerFunc();
+$("#alertFade").hide();
+$("#sendingSMS").hide();
+$("[data-toggle='tooltipProduct']").tooltip();
+$("[data-toggle='tooltipReason']").tooltip();
+$("[data-toggle='tooltipProbableAccount']").tooltip();
+$("[data-toggle='tooltipUnassignedMissed']").tooltip({
+    animated: 'fade',
+    trigger: 'click'
+});
+$("[data-toggle='tooltipWIPMissed']").tooltip({
+    animated: 'fade',
+    trigger: 'click'
+});
+
+function readNotification(phoneCallId)
+{
+    markNotificationAsReadFunc(phoneCallId);
+}
+
+function startTimer(duration, display) {
+    var timer = duration, minutes, seconds;
+    setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+            timer = duration;
+        }
+    }, 1000);
+}
+
+function startTimerFunc()
+{
+    var timeVal = 60 * 5,
+        display = document.querySelector('#spnTimer');
+    if(display!=null)
+        startTimer(timeVal, display);
+    $("[data-toggle='tooltipProduct']").tooltip();
+    $("[data-toggle='tooltipReason']").tooltip();
+    $("[data-toggle='tooltipProbableAccount']").tooltip();
+    $("[data-toggle='tooltipUnassignedMissed']").tooltip({
+        animated: 'fade',
+        trigger: 'click'
+    });
+}
+
+function clearSMSReminderText()
+{
+    $("#txtReminderSMS").val('');
+}
+
+function clearSMSReminderTextAndAddSignLink()
+{
+    $("#txtSignLinkSMS").val("");
+    var checkboxes = document.getElementsByClassName('rowCheckWIP');
+    var accountIds = document.getElementsByClassName('hdnWIPAccountId');
+    var hdnWIPAgreementSignLinks = document.getElementsByClassName('hdnWIPAgreementSignLink');
+    var selectedAccountId = '';
+    var selectedAgreementSignLink = '';
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            selectedAccountId =  accountIds[i].value;
+            selectedAgreementSignLink = hdnWIPAgreementSignLinks[i].value
+            countCheck++;
+        }
+    }
+    if(countCheck==1)
+    {
+        $("#signLinkSMSModal").modal('show');
+        $("#txtSignLinkSMS").val(selectedAgreementSignLink);
+    }
+    else if(countCheck==0)
+    {
+        bootbox.alert({
+                message: "Please select 1 applicant to resest and send Sign-Link sms",
+                className: 'rubberBand animated'
+            });
+        return false;
+    }
+    else
+    {
+        bootbox.alert({
+                message: "You can only select 1 applicant at a time to reset the Sign-Link sms",
+                className: 'rubberBand animated'
+            });
+        return false;
+    }
+}
+
+function sendHybridLinkSMSFunction()
+{
+    $("#sendingSMS").show();
+    sendHybridLinkSMSFunc();
+}
+
+function sendHybridLinkSMSForHAFunction()
+{
+    $("#sendingSMS").show();
+    sendHybridLinkSMSForHAFunc();
+}
+
+function sendReminderSMSFunction(checkboxValue)
+{
+    var txtReminderSMS = $("#txtReminderSMS").val();
+    var checkboxes = document.getElementsByClassName(checkboxValue);
+    var isCheckedWIP = false;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            isCheckedWIP = true;
+        }
+    }
+
+    console.log('##txtReminderSMS ' + txtReminderSMS);
+    console.log('##isCheckedWIP ' + isCheckedWIP);
+    console.log('##checkboxValue ' + checkboxValue);
+
+    if(isCheckedWIP && txtReminderSMS!=null && txtReminderSMS!='' && txtReminderSMS.trim()!='')
+    {
+        $('#reminderSMSModal').modal('toggle');
+        $("#sendingSMS").show();
+        if(checkboxValue=='rowCheckWIP')
+        {
+          sendReminderSMSFunc(txtReminderSMS,'no');
+        }else if(checkboxValue=='rowCheckUnAssigned')
+        {    
+          sendReminderSMSForHAFunc(txtReminderSMS);
+        }
+    }
+    else
+    {
+        if(isCheckedWIP==false)
+        {
+            var listType = 'WIP';
+            if(checkboxValue=='rowCheckUnAssigned')
+                listType = 'Hybrid';
+            bootbox.alert({
+                message: "Please select the "+listType+" customers to send the reminder SMS",
+                className: 'rubberBand animated'
+            });
+            return false;
+        }else{
+            bootbox.alert({
+                message: "Please add the SMS text to send the reminder SMS",
+                className: 'rubberBand animated'
+            });
+            return false;
+        }
+
+    }
+}
+
+function sendSignLinkSMSFunction()
+{
+    var txtSignLinkSMS = $("#txtSignLinkSMS").val();
+    
+    if(txtSignLinkSMS!=null && txtSignLinkSMS!='' && txtSignLinkSMS.trim()!='')
+    {
+        $('#signLinkSMSModal').modal('toggle');
+        $("#sendingSMS").show();
+        sendReminderSMSFunc(txtSignLinkSMS,'yes');
+    }
+    else
+    {
+        bootbox.alert({
+            message: "Please add the SMS text to send the reminder SMS",
+            className: 'rubberBand animated'
+        });
+        return false;
+
+    }
+}
+
+function sendResetHybridSMSFunction(checkboxValue)
+{
+    var chkClearSelfie = $("#chkClearSelfie").is(":checked");
+    var chkClearPhotoId = $("#chkClearPhotoId").is(":checked");
+    var chkClearMyGov = $("#chkClearMyGov").is(":checked");
+    var chkClearBankSt = $("#chkClearBankSt").is(":checked");
+    //alert(chkClearSelfie+" - "+chkClearPhotoId+" - "+chkClearMyGov+" - "+chkClearBankSt);
+    
+    var checkboxes = document.getElementsByClassName(checkboxValue);
+    var isCheckedWIP = false;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            isCheckedWIP = true;
+        }
+    }
+    if(isCheckedWIP)
+    {
+        $('#resetHybridSMSModal').modal('toggle');
+        $("#sendingSMS").show();
+        if(checkboxValue=='rowCheckWIP')
+            sendResetHybridSMSFunc(chkClearSelfie,chkClearPhotoId,chkClearMyGov,chkClearBankSt);
+        else if(checkboxValue=='rowCheckUnAssigned')
+            sendResetHybridSMSForHAFunc(chkClearSelfie,chkClearPhotoId,chkClearMyGov,chkClearBankSt);
+    }
+    else
+    {
+        var listType = 'WIP';
+        if(checkboxValue=='rowCheckUnAssigned')
+            listType = 'Hybrid';
+        bootbox.alert({
+            message: "Please select the "+listType+" customers to send the Hybrid SMS",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+}
+
+function sendRefereeContactFollowupSMSFunction()
+{
+    $('#refereeContactSMSModal').modal('toggle');
+    $("#sendingSMS").show();
+    sendRefereeContactFollowupSMSFunc();
+}
+
+function getRefereesForAccountFunc()
+{
+    var checkboxes = document.getElementsByClassName('rowCheckWIP');
+    var accountIds = document.getElementsByClassName('hdnWIPAccountId');
+    var selectedAccountId = '';
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            selectedAccountId =  accountIds[i].value;
+            countCheck++;
+        }
+    }
+    if(countCheck==1)
+    {
+        //$("#pnlRefereesContact").innerHTML('Please wait...');
+        getRefereesToBeContactedFunc(selectedAccountId);
+        $('#refereeContactSMSModal').modal('toggle');
+    }
+    else
+    {
+        bootbox.alert({
+                message: "Please select 1 applicant to send sms to their referees",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+}
+
+function getRefereesForHybridAccountFunc()
+{
+    var checkboxes = document.getElementsByClassName('rowCheckUnAssigned');
+    var accountIds = document.getElementsByClassName('hdnHybridAccountId');
+    var selectedAccountId = '';
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            selectedAccountId =  accountIds[i].value;
+            countCheck++;
+        }
+    }
+    if(countCheck==1)
+    {
+        getRefereesToBeContactedFunc(selectedAccountId);
+        $('#refereeContactSMSModal').modal('toggle');
+    }
+    else
+    {
+        bootbox.alert({
+                message: "Please select 1 applicant to send sms to their referees",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+}
+
+function getApplicantsForLeadFunc()
+{
+    var checkboxes = document.getElementsByClassName('rowCheckUnAssigned');
+    //var accountIds = document.getElementsByClassName('hdnHybridAccountId');
+    var selectedAccountId = '';
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            //selectedAccountId =  accountIds[i].value;
+            countCheck++;
+        }
+    }
+    if(countCheck>0)
+    {
+        getAndMapApplicantsTobeConvertedFunc();
+        $('#applicantSearchModal').modal('toggle');
+    }
+    else
+    {
+        bootbox.alert({
+                message: "Please select atleast 1 lead to search",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+}
+
+function communicatedBackJS()
+{
+    var checkboxes = document.getElementsByClassName('rowCheckUnAssigned');
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            countCheck++;
+        }
+    }
+    if(countCheck>0)
+    {
+      communicatedBackFunc();
+    }
+    else
+    {
+        bootbox.alert({
+            message: "Please select atleast 1 lead to action",
+            className: 'rubberBand animated'
+        });
+        return false;
+    }
+}
+
+function getEmployeesForApprovedPUAFunc()
+{
+    var checkboxes = document.getElementsByClassName('rowCheckPUA');
+    var selectedAccountId = '';
+    var countCheck = 0;
+    for(var i=0;i<checkboxes.length;i++){
+        if(checkboxes[i].checked == true)
+        {
+            //selectedAccountId =  accountIds[i].value;
+            countCheck++;
+        }
+    }
+    if(countCheck>0)
+    {
+        getEmployeesForApprovedPUA();
+        $('#employeeSearchModal').modal('toggle');
+    }
+    else
+    {
+        bootbox.alert({
+                message: "Please select atleast 1 applicant to assign",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+}
+
+function showAlertMessage()
+{
+    startTimerFunc();
+    $("#sendingSMS").hide();
+    $("#alertFade").fadeTo(3000, 500).slideUp(500, function(){
+    $("#alertFade").slideUp(500);
+});
+
+    console.log('showProductSourcingRecords: '+showProductSourcingRecords);
+    if(showProductSourcingRecords==true)
+    {
+        $(".toggleProductSourcing").removeClass('btn btn-success');
+        $(".toggleProductSourcing").addClass('btn btn-danger');
+    }
+    else
+    {
+       $(".toggleProductSourcing").removeClass('btn btn-danger');
+       $(".toggleProductSourcing").addClass('btn btn-success');
+    } 
+}
+
+function hideAlertMessage()
+{
+    $("#sendingSMS").hide();
+    $("#alertFade").hide();
+    $("[data-toggle='tooltipWIPMissed']").tooltip({
+        animated: 'fade',
+        trigger: 'click'
+    });
+    
+    console.log('showProductSourcingRecords: '+showProductSourcingRecords);
+    if(showProductSourcingRecords==true)
+    {
+        $(".toggleProductSourcing").removeClass('btn btn-success');
+        $(".toggleProductSourcing").addClass('btn btn-danger');
+        $(".signLink").css('display','');
+    }
+    else
+    {
+       $(".toggleProductSourcing").removeClass('btn btn-danger');
+       $(".toggleProductSourcing").addClass('btn btn-success');
+       $(".signLink").css('display','none');
+    }   
+}
+
+function toggleProductSourcingFunc()
+{
+    if($(".toggleProductSourcing").hasClass('btn btn-danger') || (typeof showProductSourcingRecords !== 'undefined' && showProductSourcingRecords==true))
+    {
+        toggleProductSourcing('false');
+    }
+    else if($(".toggleProductSourcing").hasClass('btn btn-success') || (typeof showProductSourcingRecords !== 'undefined' && showProductSourcingRecords==false))
+    {
+        toggleProductSourcing('true');
+    }
+}
+
+function hideAlertMessageAndChangeButtonColour()
+{
+    $("#sendingSMS").hide();
+    $("#alertFade").hide();
+    $("[data-toggle='tooltipWIPMissed']").tooltip({
+        animated: 'fade',
+        trigger: 'click'
+    });
+    
+    console.log($(".toggleProductSourcing").hasClass('btn btn-danger') +' : '+$(".toggleProductSourcing").hasClass('btn btn-success') + ' : '+showProductSourcingRecords);
+    if($(".toggleProductSourcing").hasClass('btn btn-danger') || (typeof showProductSourcingRecords !== 'undefined' && showProductSourcingRecords==true))
+    {
+        $(".toggleProductSourcing").removeClass('btn btn-danger');
+        $(".toggleProductSourcing").addClass('btn btn-success');
+        showProductSourcingRecords = false;
+        $(".signLink").css('display','none');
+    }
+    else if($(".toggleProductSourcing").hasClass('btn btn-success') || (typeof showProductSourcingRecords !== 'undefined' && showProductSourcingRecords==false))
+    {
+        $(".toggleProductSourcing").removeClass('btn btn-success');
+        $(".toggleProductSourcing").addClass('btn btn-danger');
+        showProductSourcingRecords = true;
+        $(".signLink").css('display','');
+    }
+}
+
+function assignRepResponsibleFunction()
+{
+    var selectedRep = $(".clsselectedRep").val();
+    if(selectedRep=="")
+    {
+        bootbox.alert({
+                message: "Please select a responsible representative assign",
+                className: 'rubberBand animated'
+            });
+            return false;
+    }
+    else
+    {
+        assignRepResponsibleFunc();
+        $('#employeeSearchModal').modal('toggle');
+    }
+}
+
+function redirectRegionFunction(type)
+{
+    var eid="{!$CurrentPage.parameters.eid}";
+    var tp="{!$CurrentPage.parameters.tp}";
+    var region = $('#ddlRegion').val();
+    var regionParam = region!=null && region!="" ? region : "{!$CurrentPage.parameters.region}";
+    var typeParam = type!="" ? type : "{!$CurrentPage.parameters.type}";
+    window.open('/apex/CLOLeadManager?eid='+eid+'&tp='+tp+'&region='+regionParam+'&type='+typeParam,'_self');
+}
+
+function openCallCustomers(phoneNumber,leadId,accountId) {
+    var parentId = accountId!=null && accountId!='' ? accountId : leadId;
+    $("#parent-Id").val('');
+    if(parentId!=null)
+        $("#parent-Id").val(parentId);
+    $("#phone-number").val(phoneNumber);
+    $('#callModal').modal('show');
+}
+</script> 
+</apex:page>

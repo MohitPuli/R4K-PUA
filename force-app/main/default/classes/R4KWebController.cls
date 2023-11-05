@@ -718,8 +718,8 @@ public Pagereference proceedToApplyNow(){
         ld.LastName = lname;
         ld.Email = email;
         
-        Boolean sendHybridLink = (lead.Form_Type__c == 'Credit Contract' ? true : false);
-        if(sendHybridLink){
+        //Boolean sendHybridLink = (lead.Form_Type__c == 'Credit Contract' ? true : false);
+        //if(sendHybridLink){
             /*
             Boolean companyLead = true;
             String rNumber = SecretUtil.generateRandomNumber();
@@ -739,7 +739,7 @@ public Pagereference proceedToApplyNow(){
             
             //smsTemplateForCust = 'Hi '+ fname + ', thank you for contacting R4K. To purchase a product with us, tap this ' + ld.Hybrid_Link__c + ' and complete the form. We\'ll process your Instalment application and be in touch as early as today! Thanks Rene from R4K.';
             //CommunicationUtil.sendSMS(lead.SMS_Mobile__c, smsTemplateForCust, 'Lead-Customer', 'Lead', ldId, lead.ownerId, false, null);
-        }
+        //}
         
         update ld;
         
@@ -1205,6 +1205,7 @@ public void createRetailPurchase(String PaymentReference, Boolean success, Strin
         opportunity.Ezidebit_Payment_Status_Date__c = Date.today();
         opportunity.Ezidebit_Ref_No__c = ld.ReferenceNo__c;
         opportunity.Is_Credit_Contract__c = true;
+        opportunity.OwnerId = ld.OwnerId;
         insert opportunity;
         ////////////////////////////////////
         

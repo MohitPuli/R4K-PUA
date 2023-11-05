@@ -950,7 +950,7 @@ static testmethod void testInitAcknowledgement() {
 static testmethod void testInitAcknowledgement2() {
 Test.startTest();
 //createTestData();
-List<Lead> leadList = [SELECT Id FROM Lead WHERE Lead_Medium__c = 'Web' AND IsConverted = false ORDER BY CreatedDate DESC LIMIT 1];
+List<Lead> leadList = [SELECT Id FROM Lead WHERE Lead_Medium__c = 'Web' AND IsConverted = true AND Account__r.MyGov_Final_Page__c = true ORDER BY CreatedDate DESC LIMIT 1];
 if(leadList.size() > 0){
     R4KOnlineApplicationController ra = new R4KOnlineApplicationController();
     ApexPages.currentPage().getParameters().put('ld',leadList[0].Id);
@@ -1019,7 +1019,7 @@ Test.stopTest();
 
 static testmethod void testDeletePhotoIdOnline() {
 Test.startTest();
-List<Account> acctLst = [select id,Photo_Id_Front__c,Photo_Id_Back__c from Account where Photo_Id_Front__c <> null AND Photo_Id_Back__c <> null ORDER BY CreatedDate DESC LIMIT 1];
+List<Account> acctLst = [select id,Photo_Id_Front__c,Photo_Id_Back__c from Account where Photo_Id_Front__c <> null AND Photo_Id_Back__c <> null AND Customer_Photo_Id__c != null ORDER BY CreatedDate DESC LIMIT 1];
 if(acctLst.size() > 0)
 {
     R4KOnlineApplicationController ra = new R4KOnlineApplicationController();
@@ -1030,6 +1030,7 @@ if(acctLst.size() > 0)
     ra.deletePhotoIdOnline();
     ra.custPhotoAtt = acctLst[0].Photo_Id_Front__c;
     ra.deleteSelfieId();
+    ra.deleteCustomerPhotoId();
 }
 Test.stopTest();
 }
@@ -1054,7 +1055,7 @@ static testmethod void testDeletePhotoIdOnlineDoc() {
     
 static testmethod void testDeletePhotoIdOnline2() {
 Test.startTest();
-List<Lead> leadLst = [select id,Photo_Id_Front__c,Photo_Id_Back__c from Lead where Photo_Id_Front__c <> null AND Photo_Id_Back__c <> null ORDER BY CreatedDate DESC LIMIT 1];
+List<Lead> leadLst = [select id,Photo_Id_Front__c,Photo_Id_Back__c from Lead where Photo_Id_Front__c <> null AND Photo_Id_Back__c <> null AND IsConverted = false ORDER BY CreatedDate DESC LIMIT 1];
 if(leadLst.size() > 0)
 {
     R4KOnlineApplicationController ra = new R4KOnlineApplicationController();
@@ -1307,6 +1308,7 @@ static testmethod void testCloseCasesOnSummary()
     Test.stopTest();
 }
 
+/*
 static testmethod void testAutoDecline() 
 {
     Test.startTest();
@@ -1328,7 +1330,7 @@ static testmethod void testAutoDecline()
         ra.checkAutoDecline(accts[0]);
     }
     Test.stopTest();
-}
+}*/
 
 static testmethod void testEquifaxNotes() 
 {
@@ -1628,10 +1630,12 @@ static testmethod void testSummaryPage2()
 static testmethod void testCreditGuideEmail() 
 {
     Test.startTest();
-    List<Lead> leadList = [SELECT Id FROM Lead WHERE IsConverted = true AND Account__r.PersonEmail != null ORDER BY CreatedDate DESC LIMIT 1];
+    List<Lead> leadList = [SELECT Id,Account__c FROM Lead WHERE IsConverted = true AND Account__r.PersonEmail != null ORDER BY CreatedDate DESC LIMIT 1];
     if(leadList.size() > 0){
         ApexPages.currentPage().getParameters().put('ld',leadList[0].Id);
         R4KOnlineApplicationController ra = new R4KOnlineApplicationController();  
+        ra.initTCs();
+        ApexPages.currentPage().getParameters().put('id',leadList[0].Account__c);
         ra.initTCs();
         ra.sendCreditGuideEmail();
     }
@@ -1688,6 +1692,9 @@ static testmethod void testAcceptPUATerms() {
         Apexpages.currentPage().getParameters().put('poaTerm1','yes');
         Apexpages.currentPage().getParameters().put('poaTerm2','yes');
         Apexpages.currentPage().getParameters().put('poaTerm3','yes');
+        Apexpages.currentPage().getParameters().put('poaTerm4','yes');
+        Apexpages.currentPage().getParameters().put('poaTerm5','yes');
+        Apexpages.currentPage().getParameters().put('poaTerm6','yes');
         ra.getFormDetails();
         ra.acceptPOATerms();
     }
@@ -1832,7 +1839,7 @@ static testmethod void testConvertLeadOnline()
         ApexPages.currentPage().getParameters().put('ld',leadList[0].Id);
         R4KOnlineApplicationController ra = new R4KOnlineApplicationController();  
         ra.getFormDetails();
-        ra.convertLeadOnline(ra.lead, acctList[0], acctList[0].FirstName, acctList[0].LastName, '1994', 'Passport', '313545435', 'mohitpuli@r4k.com.au', '0449066375', '9999999999');
+        ra.convertLeadOnline(ra.lead, acctList[0], acctList[0].FirstName, acctList[0].LastName, '1994-09-16', 'Passport', '313545435', 'mohitpuli@r4k.com.au', '0449066375', '9999999999');
     }
     Test.stopTest();
 }

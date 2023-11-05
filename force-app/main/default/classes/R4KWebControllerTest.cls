@@ -388,7 +388,7 @@ Test.stopTest();
         }
     }
     
-    public static testMethod void testBuyNowPayment() 
+    public static testMethod void testBuyNowPayment1() 
     {  
         Test.startTest();
         List<Product_Warehouse__c> vicWarehouses = [SELECT Id,Name,Available_Stock__c,Stock_Pending_To_Order_To_Supplier__c,Stock_Available_To_Order__c,InStock__c,Warehouse_Location__c,Product_Inventory__c,Product_Inventory__r.Barcode__c,Product_Inventory__r.DeviceModel__c,Product_Inventory__r.ProductCode__c,Product_Inventory__r.Product_Master__c,Product_Inventory__r.Product_Master__r.Name,Product_Inventory__r.Product_Master__r.ProductImageId__c,Product_Inventory__r.Product_Master__r.Is_Serviceable_By_HNC_Everywhere__c,
@@ -441,6 +441,28 @@ Test.stopTest();
                 ApexPages.CurrentPage().getParameters().put('formType','apply');
                 rwc.initR4KWeb();
             }
+            
+        }
+        Test.stopTest();
+    }
+
+    public static testMethod void testBuyNowPayment2() 
+    {  
+        Test.startTest();
+        List<Cart_Item__c> cartItems = [SELECT Id,Lead__c,Lead__r.ReferenceNo__c FROM Cart_Item__c WHERE Transaction_Fee_Percent__c != null AND Lead__c != null ORDER BY CreatedDate DESC LIMIT 1];
+        if(cartItems.size() > 0){
+            ApexPages.CurrentPage().getParameters().put('ld',cartItems[0].Lead__c);
+            ApexPages.CurrentPage().getParameters().put('formType','delivery');
+            ApexPages.CurrentPage().getParameters().put('PaymentReference',cartItems[0].Lead__r.ReferenceNo__c);
+            ApexPages.CurrentPage().getParameters().put('ResultCode','Approved');
+            ApexPages.CurrentPage().getParameters().put('ResultText','Approved');
+            ApexPages.CurrentPage().getParameters().put('TransactionID',cartItems[0].Lead__r.ReferenceNo__c);
+            
+            R4KWebController rwc = new R4KWebController();
+            rwc.initR4KProduct();
+            ApexPages.CurrentPage().getParameters().put('PaymentAmount',String.valueOf(rwc.totalPayableAmt));
+            rwc.proceedToPayment();
+            rwc.paymentProcessedForRetailPurchase();
         }
         Test.stopTest();
     }

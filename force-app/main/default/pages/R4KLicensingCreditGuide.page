@@ -1,0 +1,233 @@
+<apex:page controller="R4KOnlineApplicationController" action="{!initTCs}" sidebar="false" showHeader="false" standardStylesheets="false" renderAs="{!IF($CurrentPage.Parameters.renderAs = 'pdf','pdf','html')}">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- CSS files-->
+<apex:stylesheet value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"/>
+<apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css"/>
+<apex:stylesheet value="{!URLFOR($Resource.PDFDocumentStyle, 'PDFDocumentStyle.css')}" />
+<!-- End of CSS files-->
+
+<!-- JS files -->
+<apex:includeScript value="https://code.jquery.com/jquery-3.3.1.min.js"
+              html-integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+              html-crossorigin="anonymous"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"/>
+<apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"/>
+<apex:includeScript value="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"/>
+<!-- End of JS files -->
+
+<title>R4K Credit Guide</title>
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Please scroll down to agree to the credit guide and proceed.</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div  style="background-color:#D81E05;cursor: pointer;" class="text-center">
+        <nav class="navbar">
+            <a class="navbar-brand" style="margin: 1px auto;" href="https://rent4keeps.com.au/">
+                <apex:image value="{!URLFOR($Resource.R4KLogoTransparentCCWhiteR)}" width="20%" alt="R4K"/>
+            </a>
+        </nav>
+    </div>
+</apex:outputPanel>
+
+<c:PDFHeaderFooter type="header" position="left" showPageNumbers="false">
+    <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}" headerTitle="Credit Guide" collection="false" header="true" customerForm="true" removeLogo="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}"/>
+</c:PDFHeaderFooter>
+
+        
+        
+    <div style="font-family:calibri;padding:5px;font-size:11px;">
+        
+        <div id = "contentOuterDiv" style="margin:10px">
+            <div style="float:left; width:52%; text-align:left">
+                <p style="font-weight: bold;">Credit licensee details </p>
+
+                <p>
+                    Licensee Name: Lily Louise Williams ABN: 84 694 137 586 <br/>
+                    Australian Credit Licence (ACL) number: 475978  <br/>
+                    Address: 530 Lt Collins St, Melbourne 3000 VIC <br/>
+                    Telephone: 0447 030 340 <br/>
+                    Email: lily@synergyfb.com.au
+                </p>
+
+                <p style="font-weight: bold;">Credit representative details </p>
+
+                <p>
+                    Name: R4K Licensing Pty Ltd <br/>
+                    ACN: 668 357 686 <br/>
+                    Address: 35A Railway Road Blackburn 3130 VIC <br/>
+                    Telephone: 03 8877 7400 <br/>
+                    Email: pualicensing@r4k.com.au <br/> 
+                    Credit Representative No: 477532
+                </p>
+
+                <p style="font-weight: bold;">Relationship between Credit Licensee and Credit Representative</p>
+
+                <p>
+                    The credit representative does not hold an Australian Credit Licence (ACL). The credit licensee holds the ACL and grants authority to the credit representative to perform credit activities on behalf of the credit licensee. One of the credit activities performed by the credit representative is the granting of credit under this consumer rental application and agreement.
+                </p>
+
+                <p style="font-weight: bold;">Introduction</p>
+
+                <p>
+                    This Credit Guide is designed to assist you in deciding whether to use the services we offer. This Credit Guide sets out: <br/>
+                    <ul>
+                        <li>Who we are and how we can be contacted;</li>
+                        <li>What services we provide;</li>
+                        <li>our responsible lending obligations; and </li>
+                        <li>how we deal with complaints.</li>
+                    </ul>
+                </p>
+
+                <p style="font-weight: bold;">Our Services</p>
+
+                <p>
+                    We are authorised to arrange loans under the <em>National Consumer Credit Protection Act 2009</em> (National Credit Act).  The National Credit Act regulates the activity of lending, leasing, and finance broking.
+                </p>
+
+                <p style="font-weight: bold;">Our responsible lending obligations</p>
+
+                <p>
+                    Under the National Credit Act, we are obliged to ensure that any loan or principal increase to a loan we help you to obtain is not unsuitable to your needs and objectives.  To decide this, we are required to conduct a Preliminary Assessment to determine if the loan is not unsuitable.  The law requires us to:<br/>
+                    <ul>
+                        <li>make reasonable inquiries about your requirements and objectives;</li>
+                        <li>make reasonable inquiries about your financial situation; and</li>
+                        <li>take reasonable steps to verify your financial situation.</li>
+                    </ul><br/>
+                    Credit will be deemed unsuitable if at the time of the assessment, it is likely that at the time the credit is provided: <br/>
+                    <ul>
+                        <li>you could not pay or could only pay with substantial hardship; or</li>
+                        <li>the credit will not meet your requirements and objectives.</li>
+                    </ul><br/>
+                    When we make our assessment, it is important that we utilise information that is accurate, complete and up to date.  If we are supplied with incomplete or incorrect information, you be in breach of your legal obligations to the lender.
+                </p>
+            </div>
+          
+            <div style="float:right; width:46%; text-align:left">
+                <p style="font-weight: bold;">Requesting a copy of our Preliminary Assessment</p>
+
+                <p>
+                    If we provide you with credit assistance, you can ask us for a copy of our Preliminary Unsuitability Assessment any time up to 7 years after we provide you with credit assistance. 
+                </p>
+
+                <p>
+                    To request a copy, please contact us and we will provide you with a copy:<br/>
+                    <ul>
+                        <li>
+                            within 7 business days after the day, we receive your request – provided you make the request within 2 years of the date when we provide you with credit assistance; or
+                        </li>
+                        <li>
+                            otherwise, within 21 business days after the day we receive your request.
+                        </li>
+                    </ul>
+                </p>
+
+                <p style="font-weight: bold;">Our Internal Dispute Resolution Scheme</p>
+                <p>
+                    We are committed to providing you with the best possible service.  If at any time we have not met our obligations or you have a complaint about the service that we provide, please inform us so we can work towards a resolution.  We will endeavour to deal with your complaint promptly, thoroughly and fairly.
+                </p>
+                <p>
+                    If you have a complaint, the following steps are available to you.  In the first instance, please contact R4K Licensing – Internal Disputes Resolution (IDR) Team.  The IDR team will acknowledge receipt of your complaint within 1 business day.  If the IDR team is unable to resolve the complaint to your satisfaction within 5 business days, we will escalate the complaint to the R4K Compliance Team.  You can also contact the Compliance team directly as detailed below:
+                </p>
+                <p>
+                    R4K Compliance Officer <br/>
+                    Telephone:&nbsp;&nbsp;&nbsp;&nbsp;03 8877 7400 <br/>
+                    Email:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compliance@r4k.com.au <br/>
+                    Address:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;35A Railway Road, Blackburn VIC 3130
+                </p>
+                <p>
+                    If you do not think we have resolved your complaint to your satisfaction, you may refer the matter to our external dispute resolution (EDR) scheme which is the Australian Financial Complaints Authority (AFCA).  This is a free process.  Two EDR schemes may be listed below.  This indicates that the Licensee and their Credit Representative are both required to be members (independently) of an ASIC approved EDR scheme.  Where a Credit Representative’s EDR is displayed, please contact that EDR scheme in the first instance for complaint escalation:
+                </p>
+                <p>
+                    EDR (Licensee) <br/>
+                    Lily Williams is a member of AFCA. <br/>
+                    AFCA Member No.	36187
+                </p>
+                <p>
+                    EDR (Credit Representative) <br/>
+                    R4K Licensing Pty Ltd is an authorised credit representative of the Licensee. <br/>
+                    AFCA Member No.	12345
+                </p>
+                <p>
+                    AFCA is a fair and independent dispute resolution scheme for financial services complaints.
+                </p>
+                <p>
+                    The contact details for AFCA are: <br/>
+                    Website: www.afca.org.au Email: info@afca.org.au <br/>
+                    Telephone: 1800 931 678 (free call) <br/>
+                    In writing to: Australian Financial Complaints Authority, GPO Box 3, Melbourne VIC 3001.
+                </p>
+            </div>
+        </div>
+
+        <apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',false,true)}">
+            <div style="width:100%;">
+                <div class="container-fluid proceedBtnDiv" style="bottom:40px;">
+                <div class="row">
+                <div class="col text-center">
+                <div>
+                    <div style="margin-top:30px;">
+                        <p style="text-align:center;font-weight:bold;">
+                            Click "I Agree" to proceed to the Privacy Statement. <br/>
+                            A copy of our Credit Guide will also be emailed to you.
+                        </p>
+                    </div>
+    
+                    <div style="min-height:50px;"></div>
+                    <div style="min-height:50px;"></div>
+                    <div style="min-height:50px;"></div>
+                    <a class="btn btn-lg btn-block btn-success text-white" onclick="redirectToPrivacy();">I Agree</a>
+                </div>
+                </div>
+                </div>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </div>  
+
+<apex:outputPanel rendered="{!IF($CurrentPage.Parameters.renderAs = 'pdf',true,false)}">
+    <c:PDFHeaderFooter type="footer" position="center" showPageNumbers="false">
+        <c:PDFHeaderTerritory controllerType="Territory__c" controllerId="{!oppTerritory.Id}"/>
+    </c:PDFHeaderFooter>
+</apex:outputPanel>      
+
+
+<script>
+/*
+window.onscroll = function(e) {
+  // print "false" if direction is down and "true" if up
+  if(this.oldScroll > this.scrollY)
+  {
+      $('.proceedBtnDiv').css('display','none');
+  }
+  
+  if($(document).height() - ($(window).scrollTop() + $(window).height()) <=100 ) {
+       $('.proceedBtnDiv').css('display','');
+   }
+  
+  this.oldScroll = this.scrollY;
+}
+*/
+
+var onlineURL =  '{!onlineURL}';
+var acctId = "{!acctId}";
+var ldId = "{!ldId}";
+
+$(document).ready(
+    function(){
+        if('{!acctId}' != '' && '{!acctId}' != 'null' && '{!$User.Alias}' == 'guest'){
+            $('body').css('display','none');
+            window.location.href = onlineURL +'/R4KEnquiryLandingPage?id='+acctId+'&ld='+ldId+'&n='+Math.random();
+        }
+    }
+);
+
+function redirectToPrivacy(){
+    window.open('{!onlineURL}/R4KPrivacyStatement?terId={!oppTerritory.Id}&ld={!ldId}&id={!acctId}&n='+Math.random(),'_self');
+}
+</script> 
+</apex:page>

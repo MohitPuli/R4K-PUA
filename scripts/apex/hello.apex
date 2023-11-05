@@ -67,3 +67,12 @@ public static DateTime convertToStateTime(String state, DateTime userDateTime) {
     return convertedDateTime;
 }
 
+String twilioProfile = 'R4K Licensing';
+String twilioPersonName = null;
+List<Account> wipacctList = [SELECT Id,Name,Customer_No__c FROM Account WHERE Id = '0011s00001lW9Wl' LIMIT 1];
+List<PhoneCall__c> pcList = [select id,name 
+                            from PhoneCall__c where type__c=:twilioProfile and Read__c=false and ((Call_Type__c='Missed' and PersonName__c=:twilioPersonName) or 
+                            (Call_Type__c='Missed' and PersonName__c=null) or (Call_Type__c ='Incoming SMS')) and Account__c in ('0011s00001lW9Wl')  and CreatedDate=Last_N_Days:2  
+                            order by CreatedDate desc];
+System.debug(pcList);
+

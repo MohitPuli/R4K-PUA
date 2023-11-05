@@ -234,6 +234,8 @@ public Integer externalTransferTransactionCount{get;set;}
 public Decimal externalTransferDebitCount{get;set;}
 public String puaStatus{get;set;}
 
+public Map<String, String> stateToTimezone{get;set;}
+
 public R4KOnlineApplicationController()
 {
     wideBayTerritories = new List<String>{'Hervey Bay','Bundaberg','Gympie','South Burnett'};
@@ -244,6 +246,17 @@ public R4KOnlineApplicationController()
     webURL = SiteEndpoint__c.getValues('R4KWeb').URL__c;
     googleOCRKey = 'AIzaSyDx21c0a3rHOMEPpmi9g5DK6URh-CqtqrM';
     System.debug('onlineURL: '+onlineURL);
+
+    stateToTimezone = new Map<String, String> {
+        'NSW' => 'Australia/Sydney',
+        'VIC' => 'Australia/Melbourne',
+        'QLD' => 'Australia/Brisbane',
+        'SA'  => 'Australia/Adelaide',
+        'WA'  => 'Australia/Perth',
+        'TAS' => 'Australia/Hobart',
+        'ACT' => 'Australia/Canberra',
+        'NT'  => 'Australia/Darwin'
+    };
 }
 
 public void initEnquiry()
@@ -374,7 +387,7 @@ public void initAcknowledgementAndConsent(){
                     Rent_Mortgage_Board__c,Loan_Payments__c,Credit_Card__c,Insurance__c,Food__c,Utilities__c,Car_Lease_Loan_Payment__c,Mobile_Expenses__c,Clothing__c,Tobacco_Alcohol__c,OtherOutgoings__c,Other_Rental_Companies__c,Territory_State__c,
                     Rent_Online__c,Tobacco_Alcohol_Online__c,Transport_Travel_Online__c,Utilities_Online__c,Clothing_Online__c,Credit_Card_Online__c,Household_Online__c,Insurance_Online__c,Loan_Online__c,Mobile_Online__c,Other_Regular_Online__c,Other_Rental_Online__c,
                     Centrelink_Benefit_Amount__c,Centrelink_Benefit2_Amount__c,Centrelink_Benefit3_Amount__c,Other_Centrelink_Benefit_Amount__c,Other_Income_Amount__c,Rent4Keeps_Payment_C__c,Expense_Details__c,PersonContactId,Territory_Number__r.Name,
-                    Centrelink_Benefit__c,Centrelink_Benefit2__c,Centrelink_Benefit3__c,Other_Centrelink_Benefit__c,Entertaiment__c,Territory_Number__r.Is_Credit_Contract__c,Rent4Keeps_Account__c,PUA_Status__c,PUA_Status_DateTime__c,PUA_Declined_Reason__c
+                    Centrelink_Benefit__c,Centrelink_Benefit2__c,Centrelink_Benefit3__c,Other_Centrelink_Benefit__c,Entertaiment__c,Territory_Number__r.Is_Credit_Contract__c,Rent4Keeps_Account__c,PUA_Status__c,PUA_Status_DateTime__c,PUA_Declined_Reason__c,Probable_Territory__c,Probable_Territory__r.OwnerId
                     from Account where id=:acctId Limit 1];
         puaStatus = acct.PUA_Status__c;
         ishybridLinkCompleted = acct.Hybrid_Link_Finish_Datetime__c!=null ? true : false;
@@ -562,7 +575,7 @@ public void getFormDetails()
                 Rent_Mortgage_Board__c,Loan_Payments__c,Credit_Card__c,Insurance__c,Food__c,Utilities__c,Car_Lease_Loan_Payment__c,Mobile_Expenses__c,Clothing__c,Tobacco_Alcohol__c,OtherOutgoings__c,Other_Rental_Companies__c,Territory_State__c,
                 Rent_Online__c,Tobacco_Alcohol_Online__c,Transport_Travel_Online__c,Utilities_Online__c,Clothing_Online__c,Credit_Card_Online__c,Household_Online__c,Insurance_Online__c,Loan_Online__c,Mobile_Online__c,Other_Regular_Online__c,Other_Rental_Online__c,
                 Shared_Expenses_Confirmed__c,Shared_Expenses_Sent__c,Shared_Expenses_Online__c,Centrelink_Benefit_Amount__c,Centrelink_Benefit2_Amount__c,Centrelink_Benefit3_Amount__c,Other_Centrelink_Benefit_Amount__c,Other_Income_Amount__c,Rent4Keeps_Payment_C__c,Expense_Details__c,
-                Centrelink_Benefit__c,Centrelink_Benefit2__c,Centrelink_Benefit3__c,Other_Centrelink_Benefit__c,Entertaiment__c,Territory_Number__r.Is_Credit_Contract__c,Rent4Keeps_Account__c,PUA_Status__c,PUA_Status_DateTime__c,PUA_Declined_Reason__c,Opt_out_marketing_material__c
+                Centrelink_Benefit__c,Centrelink_Benefit2__c,Centrelink_Benefit3__c,Other_Centrelink_Benefit__c,Entertaiment__c,Territory_Number__r.Is_Credit_Contract__c,Rent4Keeps_Account__c,PUA_Status__c,PUA_Status_DateTime__c,PUA_Declined_Reason__c,Opt_out_marketing_material__c,Probable_Territory__c,Probable_Territory__r.OwnerId
                 from Account where id=:acctId Limit 1];
         
             if(accts.size()>0)
@@ -1175,23 +1188,30 @@ public Set<String> getExpenseGroupings(List<String> expenses)
 
 public void getPhotoIdDetails(Lead photoIdLead)
 {
-    photoIdDetails = (photoIdLead.Photo_Id_Details__c == null ? '' : photoIdLead.Photo_Id_Details__c);
+    photoIdDetails = (photoIdLead.Photo_Id_Details__c == null ? '' : (photoIdLead.Photo_Id_Details__c.containsIgnoreCase('Customer Entered :') ? photoIdLead.Photo_Id_Details__c.substringBefore('Customer Entered :') : photoIdLead.Photo_Id_Details__c));
     ocrText = (photoIdLead.OCR_Text__c == null ? '' : photoIdLead.OCR_Text__c);
     ocrBackText = (photoIdLead.OCR_Back_Text__c == null ? '' : photoIdLead.OCR_Back_Text__c);
     ocrAddress = (photoIdLead.OCR_Address__c == null ? '' : photoIdLead.OCR_Address__c);
+    System.debug('##photoIdDetails ' + photoIdDetails);
+
     if(photoIdDetails != null && photoIdDetails != ''){
         List<String> ocrStrings = photoIdDetails.split('\n');
         for(String ocrStr : ocrStrings){
             if(ocrStr.containsIgnoreCase('FirstName -')){
-                idFirstName = ocrStr.substringAfter('FirstName -').trim();    
+                idFirstName = ocrStr.substringAfter('FirstName -').trim();
+                idFirstName = (idFirstName == null || idFirstName.trim() == '' || idFirstName.trim() == 'null' ? null : idFirstName);    
             }else if(ocrStr.containsIgnoreCase('LastName -')){
-                idLastName = ocrStr.substringAfter('LastName -').trim();    
+                idLastName = ocrStr.substringAfter('LastName -').trim();   
+                idLastName = (idLastName == null || idLastName.trim() == '' || idLastName.trim() == 'null' ? null : idLastName); 
             }else if(ocrStr.containsIgnoreCase('DOB -')){
                 idDOB = ocrStr.substringAfter('DOB -').trim();    
+                idDOB = (idDOB == null || idDOB.trim() == '' || idDOB.trim() == 'null' ? null : idDOB);
             }else if(ocrStr.containsIgnoreCase('Id Type -')){
                 idType = ocrStr.substringAfter('Id Type -').trim();    
+                idType = (idType == null || idType.trim() == '' || idType.trim() == 'null' ? null : idType);
             }else if(ocrStr.containsIgnoreCase('Id Number -')){
-                idNumber = ocrStr.substringAfter('Id Number -').trim();    
+                idNumber = ocrStr.substringAfter('Id Number -').trim();  
+                idNumber = (idNumber == null || idNumber.trim() == '' || idNumber.trim() == 'null' ? null : idNumber);  
             }
         }
     }
@@ -1394,6 +1414,7 @@ public void closeWeCareCasesOnSummary()
     }
 }
 
+/*
 public List<String> checkAutoDecline(Account probableAccount){
     List<String> autoDeclineReasons = new List<String>{'false','',''};
     try{
@@ -1532,6 +1553,7 @@ public List<String> checkAutoDecline(Account probableAccount){
         return autoDeclineReasons;    
     }
 }
+*/
 
 public PageReference convertToApplicantStageTwo()
 {
@@ -1611,12 +1633,12 @@ public PageReference convertToApplicantStageTwo()
                     
                     return new PageReference(finalUrl).setRedirect(true);
                 }else{
-                    List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
+                    /*List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
                     if(reasonsForAutoDecline != null && reasonsForAutoDecline.size() > 2){
                         ldToUp.Auto_Decline__c = (reasonsForAutoDecline[0] == 'true' ? true : false);
                         ldToUp.Reason_For_Auto_Decline__c = reasonsForAutoDecline[1]; 
                         ldToUp.Probable_Account_Summary__c = reasonsForAutoDecline[2];    
-                    }
+                    }*/
                     
                     if(lead!=null && lead.Description!=null && lead.Description!='')
                         ldToUp.Description = '\n System Info - Stage 2 search Customer selected new applicant and based on the details provided found a corresponding applicant in stage 2 search '+accts[0].name+' in the system.';
@@ -1814,7 +1836,7 @@ public PageReference convertToApplicant()
         }
         
         String idVerMsg = 'Verification failed as ';
-        if(!ocrText.containsIgnoreCase(idLastNameParam)){
+        if(ocrText != null && !ocrText.containsIgnoreCase(idLastNameParam)){
             idVerMsg += 'LastName, ';
         }
         /*
@@ -1822,7 +1844,7 @@ public PageReference convertToApplicant()
             idVerMsg += 'DOB, ';
         }
         */
-        if(!ocrText.containsIgnoreCase(idNumberVal)){
+        if(ocrText != null && !ocrText.containsIgnoreCase(idNumberVal)){
             idVerMsg += 'Id Number, ';
         }
         if(idVerMsg != 'Verification failed as '){
@@ -1853,12 +1875,12 @@ public PageReference convertToApplicant()
                 {
                     ldToUp.Probable_Account__c = accts[0].Id;
                 
-                    List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
+                    /*List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
                     if(reasonsForAutoDecline != null && reasonsForAutoDecline.size() > 2){
                         ldToUp.Auto_Decline__c = (reasonsForAutoDecline[0] == 'true' ? true : false);
                         ldToUp.Reason_For_Auto_Decline__c = reasonsForAutoDecline[1]; 
                         ldToUp.Probable_Account_Summary__c = reasonsForAutoDecline[2];    
-                    }
+                    }*/
                     update ldToUp;
                     convertLeadOnline(lead, accts[0], idFirstNameParam, idLastNameParam, ldDob, idTypVal, idNumberVal, ldEmail, ldMobile, ldCRN);
                     
@@ -1904,12 +1926,12 @@ public PageReference convertToApplicant()
                     {
                         ldToUp.Probable_Account__c = accts[0].Id;
                 
-                        List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
+                        /*List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
                         if(reasonsForAutoDecline != null && reasonsForAutoDecline.size() > 2){
                             ldToUp.Auto_Decline__c = (reasonsForAutoDecline[0] == 'true' ? true : false);
                             ldToUp.Reason_For_Auto_Decline__c = reasonsForAutoDecline[1]; 
                             ldToUp.Probable_Account_Summary__c = reasonsForAutoDecline[2];    
-                        }
+                        }*/
                     }else
                     {
                         ldToUp.Description = 'System Info - Stage 1 search Customer selected new applicant and based on the details provided found a corresponding applicant '+accts[0].name+' in the system but it belongs to a different territory. Stop the search. Please followup.' + searchDescription;
@@ -2077,12 +2099,12 @@ public PageReference convertToApplicantHybrid()
                 ldToUp.Id  = ldId;
                 ldToUp.Probable_Account__c = accts[0].Id;
                 
-                List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
+                /*List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
                 if(reasonsForAutoDecline != null && reasonsForAutoDecline.size() > 2){
                     ldToUp.Auto_Decline__c = (reasonsForAutoDecline[0] == 'true' ? true : false);
                     ldToUp.Reason_For_Auto_Decline__c = reasonsForAutoDecline[1]; 
                     ldToUp.Probable_Account_Summary__c = reasonsForAutoDecline[2];    
-                }
+                }*/
                 
                 Boolean recordaccess = true;
                 
@@ -2191,12 +2213,12 @@ public PageReference convertToApplicantHybrid()
                 ldToUp.Probable_Account__c = accts[0].Id;
                 ldToUp.Hybrid_Link_Allocation_Datetime__c = Datetime.now();
                 
-                List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
+                /*List<String> reasonsForAutoDecline = checkAutoDecline(accts[0]);
                 if(reasonsForAutoDecline != null && reasonsForAutoDecline.size() > 2){
                     ldToUp.Auto_Decline__c = (reasonsForAutoDecline[0] == 'true' ? true : false);
                     ldToUp.Reason_For_Auto_Decline__c = reasonsForAutoDecline[1];  
                     ldToUp.Probable_Account_Summary__c = reasonsForAutoDecline[2];  
-                }
+                }*/
                 
                 //check recordaccess
                 //Lead ld = [SELECT Id,OwnerId FROM Lead WHERE Id =: ldId LIMIT 1];
@@ -4908,7 +4930,7 @@ public void initTCs(){
         }
     }
     if(terId != null && terId != ''){
-        oppTerritory = [SELECT Id,Company_Territory__c,Authorised_Representative_Of__c,Company_Name__c,Trading_Name__c,A_C_N__c,A_C_L__c,State_Master_State__c,
+        oppTerritory = [SELECT Id,Name,Company_Territory__c,Authorised_Representative_Of__c,Company_Name__c,Trading_Name__c,A_C_N__c,A_C_L__c,State_Master_State__c,
                         State_Master_Street__c,State_Master_Suburb__c,State_Master_Postcode__c,Authorised_Representative_Phone__c,Authorised_Representative_Email__c,
                         Mobile__c,Email__c,Credit_Representative_Number__c,Authorised_Representative_A_C_N__c,A_B_N__c, 
                         Street_Address__c,Street_Suburb__c,Street_State__c,Street_Postcode__c,
@@ -5168,10 +5190,26 @@ public void updateTransferRelationship(){
     update accountToUp;
 }
 
+
+public void sendPUASMS(String smsGroup, String reasonForDN){
+    String smsSenderId = 'r4k';
+    String smsTemplateForCust;
+    if(smsGroup == 'PUA-Declined'){
+        smsSenderId = '61488884542';
+        smsTemplateForCust = 'Sorry ' + acct.FirstName + ', your application was declined due to ' + reasonForDN + '. Reply \'HELP\' for support.';
+    }else if(smsGroup == 'PUA-Approved'){
+        smsTemplateForCust = 'Great news, ' + acct.FirstName + '! Your Preliminary Unsuitability Assessment passed. Your credit provider will contact you for final steps. Stay tuned!';
+    }
+    CommunicationUtil.sendSMS(acct.SMS_Mobile__c, smsTemplateForCust, smsGroup, 'Account', acct.Id, acct.ownerId, false, smsSenderId);
+}
+
 public Pagereference acceptPOATerms(){
     String poaTerm1 = Apexpages.currentPage().getParameters().get('poaTerm1');
     String poaTerm2 = Apexpages.currentPage().getParameters().get('poaTerm2');
     String poaTerm3 = Apexpages.currentPage().getParameters().get('poaTerm3');
+    String poaTerm4 = Apexpages.currentPage().getParameters().get('poaTerm4');
+    String poaTerm5 = Apexpages.currentPage().getParameters().get('poaTerm5');
+    String poaTerm6 = Apexpages.currentPage().getParameters().get('poaTerm6');
 
     try{
         Account accountToUp = new Account();
@@ -5179,10 +5217,14 @@ public Pagereference acceptPOATerms(){
         accountToUp.PUA_Term_1__c = (poaTerm1 == 'yes' ? true : false);
         accountToUp.PUA_Term_2__c = (poaTerm2 == 'yes' ? true : false);
         accountToUp.PUA_Term_3__c = (poaTerm3 == 'yes' ? true : false);
+        accountToUp.PUA_Term_4__c = (poaTerm4 == 'yes' ? true : false);
+        accountToUp.PUA_Term_5__c = (poaTerm5 == 'yes' ? true : false);
+        accountToUp.PUA_Term_6__c = (poaTerm6 == 'yes' ? true : false);
         accountToUp.Last_Online_Activity_Datetime__c = DateTime.now();
         accountToUp.PUA_Status_DateTime__c = DateTime.now();
         accountToUp.PUA_Declined_Reason__c = null;
         accountToUp.PUA_Status__c = 'In Progress';
+        accountToUp.Reason_why_application_did_not_go_ahead__c = null;
         String ramAssessment = 'Declined';
 
         PUA__c pua = new PUA__c();
@@ -5191,8 +5233,9 @@ public Pagereference acceptPOATerms(){
         pua.Enquiry_Date__c = acct.Enquiry_Date__c;
         pua.Enquiry_Status__c = acct.Enquiry_Status__c;
         pua.Territory__c = acct.Probable_Territory__c;
+        pua.OwnerId = acct.Probable_Territory__r.OwnerId;
 
-        if(accountToUp.PUA_Term_1__c && accountToUp.PUA_Term_2__c && accountToUp.PUA_Term_3__c){
+        if(accountToUp.PUA_Term_1__c && accountToUp.PUA_Term_2__c && accountToUp.PUA_Term_3__c && accountToUp.PUA_Term_4__c && accountToUp.PUA_Term_5__c && accountToUp.PUA_Term_6__c){
             ramAssessment = initialRAMAssessment(acctId);
             if(ramAssessment == 'Approved'){
                 accountToUp.PUA_Status__c = ramAssessment;
@@ -5223,6 +5266,8 @@ public Pagereference acceptPOATerms(){
 
         update accountToUp;
         insert pua;
+
+        sendPUASMS(('PUA-' + pua.Status__c), accountToUp.Reason_why_application_did_not_go_ahead__c);
         if(ramAssessment == '' || ramAssessment == 'Approved'){
             return new Pagereference(onlineURL + '/R4KPUAAcknowledgement?id='+acctId).setRedirect(true);
         }else{
@@ -5258,13 +5303,16 @@ public PageReference acceptAcknowledgement(){
             pua.Failed_Reason__c = accountToUp.Reason_why_application_did_not_go_ahead__c;
             pua.Enquiry_Status__c = accountToUp.Enquiry_Status__c;
             pua.Status__c = 'Declined';
+            pua.OwnerId = acct.Probable_Territory__r.OwnerId;
             insert pua;
+
+            sendPUASMS('PUA-Declined', accountToUp.Reason_why_application_did_not_go_ahead__c);
 
             return new Pagereference(onlineURL + '/R4KPUADeclined?id='+acctId).setRedirect(true);
         }else{
             //transfer to credit provider
             Id masterAcctId = acctId;
-            if(acct.Territory_Number__r.Name != '1000'){
+            if(acct.Territory_Number__r.Name == '1000'){
                 masterAcctId = AccountUtil.transferToCreditProvider(acctId);
             }
             //send acknowledgement, credit guide, privacy statements
@@ -5702,7 +5750,7 @@ public void updateAddress()
         accountToUp.Last_Online_Activity_Datetime__c = DateTime.now();
         update accountToUp;
 
-        if(UserInfo.getOrganizationId() == '00D90000000hZ5L'){
+        if(UserInfo.getOrganizationId() == '00D90000000hZ5L' && !Test.isRunningTest()){
             Account tempAcct = [SELECT Id, Equifax_Age_of_File__c, Equifax_Enquiry_DateTime__c FROM Account WHERE Id = :acctId LIMIT 1];
             if(tempAcct != null && (tempAcct.Equifax_Enquiry_DateTime__c == null || tempAcct.Equifax_Enquiry_DateTime__c.date().daysBetween(Date.today()) > 21 || tempAcct.Equifax_Age_of_File__c == null || tempAcct.Equifax_Age_of_File__c == '0 months')){
                 equifaxSearch();
@@ -5765,7 +5813,7 @@ public void updatePreviousAddress()
         accountToUp.Last_Online_Activity_Datetime__c = DateTime.now();
         update accountToUp;
 
-        if(UserInfo.getOrganizationId() == '00D90000000hZ5L'){
+        if(UserInfo.getOrganizationId() == '00D90000000hZ5L' && !Test.isRunningTest()){
             Account tempAcct = [SELECT Id, Equifax_Age_of_File__c, Equifax_Enquiry_DateTime__c FROM Account WHERE Id = :acctId LIMIT 1];
             if(tempAcct != null && (tempAcct.Equifax_Enquiry_DateTime__c == null || tempAcct.Equifax_Enquiry_DateTime__c.date().daysBetween(Date.today()) > 21 || tempAcct.Equifax_Age_of_File__c == null || tempAcct.Equifax_Age_of_File__c == '0 months')){
                 equifaxSearch();
@@ -5905,9 +5953,9 @@ public void updateBasicInfo()
     String lastName=Apexpages.currentPage().getParameters().get('lastName');
     String dob=Apexpages.currentPage().getParameters().get('dob');
     String gender=Apexpages.currentPage().getParameters().get('gender');
-    String crn=Apexpages.currentPage().getParameters().get('crn');
+    //String crn=Apexpages.currentPage().getParameters().get('crn');
     
-    system.debug('firstName: '+firstName+' lastName: '+lastName+' dob: '+dob+' gender: '+gender+' crn: '+crn);
+    system.debug('firstName: '+firstName+' lastName: '+lastName+' dob: '+dob+' gender: '+gender);
     
     Account account = new Account();
     if(acctId!=null && acctId!='')
@@ -5919,7 +5967,7 @@ public void updateBasicInfo()
         account.Gender__pc = gender;
         account.Next_Online_Step_Param__c = 'cd';
         account.Last_Online_Activity_Datetime__c = DateTime.now();
-        
+        /*
         if(crn!=null && crn!='')
         {
             crn = crn.toUpperCase();
@@ -5927,6 +5975,7 @@ public void updateBasicInfo()
             if(atLst.size()==0)
                 account.Centrepay_Ref_No__c = crn;
         }
+        */
         update account;
     }
     }
@@ -6562,6 +6611,7 @@ public void initNavBar(Account navAcct)
         unsuitabilityPending = true;
         signingPending = true;
         deliveryPending = true;
+        puaDeclined = false;
         
         List<Opportunity> oppList = [SELECT Id,Delivery_Date__c,TaxInvoice_Signed_Datetime__c,Approval_Status__c,
                             (Select Id,Description,Name,HNC_Delivery_Status__c,Tracking_Number__c,Tracking_Link__c,HNC_Status_Change_Datetime__c From OpportunityLineItems) 
@@ -6591,6 +6641,7 @@ public void initNavBar(Account navAcct)
             documentsPending = false;
             assessmentPending = false;
             unsuitabilityPending = false;
+            puaDeclined = (navAcct.PUA_Status__c == 'Declined' ? true : false);
         }
         
         if(oppList.size() > 0){
@@ -6832,8 +6883,15 @@ public void createEnquiryCase()
         String caseOwnerId;
         String caseId;
         String assignedTo = (lead.Applicant_Status__c == 'Collection' ? 'Collection' : 'We Care');
-        DateTime callBackDateTime = DateTime.valueOf((rFromDt+' '+rFromTi+':00'));
-        callBackDateTime = Util.getStateTimeZoneDatetimeToAddInput(lead.Territory_State__c,callBackDateTime);
+        String callBackDateTimeStr = rFromDt+' '+rFromTi+':00';
+        DateTime callBackDateTime = DateTime.valueOfGMT(callBackDateTimeStr);
+        System.debug('##callBackDateTime ' + callBackDateTime);
+        System.debug('##lead.Territory_State__c ' + lead.Territory_State__c);
+        System.debug('##UserInfo.getTimeZone().getID() ' + UserInfo.getTimeZone().getID());
+        System.debug('##stateToTimezone.get(lead.Territory_State__c) ' + stateToTimezone.get(lead.Territory_State__c));
+        callBackDateTime = callBackDateTime.addMinutes(Util.getTimeDifferenceBetweenUsers(UserInfo.getTimeZone().getID(), stateToTimezone.get(lead.Territory_State__c)));
+        System.debug('##callBackDateTime ' + callBackDateTime);
+        callBackDateTimeStr = callBackDateTime.format('dd MMM yyyy h:mm a', stateToTimezone.get(lead.Territory_State__c)) + ' ' + lead.Territory_State__c + ' timezone.';
         List<Case> csList = [SELECT Id,Description,Status,OwnerId,Hybrid_Link_Opened_Datetime__c FROM Case WHERE AccountId =: lead.Account__c AND Status <> 'Closed' AND RecordTypeId =: caseRecordTypeId ORDER BY CreatedDate DESC LIMIT 1];
         if(csList.size() == 0)
         {
@@ -6847,7 +6905,7 @@ public void createEnquiryCase()
                 cs.Id = csList[0].Id;
                 caseId = csList[0].Id;
                 cs.Callback_Requested_DateTime__c = callBackDateTime;
-                cs.Description = dateTimeString + '\n\n' + 'Reason for enquiry : ' + enquiryOpp + '\n' + 'Notes / Comments : ' + enquiryNotes + '\n' + 'Callback requested on ' + cs.Callback_Requested_DateTime__c.format('dd/MM') + ' ' + cs.Callback_Requested_DateTime__c.hour() + ':' + cs.Callback_Requested_DateTime__c.minute() + (csList[0].Description == null ? '' : '\n\n' + csList[0].Description);
+                cs.Description = dateTimeString + '\n\n' + 'Reason for enquiry : ' + enquiryOpp + '\n' + 'Notes / Comments : ' + enquiryNotes + '\n' + 'Callback requested on ' + callBackDateTimeStr + (csList[0].Description == null ? '' : '\n\n' + csList[0].Description);
                 cs.Type = enquiryType;
                 cs.Status = (csList[0].Status == 'Closed' ? 'Re-Opened' : csList[0].Status);
                 cs.RecordTypeId = caseRecordTypeId;
@@ -6861,7 +6919,7 @@ public void createEnquiryCase()
             }else
             {
                 User caseUser;
-                List<User> wecareUsers = [SELECT Id,Name FROM User WHERE Name in ('Darranda Admin','NZ CLO','Darranda Collections')];
+                List<User> wecareUsers = [SELECT Id,Name FROM User WHERE Name in ('Darranda Admin','NZ CLO','Darranda Collections','IT Admin')];
                 for(User us : wecareUsers)
                 {
                     if(lead.Account__r.State_Master_State__c == 'NZ' && us.Name == 'NZ CLO')
@@ -6876,6 +6934,8 @@ public void createEnquiryCase()
                     {
                         caseUser = us;
                         break;
+                    }else if(caseUser == null && us.Name == 'IT Admin'){
+                        caseUser = us;
                     }
                 }
                 
@@ -6883,7 +6943,7 @@ public void createEnquiryCase()
                 cs.Origin = 'Web';
                 cs.Subject = lead.Account__r.Name + ' (' + lead.Account__r.Customer_No__c + ')';
                 cs.Callback_Requested_DateTime__c = callBackDateTime;
-                cs.Description = dateTimeString + '\n\n' + 'Reason for enquiry : ' + enquiryOpp + '\n' + 'Notes / Comments : ' + enquiryNotes + '\n' + 'Callback requested on ' + cs.Callback_Requested_DateTime__c.format('dd/MM') + ' ' + cs.Callback_Requested_DateTime__c.hour() + ':' + cs.Callback_Requested_DateTime__c.minute();
+                cs.Description = dateTimeString + '\n\n' + 'Reason for enquiry : ' + enquiryOpp + '\n' + 'Notes / Comments : ' + enquiryNotes + '\n' + 'Callback requested on ' + callBackDateTimeStr;
                 cs.Priority = 'Level 3 - High';
                 cs.Status = 'New';
                 cs.Type = enquiryType;
@@ -6958,29 +7018,35 @@ public void createEnquiryCase()
             }
         }else
         {
-            User nzClo,vicClo,nswClo;
-            List<User> cloUsers = [SELECT Id,Name FROM User WHERE Name in ('NZ CLO','R4K Services','NSW SR')];
-            for(User us : cloUsers)
+            User caseUser;
+            List<User> wecareUsers = [SELECT Id,Name FROM User WHERE Name in ('NZ CLO','R4K Services','NSW SR','IT Admin')];
+            for(User us : wecareUsers)
             {
-                if(us.Name == 'NZ CLO')
+                if(lead.Account__r.State_Master_State__c == 'NZ' && us.Name == 'NZ CLO')
                 {
-                    nzClo = us;
-                }else if(us.Name == 'R4K Services')
+                    caseUser = us;
+                    break;
+                }else if(lead.Account__r.State_Master_State__c == 'NSW' && us.Name == 'NSW SR')
                 {
-                    vicClo = us;
-                }else if(us.Name == 'NSW SR')
+                    caseUser = us;
+                    break;
+                }else if(lead.Account__r.State_Master_State__c != 'NZ' && lead.Account__r.State_Master_State__c != 'NSW' && us.Name == 'R4K Services')
                 {
-                    nswClo = us;
+                    caseUser = us;
+                    break;
+                }else if(caseUser == null && us.Name == 'IT Admin'){
+                    caseUser = us;
                 }
             }
             PhoneCall__c pc = new PhoneCall__c();
             pc.Account__c = lead.Account__c;
             pc.Call_Type__c = 'Incoming SMS';
-            pc.OwnerId = (lead.Account__r.State_Master_State__c == 'NZ' ? nzClo.Id : (lead.Account__r.State_Master_State__c == 'NSW' ? nswClo.Id : vicClo.Id));
-            pc.SMS_Message__c = 'Customer requested a callback on ' + callBackDateTime.format('dd/MM') + ' ' + callBackDateTime.hour() + ':' + callBackDateTime.minute() + '\n\n' + enquiryNotes;
+            pc.OwnerId = caseUser.Id;
+            pc.SMS_Message__c = 'Customer requested a callback on ' + callBackDateTimeStr + '\n\n' + enquiryNotes;
             pc.Mobile__c = lead.Account__r.SMS_Mobile__c;
             pc.Lead__c = lead.Id;
             pc.Type__c = (lead.Account__r.State_Master_State__c == 'NZ' ? 'NZ CLO' : (lead.Account__r.State_Master_State__c == 'NSW' ? 'NSW CLO' : 'Darranda CLO'));
+            //pc.CallStartDateTime__c = callBackDateTime;
             insert pc;
         }
         
@@ -8070,21 +8136,10 @@ public void remindMeIn(){
         Lead ldToUp = new Lead();
         ldToUp.Id = ((ldId != null && ldId != '') ? ldId : ((latestLdId != null && latestLdId != '') ? latestLdId : null));
         if(remindMeIn.equalsIgnoreCase('9AM')){
-            Map<String, String> stateToTimezone = new Map<String, String> {
-                'NSW' => 'Australia/Sydney',
-                'VIC' => 'Australia/Melbourne',
-                'QLD' => 'Australia/Brisbane',
-                'SA'  => 'Australia/Adelaide',
-                'WA'  => 'Australia/Perth',
-                'TAS' => 'Australia/Hobart',
-                'ACT' => 'Australia/Canberra',
-                'NT'  => 'Australia/Darwin'
-            };
-
             Date myTomDate = Date.today().addDays(1);
             Time my9amTime = Time.newInstance(9, 0, 0, 0);
             DateTime my9amDateTime = DateTime.newInstance(myTomDate, my9amTime);
-            ldToUp.Callback_Requested_DateTime__c = my9amDateTime.addMinutes(getTimeDifferenceBetweenUsers(UserInfo.getTimeZone().getID(), stateToTimezone.get(lead.Probable_Territory__r.State_Master_State__c)));
+            ldToUp.Callback_Requested_DateTime__c = my9amDateTime.addMinutes(Util.getTimeDifferenceBetweenUsers(UserInfo.getTimeZone().getID(), stateToTimezone.get(lead.Probable_Territory__r.State_Master_State__c)));
         }else{
             ldToUp.Callback_Requested_DateTime__c = DateTime.now().addMinutes(Integer.valueOf(remindMeIn));
         }
@@ -8092,21 +8147,6 @@ public void remindMeIn(){
     }catch(Exception ex){
         ErrorLog.addErrorLog('R4KOnlineApplicationController','remindMeIn',ldId,String.valueOf(ex),String.valueOf(ex.getLineNumber()));
     }
-}
-
-public Integer getTimeDifferenceBetweenUsers(String timeZone1, String timeZone2) {
-    // Retrieve TimeZone details for both users
-    TimeZone tz1 = TimeZone.getTimeZone(timeZone1);
-    TimeZone tz2 = TimeZone.getTimeZone(timeZone2);
-
-    // Calculate the difference in milliseconds
-    Integer differenceInMillis = tz1.getOffset(DateTime.now()) - tz2.getOffset(DateTime.now());
-
-    // Convert to minutes
-    Integer minutesDifference = (Integer)Math.ceil(differenceInMillis / (1000 * 60));
-
-    System.debug('##minutesDifference ' + minutesDifference);
-    return minutesDifference;
 }
 
 public void submitCallbackRequest()
@@ -8199,6 +8239,7 @@ public Boolean assessmentPending{get;set;}
 public Boolean signingPending{get;set;}
 public Boolean deliveryPending{get;set;}
 public Boolean unsuitabilityPending{get;set;}
+public Boolean puaDeclined{get;set;}
 
 public String currentAddress{get;set;}
 public Decimal lengthOfStayCurrent{get;set;}

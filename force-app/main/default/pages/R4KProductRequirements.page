@@ -252,9 +252,15 @@
                         <!--Panel 1-->
                         <!--Product Requirement-->
                         <div class="multisteps-form__panel productPanel productPanelPanel shadow js-active" data-animation="scaleIn">
-                            <h5 class="multisteps-form__title mt-4 mb-4">Tell us the reasons why you are applying for a Sale of Goods by Instalment product?</h5>
+                            <h5 class="multisteps-form__title mt-4 mb-4">Tell us the reasons why you are applying for a Sale of Goods by Instalment Credit Product? (Instalment Agreement)</h5>
                             <div class="multisteps-form__content whiteDiv">
-                                <div class="silverDiv">  
+                                <div class="silverDiv">
+                                    <div class="form-row p-1 mt-4">
+                                        <p>
+                                            <strong>Sale of Goods by Instalment</strong> <br/>
+                                            the goods you have selected and you agree to make payments for those goods in multiple instalments over time, with interest or credit charges included
+                                        </p>
+                                    </div>  
                                     <div class="form-row p-1 mt-4">
                                         <input type="hidden" class="hdnCurrentPageVal" value="product"/>
                                         <label class="labelName">What type of Product do you want to Purchase?</label>
@@ -283,7 +289,7 @@
                                         </select>
                                     </div>
                                     <div class="form-row p-1 mt-4">
-                                        <label class="labelName">Product Description you are purchasing:</label><br/>
+                                        <label class="labelName">Product Description you are purchasing:&nbsp;</label><br/>
                                         <span class="font-weight-bold">{!ldDesiredProduct}</span>
                                     </div>
                                     <div class="p-1 mt-4">
@@ -524,12 +530,12 @@
                         <!--Panel 2-->
                         <!--Sale of Goods-->
                         <div class="multisteps-form__panel consPanel shadow" data-animation="scaleIn">
-                            <h5 class="multisteps-form__title mt-4 mb-4 p-1">Tell us the reasons why you use a Sale of Goods by Instalment?</h5>
+                            <h5 class="multisteps-form__title mt-4 mb-4 p-1">Tell us the reasons why you would use a Sale of Goods by Instalment and how it would benefit you?</h5>
                             <div class="multisteps-form__content whiteDiv">
                                 <div class="silverDiv">  
                                     <div class="form-row p-1 mt-2">
                                         <input type="hidden" class="hdnCurrentPageVal" value="cons"/>
-                                        <label class="labelName ml-2 font-weight-bold">Why use a Sale of Goods by Instalment?</label>
+                                        <label class="labelName ml-2 font-weight-bold">Select one or more reasons below:</label>
                                     </div>
                                     <div class="p-1 mt-2">
                                         <input class="whyConsumerLease whyConsumerLease1 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease1val" style="display:inline;">No upfront cost to me</span> <br/>
@@ -565,7 +571,7 @@
                                         <input class="whyConsumerLease whyConsumerLease11 ml-1" style="width:20px;height:20px;display:inline;" type="checkbox"/>&nbsp;&nbsp;<span class="whyConsumerLease11val" style="display:inline;">I have the flexibility in choosing my repayment terms</span>
                                     </div>
                                     <div class="form-row p-1 mt-4">
-                                        <label class="labelName font-weight-bold">Benefit of Sale of Goods by Instalment?</label>
+                                        <label class="labelName font-weight-bold">Select from the dropdown box, how Instalments will benefit you?</label>
                                         <select id="benefitsOfConsumerLease" class="multisteps-form__select form-control benefitsOfConsumerLease">
                                         <option>--Select--</option>
                                         <option>Same day processing of the application and immediate delivery</option>
@@ -584,8 +590,8 @@
                                         <option>A relatively simple application process than applying for a traditional loan</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <p class="mt-2">Click "I Understand" to proceed. This is the right choice for my purchase.</p>
+                                    <div class="p-1 mt-4 text-center">
+                                        <p class="mt-4 text-center">Click "I Understand" to proceed. This is the right choice for my purchase.</p>
                                     </div>
                                     <div style="min-height:50px;">
                                         <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
